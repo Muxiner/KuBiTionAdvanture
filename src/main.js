@@ -646,6 +646,10 @@ var NormalMenuComponent = React.createClass({
         settings            :React.PropTypes.object.isRequired,
         upload              :React.PropTypes.func.isRequired,
         download            :React.PropTypes.func.isRequired,
+        saveLocal           :React.PropTypes.func.isRequired,
+        loadLocal           :React.PropTypes.func.isRequired,
+        deleteLocal         :React.PropTypes.func.isRequired,
+        getLocalSaves       :React.PropTypes.func.isRequired,
         setVolume           :React.PropTypes.func.isRequired,
         AudioEngine         :React.PropTypes.object.isRequired,
         currentScene        :React.PropTypes.string.isRequired,
@@ -663,10 +667,41 @@ var NormalMenuComponent = React.createClass({
         return{
             menuType:menuType,
             selectedSkill:null,
+            localSaves:null,
         }
     },
     componentWillMount:function(){
         this.context.setStateFromChildren({menuHint:0});
+    },
+    componentDidMount:function(){
+        this.refreshLocalSaves();
+    },
+    refreshLocalSaves:function(){
+        this.setState({localSaves:this.context.getLocalSaves()});
+    },
+    handleLocalSave:function(slot){
+        if(confirm('确定覆盖第' + slot + '号本地存档吗？')){
+            if(this.context.saveLocal(slot)){
+                this.refreshLocalSaves();
+                alert('本地保存成功！');
+            }
+        }
+    },
+    handleLocalLoad:function(slot){
+        var saves = this.context.getLocalSaves();
+        if(!saves[slot]){
+            alert('该存档位是空的...');
+            return;
+        }
+        if(confirm('确定读取第' + slot + '号本地存档吗？当前未保存的进度会丢失。')){
+            this.context.loadLocal(slot);
+        }
+    },
+    handleLocalDelete:function(slot){
+        if(confirm('确定删除第' + slot + '号本地存档吗？')){
+            this.context.deleteLocal(slot);
+            this.refreshLocalSaves();
+        }
     },
     upload:function() {
         this.context.upload();
@@ -815,6 +850,32 @@ var NormalMenuComponent = React.createClass({
                                 <BtnComponent disabled = {this.context.currentScene != 'home' || (getLength(this.context.mstState) != 0)||(this.context.robberSaveData.robber)} handleClick = {this.willUpload}>保存</BtnComponent>
                                 <BtnComponent handleClick = {this.download}>读取</BtnComponent>
                             </div>
+                        </div>
+                        <div style = {{marginTop:10}}>
+                            <label>本地存档</label>
+                            {function(){
+                                var canSave = this.context.currentScene == 'home' && (getLength(this.context.mstState) == 0) && !this.context.robberSaveData.robber;
+                                var localSaves = this.state.localSaves || this.context.getLocalSaves();
+                                var seasonName = {spring:'春',summer:'夏',autumn:'秋',winter:'冬'};
+                                var result = [];
+                                for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
+                                    (function(slot){
+                                        var save = localSaves[slot];
+                                        var desc = save
+                                            ? ((save.generation?'轮回' + save.generation + ' ':'') + (seasonName[save.season]||'') + '第' + save.day + '日')
+                                            : '空存档';
+                                        result.push(
+                                            <div key = {'localSave' + slot} style = {{display:'flex',alignItems:'center',marginBottom:4}}>
+                                                <span style = {{flex:1,textAlign:'left'}}>{slot + '. ' + desc}</span>
+                                                <BtnComponent disabled = {!canSave} handleClick = {this.handleLocalSave.bind(this,slot)}>保存</BtnComponent>
+                                                <BtnComponent disabled = {!save} handleClick = {this.handleLocalLoad.bind(this,slot)}>读取</BtnComponent>
+                                                <BtnComponent disabled = {!save} handleClick = {this.handleLocalDelete.bind(this,slot)}>删除</BtnComponent>
+                                            </div>
+                                        );
+                                    }.bind(this))(i);
+                                }
+                                return result;
+                            }.bind(this)()}
                         </div>
 
                         <label className = "checkbox" htmlFor="autoSave">
@@ -5175,6 +5236,10 @@ var MainComponent = React.createClass({
         useTime              : React.PropTypes.func.isRequired,
         upload               : React.PropTypes.func.isRequired,
         download             : React.PropTypes.func.isRequired,
+        saveLocal            : React.PropTypes.func.isRequired,
+        loadLocal            : React.PropTypes.func.isRequired,
+        deleteLocal          : React.PropTypes.func.isRequired,
+        getLocalSaves        : React.PropTypes.func.isRequired,
         settings             : React.PropTypes.object.isRequired,
         setVolume            : React.PropTypes.func.isRequired,
         callWindow           : React.PropTypes.func.isRequired,
@@ -5253,6 +5318,10 @@ var MainComponent = React.createClass({
             useTime             : this.useTime,
             upload              : this.upload,
             download            : this.download,
+            saveLocal           : this.saveLocal,
+            loadLocal           : this.loadLocal,
+            deleteLocal         : this.deleteLocal,
+            getLocalSaves       : this.getLocalSaves,
             settings            : this.state.settings,
             setVolume           : this.setVolume,
             callWindow          : this.callWindow,
@@ -6480,6 +6549,72 @@ var MainComponent = React.createClass({
                 if(!doNotShow)alert("保存成功！");
                     // self.setState({saveData:decodeURI(encodeURI(JSON.stringify(saveData)))});
         }});
+    },
+    getLocalSaveKey:function(slot){
+        return LOCAL_SAVE_PREFIX + slot;
+    },
+    getLocalSaves:function(){
+        //读取所有本地存档槽的元信息
+        var result = {};
+        for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
+            var raw = null;
+            try{
+                raw = localStorage.getItem(this.getLocalSaveKey(i));
+            }catch(e){
+                raw = null;
+            }
+            var save = null;
+            if(raw){
+                try{
+                    save = JSON.parse(raw);
+                }catch(e){
+                    save = null;
+                }
+            }
+            result[i] = save;
+        }
+        return result;
+    },
+    saveLocal:function(slot){
+        var saveData = clone(this.state);
+        delete saveData.settings;
+        delete saveData.saveData;
+        delete saveData.wind;
+        delete saveData.detailedItem;
+        delete saveData.detailedList;
+        delete saveData.detailedType;
+        var save = {
+            version : 1,
+            savedAt : Date.now(),
+            day     : saveData.time.day,
+            hour    : saveData.time.hour,
+            season  : saveData.season,
+            generation: saveData.generation,
+            data    : JSON.stringify(saveData),
+        };
+        try{
+            localStorage.setItem(this.getLocalSaveKey(slot),JSON.stringify(save));
+        }catch(e){
+            alert('本地保存失败，浏览器可能不支持或存储已满...');
+            return false;
+        }
+        return true;
+    },
+    loadLocal:function(slot){
+        var saves = this.getLocalSaves();
+        var save = saves[slot];
+        if(!save || !save.data){
+            alert('该存档位是空的...');
+            return false;
+        }
+        this.setState({saveData:save.data});
+        this.loadData(save.data);
+        return true;
+    },
+    deleteLocal:function(slot){
+        try{
+            localStorage.removeItem(this.getLocalSaveKey(slot));
+        }catch(e){}
     },
 });
 function render(){

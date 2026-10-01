@@ -10,6 +10,9 @@ var MAX_STATE = 100;//所有状态的基础
 
 var COOK_TIME_NEED = 0.5;
 var SAVE_URL = '//kubitionadvanture.sinaapp.com/save.php';
+//本地存档
+var LOCAL_SAVE_PREFIX = 'kubitionadvanture_save_';
+var LOCAL_SAVE_SLOTS = 3;
 var DELAY_MUL = (MODE == 'DEBUG')?0:400;
 // var DELAY_MUL = 400;
 var MIX_DELAY = 100;
