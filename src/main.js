@@ -6749,6 +6749,24 @@ var MainComponent = React.createClass({
                 data.boxSaveData[attr] = clone(BOX_INIT[attr]);
             }
         }
+        // 兼容旧存档：旧版本装备后物品仍留在背包中；这里把已装备物品从背包扣除一次，
+        // 使装备不再占用背包格子（仅对旧结构存档执行），并补齐新增的装备槽位。
+        if(data.currentEquip){
+            var isOldEquipSchema = (data.currentEquip.weapon1 === undefined && data.currentEquip.weapon2 === undefined && data.currentEquip.neck === undefined);
+            if(isOldEquipSchema){
+                for(var eqSlot in data.currentEquip){
+                    var eqItem = data.currentEquip[eqSlot];
+                    if(eqItem && data.boxSaveData.bag.things[eqItem]){
+                        data.boxSaveData.bag.things[eqItem] -= 1;
+                        if(data.boxSaveData.bag.things[eqItem] <= 0)delete data.boxSaveData.bag.things[eqItem];
+                    }
+                }
+            }
+            var equipSlotList = ['head','body','foot','neck','hand','weapon1','weapon2'];
+            for(var es = 0;es < equipSlotList.length;es++){
+                if(data.currentEquip[equipSlotList[es]] === undefined)data.currentEquip[equipSlotList[es]] = null;
+            }
+        }
         //新地图资源
         for(var place in PLACE_DATA){
             if(data.placeSaveData[place] == undefined){
