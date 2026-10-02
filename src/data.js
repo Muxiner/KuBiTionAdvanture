@@ -37,7 +37,7 @@ var SAN_DESC_PER_HOUR = 3;
 var PICK_TIME = 3;
 var NIGHT_BEGIN = 22;
 var NIGHT_END = 2;
-var SEASON_CIRCLE = 15;
+var SEASON_CIRCLE = 80;
 var TRADE_MUL = 0.75;
 var COLOR = {
     BLACK: '#222',
