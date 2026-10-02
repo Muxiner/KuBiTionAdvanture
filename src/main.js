@@ -323,7 +323,7 @@ var RequireComponent = React.createClass({
                 // if(count > 0 && count%2 == 0)result.push(<br key = {'br_'+count}/>);
                 if(count > 0&&this.props.withSpace)result.push(<br key = {'br_' + count}/>);
                 var amount = requireList[attr];
-                var name = ITEM_DATA[attr]?ITEM_DATA[attr].name:STATE_DATA[attr].name;
+                var name = ITEM_DATA[attr]?ITEM_DATA[attr].name:(STATE_DATA[attr]?STATE_DATA[attr].name:attr);
                 result.push(<span key = {count} className = "resourceName" style = {{color:this.props.isGreen?COLOR.GREEN:(this.context.checkHaveResource(attr,amount,bag)?COLOR.GREEN:COLOR.RED)}}>
                                 {name}
                                 <span className = "badge resourceAmount">
@@ -3236,24 +3236,85 @@ var TrapComponent = React.createClass({
 
     }
 })
-var CookerComponent = React.createClass({
-    timeNeed:1,
+// 炊具食谱：列出 COOK_DATA，一键烹调。食材自动从「背包+大箱子」扣除，成品放入 cooked 箱
+var CookRecipeComponent = React.createClass({
     contextTypes:{
-        boxSaveData:React.PropTypes.object.isRequired,
-        useItem    :React.PropTypes.func.isRequired,
-        changeItem :React.PropTypes.func.isRequired,
-        useTime    :React.PropTypes.func.isRequired,
+        boxSaveData          :React.PropTypes.object.isRequired,
+        checkHaveResourceAll :React.PropTypes.func.isRequired,
+        useItemThatPlayerHave:React.PropTypes.func.isRequired,
+        useTime              :React.PropTypes.func.isRequired,
+        changeItem           :React.PropTypes.func.isRequired,
+        checkFull            :React.PropTypes.func.isRequired,
+        getTheMaxTimeToUse   :React.PropTypes.func.isRequired,
+        getBuildingLevel     :React.PropTypes.func.isRequired,
+        AudioEngine          :React.PropTypes.object.isRequired,
+    },
+    // 单份烹调耗时（受炊具升级科技影响）
+    getCookTime:function(){
+        var level = this.context.getBuildingLevel('cookerUpdate');
+        return COOK_TIME_NEED * Math.pow(COOK_SPEED_MUL,level);
+    },
+    // 把配方数组 [食材,食材] 转成需求对象 {食材:数量}
+    getRequire:function(recipe){
+        var require = {};
+        for(var i = 0;i < recipe.require.length;i++){
+            var id = recipe.require[i];
+            require[id] = (require[id] || 0) + 1;
+        }
+        return require;
+    },
+    cook:function(recipe){
+        var require = this.getRequire(recipe);
+        function callBack(){
+            this.context.useItemThatPlayerHave(require);
+            var o = {};
+            o[recipe.name] = 1;
+            this.context.changeItem(o,'cooked');
+            this.context.AudioEngine.playEffect('build');
+        }
+        this.context.useTime(callBack.bind(this),this.getCookTime());
     },
     render:function(){
+        var timeNeed = this.getCookTime();
+        var maxTime = this.context.getTheMaxTimeToUse();
+        // 过滤掉引用了未定义物品的配方（如尚未实现的 flour 系列），避免显示异常
+        var recipes = COOK_DATA.filter(function(recipe){
+            if(!ITEM_DATA[recipe.name])return false;
+            for(var i = 0;i < recipe.require.length;i++){
+                if(!ITEM_DATA[recipe.require[i]])return false;
+            }
+            return true;
+        });
+        var rows = recipes.map(function(recipe,index){
+            var require = this.getRequire(recipe);
+            var name = ITEM_DATA[recipe.name] ? ITEM_DATA[recipe.name].name : recipe.name;
+            var disabled = maxTime < timeNeed || !this.context.checkHaveResourceAll(require,true) || this.context.checkFull('cooked',recipe.name);
+            return <tr key = {index}>
+                        <td style = {{color:COLOR.BLUE}}>{name}</td>
+                        <td><RequireComponent haveBox = {true} requireList = {require}/></td>
+                        <td>{timeNeed}</td>
+                        <td><BtnComponent style = {{margin:'0px'}} requireList = {require} disabled = {disabled} disabledReason = {'材料不足、饱食/水分不足或成品箱已满'} handleClick = {this.cook.bind(this,recipe)} desc = "烹调" /></td>
+                    </tr>;
+        }.bind(this));
+        return  <div className = "tableOuter cookTableOuter">
+                    <table className="table table-condensed table-hover">
+                        <thead><tr><td>成品</td><td>需求</td><td>耗时</td><td></td></tr></thead>
+                        <tbody>
+                            {rows}
+                        </tbody>
+                    </table>
+                </div>;
+    }
+});
+var CookerComponent = React.createClass({
+    render:function(){
         return<div>
-                    <p>你可以使用炊具更大程度地利用食物。</p><p>将<span style = {{color:COLOR.GREEN}}>食材</span>放入空槽以烹调</p>
+                    <p>你可以使用炊具更大程度地利用食物。选择食谱即可一键烹调。</p>
                     <div>
-                        <BoxComponent box = 'cooker'/>
-                        {' => '}
                         <BoxComponent box = 'cooked'/>
                     </div>
-                    <BoxTransferComponent box = 'cooker'/>
-                    <StudioComponent desc = '烹调' type = 'cooked'/>
+                    <BoxTransferComponent box = 'cooked'/>
+                    <CookRecipeComponent/>
                     <div>
                         <StudioComponent isBuildingUpdate = {true} type = 'cookerUpdate'/>
                     </div>
