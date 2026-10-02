@@ -1389,6 +1389,20 @@ body {
     box-sizing: border-box;
 }
 
+/* 建造窗口：buildTable 高度随窗口高度自适应 */
+.buildWindow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.buildWindow > .buildTable {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+    overflow: auto;
+}
+
 /* 窗口/内容容器（viewOuter 等）与 advan 同宽高，铺满并居中 */
 .viewOuter,
 .updateOuter {

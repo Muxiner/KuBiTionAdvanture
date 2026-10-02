@@ -2814,7 +2814,7 @@ var BuildComponent = React.createClass({
             };
             return result
         }
-        return  <div>
+        return  <div className = 'buildWindow'>
                     <div  className = "tableOuter buildTable">
                         <table className = "table table-condensed table-hover">
                             <thead><tr><td>建筑</td><td>需求</td><td>描述</td><td>耗时</td><td></td></tr></thead>
