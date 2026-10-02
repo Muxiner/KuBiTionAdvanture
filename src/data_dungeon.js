@@ -1,3 +1,10 @@
+/**
+ * data_dungeon.js —— 地牢数据表 DUNGEON_DATA
+ * 以层数(1,2,...)为键，每层包含：
+ *   mst     该层怪物池及权重
+ *   reward  随机奖励表 [{things:{物品:数量}, chance:概率}]
+ * 供 DungeonComponent 生成探索与战斗内容。
+ */
 var DUNGEON_DATA = {
     1: {
         mst: {

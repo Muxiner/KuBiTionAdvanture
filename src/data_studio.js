@@ -1,3 +1,8 @@
+/**
+ * data_studio.js —— 制作 / 炼金 / 科研 / 魔法 配方数据
+ * 通用字段：timeNeed(耗时)、require(材料)、science(前置科技)
+ */
+// 制造台配方（工具/武器/材料等）
 var MAKE_DATA = {
     knife: {
         timeNeed: 3,
@@ -302,6 +307,7 @@ var MAKE_DATA = {
         science: 'smith_1'
     },
 }
+// 炼金台配方（药剂提炼，产出 poizon 类物品）
 var ALCHEMY_DATA = {
     fertilizer: {
         timeNeed: 0.2,
@@ -389,6 +395,7 @@ var ALCHEMY_DATA = {
     //     science:'potion_2',
     // },
 }
+// 科技树：研究后解锁的各类升级（影响容器容量、采集效率、武器强度等）
 var SCIENCE_DATA = {
     heatedBed: {
         timeNeed: 4,
@@ -776,6 +783,7 @@ var SCIENCE_DATA = {
         building: 'magicTable',
     },
 }
+// 魔法台配方（附魔/法杖与卷轴的制作）
 var MAGIC_DATA = {
     staff: {
         timeNeed: 4,

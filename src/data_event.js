@@ -1,3 +1,9 @@
+/**
+ * data_event.js —— 剧情与事件数据表 EVENT_DATA
+ * 每个事件以 id 为键：name/desc 文本、want(所需物品)、giveDesc、
+ * place(触发后解锁的地点)、event(前置事件)、d_1/d_2(前后段落文本)、
+ * learn(解锁制作)、requireList 等；用于串联任务链与城镇/盗贼等事件。
+ */
 var EVENT_DATA = {
     traces_1: {
         name: '赏金猎人',

@@ -2,6 +2,20 @@
 //使用框架：React，jQuery
 //作者：maou
 //联系方式：496863906@qq.com
+/**
+ * main.js —— 游戏全部逻辑与界面（单文件，JSX 由浏览器内 Babel 编译）
+ *
+ * 结构概览：
+ *   1) 通用 UI 组件：ItemComponent / VectorComponent / RequireComponent /
+ *      BoxComponent / BtnComponent / ProgressComponent 等；
+ *   2) 菜单与系统界面：NormalMenuComponent(设置/存档) / BagComponent /
+ *      StateComponent / StudioComponent / BuildComponent 等；
+ *   3) 玩法模块：事件、任务、交易、建造、生产、战斗、地牢；
+ *   4) 顶层：AdvanComponent(场景路由与时间头) 与 MainComponent(全局状态中心)。
+ *
+ * 关键约定：MainComponent 持有全部游戏状态，并通过 React context 向子组件
+ * 下发数据与操作方法；数据表见 data_*.js，工具函数见 lib.js。
+ */
 
 
 'use strict';
@@ -121,6 +135,8 @@ function toParagraphs(arr){
 //游戏逻辑层/////////////////////////////////////////////////////////////////////////////
 //tiny components
 //小组件
+// ===== 1) 通用 UI 组件 =====
+// 单个物品格：显示名称/数量/耐久，处理左键转移、右键使用或装备
 var ItemComponent = React.createClass({
     //物体组件
     getDefaultProps:function(){
@@ -510,6 +526,8 @@ var ResourceDisplayComponent = React.createClass({
                 </div>
     }
 })
+// 通用按钮：统一处理禁用判定（disabled 属性 / 材料需求）、音效、左右键与悬停，
+// 并在禁用被点击时给出原因提示（title 悬停 + 全局 toast）
 var BtnComponent = React.createClass({
     contextTypes:{
         checkHaveResourceAll:React.PropTypes.func.isRequired,
@@ -652,6 +670,8 @@ var CustomMenuComponent = React.createClass({
         return <div>{this.context.menuDesc}</div>
     }
 });
+// ===== 2) 菜单与系统界面 =====
+// 常规主菜单：技能列表/描述、设置；账号存档与本地多槽存档的保存/读取/删除
 var NormalMenuComponent = React.createClass({
     contextTypes:{
         setStateFromChildren:React.PropTypes.func.isRequired,
@@ -2268,6 +2288,7 @@ var BossComponent = React.createClass({
         }
     }
 });
+// 事件：根据 EVENT_DATA 呈现剧情，处理需求提交、奖励、解锁地点与制作
 var EventComponent = React.createClass({
     contextTypes:{
         eventSaveData       :React.PropTypes.object.isRequired,
@@ -2454,6 +2475,7 @@ var EventComponent = React.createClass({
         return <div>{this.eventMap[type]}</div>;
     }
 });
+// 交易：与商队/集市买卖物品，处理换取、成交与撤回
 var TradeComponent = React.createClass({
     preBagThings:null,
     contextTypes:{
@@ -4050,6 +4072,8 @@ var BattleChoiceComponent = React.createClass({
                 </div>
     }
 });
+// ===== 3) 玩法模块 · 战斗 =====
+// 战斗：按射程分为近战/远程/魔法，处理选择、命中、追击、掉落与胜负
 var BattleComponent = React.createClass({
     //战斗的整体场景
     step:0,
@@ -4499,6 +4523,7 @@ var BattleComponent = React.createClass({
                 </div>
     }
 });
+// 地牢：向下探索、随机房间/事件、遇敌进入战斗、绳索返回与深层奖励
 var DungeonComponent = React.createClass({
     contextTypes:{
         callWindow          :React.PropTypes.func.isRequired,
@@ -5004,6 +5029,8 @@ var DungeonComponent = React.createClass({
 
 //==>the outer view of game
 //逻辑层
+// 顶层冒险面板：显示时间/季节，按 currentScene 路由场景或渲染 callWindow 打开的窗口，
+// 并承载加载进度遮罩与全局提示
 var AdvanComponent = React.createClass({
     getDefaultProps:function(){
         return{
@@ -5167,6 +5194,10 @@ var AdvanComponent = React.createClass({
             </div>
     }
 });
+// ===== 4) 全局状态中心 =====
+// MainComponent：持有全部游戏状态（背包/建筑/地牢/事件/玩家六维/时间/技能等），
+// 通过 context 向约 50 个子组件下发；负责时间推进、每日结算、物品操作、死亡与转生、
+// 天气季节、以及（账号/本地）存档等核心逻辑。
 var MainComponent = React.createClass({
     startSeason:'',//游戏开始时的季节
     getInitialState:function(){
@@ -5373,6 +5404,7 @@ var MainComponent = React.createClass({
             getMaxState         : this.getMaxState,
         };
     },
+    // 转生：保留天赋技能并重置世界，进入下一代（generation+1）
     reBorn:function(skill){
         var skillNow = clone(this.state.skill);
         for(var attr in skillNow){
@@ -5395,6 +5427,7 @@ var MainComponent = React.createClass({
             }
         }.bind(this),0);
     },
+    // 计算某状态(生命/满腹/水分/体力/精神)的当前上限（含技能加成）
     getMaxState:function(type){
         var skill = this.state.skill;
         var buff = 0;
@@ -5441,6 +5474,7 @@ var MainComponent = React.createClass({
         boxSaveData[box].things = result;
         this.setState({boxSaveData:boxSaveData});
     },
+    // 处理物品点击：食用/饮用、回城卷轴、武器充能、装备穿戴、能力提升道具等
     handleItemClick:function(item,box){
         //食物、药剂效果
         if(ITEM_DATA[item].effect){
@@ -5744,6 +5778,7 @@ var MainComponent = React.createClass({
             this.setState({currentEquip:currentEquip});
         }
     },
+    // 在背包与当前打开的容器之间转移物品（Ctrl/Shift 可批量）
     handleExchange:function(itemName,box,onlyOne){
         var fromBox = box,toBox;
         if(box == 'bag'){
@@ -5776,6 +5811,7 @@ var MainComponent = React.createClass({
 
         if(this.state.settings.sort)this.sort('bag');
     },
+    // 增减指定容器中的物品数量（数量<=0 时删除该条目）
     changeItem:function(items,box,isNegative){
         var boxSaveData = this.state.boxSaveData;
         var tar = boxSaveData[box].things;
@@ -5806,6 +5842,7 @@ var MainComponent = React.createClass({
             var effect = type.effect;
         }
     },
+    // 依据季节与天数用正弦曲线计算环境温度
     getEnveronmentTemperature:function(day){
         var season = this.getSeason(day);
         var seasonMap = {
@@ -5820,6 +5857,7 @@ var MainComponent = React.createClass({
 
         return temperature;
     },
+    // 按当前天数推算所属季节（每 SEASON_CIRCLE 天一季，四季循环）
     getSeason:function(day){
         var startSeason = this.state.startSeason;
         var seasonNumber = Math.floor(day / SEASON_CIRCLE)%4;
@@ -5837,6 +5875,7 @@ var MainComponent = React.createClass({
         var index = (parseInt(offset) + seasonNumber)%4;
         return seasonMap[index];
     },
+    // 跨日结算：资源/怪物刷新、沼气池、水井、陷阱、商队、地牢衰减、盗贼来袭、季节更新
     handleDayOver:function(day){
         var skill = this.state.skill
         //经营手腕等级
@@ -6031,6 +6070,7 @@ var MainComponent = React.createClass({
         };
         return timeInNight;
     },
+    // 死亡处理：显示死因，并提供读档 / 重新开始
     handleDeath:function(type){
         var reason = '';
         switch(type){
@@ -6060,6 +6100,7 @@ var MainComponent = React.createClass({
             showMenu:'custom',
         });
     },
+    // 检查六维状态是否归零并触发相应死亡（RELEASE 模式才生效）
     checkDeath:function(){
         if(MODE == 'DEBUG')return;
         var playerState = (this.state.playerState);
@@ -6076,6 +6117,7 @@ var MainComponent = React.createClass({
             this.handleDeath('thirsty');
         }
     },
+    // 推进游戏时间：处理昼夜、体温变化、饥饿/口渴、精神、冷却、生产、死亡判定等
     addTime:function(timeNeed,props){
 
         var skill = this.state.skill;
@@ -6300,6 +6342,7 @@ var MainComponent = React.createClass({
         if(state.amount>-30)return 'cold';
         return 'veryCold';
     },
+    // 执行一个耗时动作：播放进度动画，结束后回调并推进游戏时间
     useTime:function(callBack,timeNeed,props){
         if(timeNeed == 0){
             callBack();
@@ -6381,6 +6424,7 @@ var MainComponent = React.createClass({
         if(state[resName] && state[resName].amount >= resAmount)return true;
         return false;
     },
+    // 检查是否满足一组资源需求；haveBox 为真时把大箱子一并计入
     checkHaveResourceAll:function(resList,haveBox){
         var flag = true;
 
@@ -6520,6 +6564,7 @@ var MainComponent = React.createClass({
             this.loadState(data);
         }.bind(this),100)
     },
+    // 读取账号存档：向后端查询并载入数据
     download:function(){
         var saveData = (this.state);
         var save_account = saveData.settings.save_account;
@@ -6551,6 +6596,7 @@ var MainComponent = React.createClass({
                     self.loadData(htmlobj.responseText);
         }});
     },
+    // 保存账号存档到后端（需填写账号/密码）；callback(ok, reason) 用于回显结果
     upload:function(doNotShow, callback){
         var saveData = clone(this.state);
         var save_account = saveData.settings.save_account;

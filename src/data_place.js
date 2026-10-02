@@ -1,3 +1,13 @@
+/**
+ * data_place.js —— 地图地点数据表 PLACE_DATA
+ * 每个地点以 id 为键，包含：
+ *   name                 地点名
+ *   resource             可采集资源：things(产出)、circle(刷新速度)、timeNeed(耗时)、require(体力/工具)、action(按钮文字)、initAmount(初始量)
+ *   mst                  可刷新怪物及 balancedAmount(平衡数量)
+ *   things               地面可拾取物
+ *   event                可触发的事件集合
+ *   temp/requireEvent/science/season  温度修正 / 前置事件 / 前置科技 / 限定季节
+ */
 var PLACE_DATA = {
     town: {
         name: '银溪镇',

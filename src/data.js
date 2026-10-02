@@ -1,14 +1,22 @@
-// 调试模式
+/**
+ * data.js —— 全局常量与核心数据表
+ * 是游戏的“数值中心”与“配置中心”：定义运行模式、各类平衡常量、
+ * 数据表（物品类型/建筑/陷阱/作物/酿酒/状态/烹饪/交易/技能等），
+ * 以及各系统的初始化模板（BUILDING_INIT / BOX_INIT / PLACE_INIT ...）。
+ * main.js 的所有玩法逻辑都从这里取值。
+ */
+// 调试模式：后一行会覆盖前一行，最终生效的是 RELEASE（DELAY_MUL 随之改变）
 var MODE = 'DEBUG';
 var MODE = 'RELEASE';
 
-var STOLE = 0.3;
-var STOLE_CHANCE = 0.05;
-var ROBBER_DAY = 10;
-var MAX_STATE = 100;//所有状态的基础
+// ===== 全局平衡常量 =====
+var STOLE = 0.3;            // 盗贼单次偷窃比例
+var STOLE_CHANCE = 0.05;    // 盗贼偷窃触发概率系数
+var ROBBER_DAY = 10;        // 盗贼基础来袭间隔（天）
+var MAX_STATE = 100;//所有状态的基础（生命/满腹/水分/体力/精神/体温基准）
 //宏变量
 
-var COOK_TIME_NEED = 0.5;
+var COOK_TIME_NEED = 0.5;   // 烹调基础耗时
 //原远程存档（新浪云，可能已失效）
 var REMOTE_SAVE_URL = '//kubitionadvanture.sinaapp.com/save.php';
 //暂时改用本地后端，存档文件写入项目下 saves/ 目录
@@ -21,24 +29,24 @@ var DELAY_MUL = (MODE == 'DEBUG') ? 0 : 400;
 // var DELAY_MUL = 400;
 var MIX_DELAY = 100;
 
-var DUNGEON_DEC = 1;
+var DUNGEON_DEC = 1;        // 地牢每层每日探索度衰减
 
-var MAKE_SPEED_MUL = 0.8;
-var COOK_SPEED_MUL = 0.8;
+var MAKE_SPEED_MUL = 0.8;   // 制造耗时系数
+var COOK_SPEED_MUL = 0.8;   // 烹调耗时系数
 // var DELAY_MUL = 0;
 // var MIX_DELAY = 0;
 var MAX_DISCOVER = 45;//最大探索度
 
-var BIG_BOX_BASE_SIZE = 16;
-var BAG_BASE_SIZE = 12;
-var FULL_DESC_PER_HOUR = 1;
-var MOIST_DESC_PER_HOUR = 1;
-var SAN_DESC_PER_HOUR = 3;
-var PICK_TIME = 3;
-var NIGHT_BEGIN = 22;
-var NIGHT_END = 2;
-var SEASON_CIRCLE = 80;
-var TRADE_MUL = 0.75;
+var BIG_BOX_BASE_SIZE = 16;     // 大箱子初始格数
+var BAG_BASE_SIZE = 12;         // 背包基础格数
+var FULL_DESC_PER_HOUR = 1;     // 满腹每小时下降
+var MOIST_DESC_PER_HOUR = 1;    // 水分每小时下降
+var SAN_DESC_PER_HOUR = 3;      // 夜间在外每小时精神下降
+var PICK_TIME = 3;              // 拾荒耗时
+var NIGHT_BEGIN = 22;           // 夜晚开始（时）
+var NIGHT_END = 2;              // 夜晚结束（时）
+var SEASON_CIRCLE = 80;         // 每个季节的天数
+var TRADE_MUL = 0.75;           // 交易折价系数
 var COLOR = {
     BLACK: '#222',
     GREEN: '#74AB6A',
@@ -47,9 +55,9 @@ var COLOR = {
     WHITE: '#eee',
     YELLOW: '#CBCB7D',
 }
-var MSG_TIME = 2000;
+var MSG_TIME = 2000;    // 屏幕提示消息的显示时长(ms)
 //游戏数据层////////////////////////////////////////////////////////////////////////
-
+// TYPE_DATA：物品类型字典，定义各类别的显示名与颜色（背包/详情按类型着色）
 var TYPE_DATA = {
     'quest': {
         name: "特殊",
@@ -100,6 +108,8 @@ var TYPE_DATA = {
         color: '#000000'
     },
 };
+// BUILDING_DATA：可建造建筑表。字段：name/desc、require(建造材料)、timeNeed(耗时)、
+// building(前置建筑)、science(前置科技)
 var BUILDING_DATA = {
     build: {
         name: '建造',
@@ -187,6 +197,7 @@ var BUILDING_DATA = {
         timeNeed: 4,
     },
 };
+// BUILDING_UPDATE_DATA：建筑升级/科技解锁表（升级项目、材料、耗时、前置科技）
 var BUILDING_UPDATE_DATA = {
     cookerUpdate: {
         cooker_1: {
@@ -389,6 +400,7 @@ var BUILDING_UPDATE_DATA = {
         },
     }
 }
+// TRAP_DATA：陷阱表。字段：require(诱饵)、itemGet(捕获产物与数量)、chance(每日捕获概率)、science(前置科技)
 var TRAP_DATA = {
     antiRogue: {
         desc: '[防盗]',
@@ -445,6 +457,8 @@ var TRAP_DATA = {
         chance: 0.1,
     }
 }
+// CROP_DATA：农田种植表。timeMax(成熟时长,小时)、timeNeed(每次照料耗时)、
+// require(播种材料)、itemGet/itemAmount(产出)
 var CROP_DATA = {
     wheatCrop: {
         desc: '[小麦]',
@@ -519,6 +533,7 @@ var CROP_DATA = {
         itemAmount: 80,
     },
 }
+// ALCO_DATA：酿酒桶配方表（材料、耗时、产出酒类）
 var ALCO_DATA = {
     fruitAlco: {
         desc: '[果酒]',
@@ -553,6 +568,7 @@ var ALCO_DATA = {
         itemAmount: 4,
     },
 }
+// STATE_DATA：玩家六维状态（体温/满腹/水分/生命/体力/精神）的显示名与说明
 var STATE_DATA = {
     temp: {
         name: '体温',
@@ -578,6 +594,7 @@ var STATE_DATA = {
         desc: '精神影响着你的战斗士气。在外熬夜或者状态低下均容易造成精神萎靡。',
     },
 }
+// COOK_DATA：炊具烹饪配方（把两种食材组合成新食物）
 var COOK_DATA = [
     { name: "magicBread", require: ["bread", "dust"] },
 
@@ -673,6 +690,7 @@ var COOK_DATA = [
     { name: "fishBall", require: ["fish", 'stick'] },
     { name: "meatBall", require: ["meat", 'stick'] },
 ]
+// TRADE_DATA：商队/集市交易表。每项含买卖物品与数量、出现季节/天数、停留时间等
 var TRADE_DATA = {
     gold: {
         name: '商队',
@@ -893,6 +911,7 @@ var TRADE_DATA = {
         type: 'dungeon',
     },
 }
+// SKILL_DATA：技能/天赋表。buff 为每级加成，isTalent 标记转生保留的天赋
 var SKILL_DATA = {
     greedy: {
         isTalent: true,
@@ -999,6 +1018,7 @@ var SKILL_DATA = {
         buff: 0.15,
     },
 }
+// TEMP_DATA：温度区间描述（用于 getTempDesc 的显示与死亡判定）
 var TEMP_DATA = {
     veryHot: { name: '酷暑', desc: '迅速地流失大量水分。' },
     hot: { name: '炎热', desc: '轻易地流失水分。' },
@@ -1008,6 +1028,7 @@ var TEMP_DATA = {
     cold: { name: '寒冷', desc: '开始流失体力值，之后便会侵蚀生命。' },
     veryCold: { name: '极寒', desc: '迅速流失体力值，之后便会侵蚀生命。' },
 }
+// EQUIP_TYPE_DATA：装备槽位（身体/手/脚/头）的显示名
 var EQUIP_TYPE_DATA = {
     body: '身体',
     hand: '手',
@@ -1017,8 +1038,10 @@ var EQUIP_TYPE_DATA = {
 }
 
 //游戏剧本初始化数据//////////////////////////////////////////////////////////////////////
+// 以下 INIT 模板用于新开档 / 读档补丁：它们给出各系统在游戏开始时的默认结构，
+// main.js 在 getInitialState / loadState 中通过 clone 使用。
 
-//建筑数据的初始化1
+// 建筑归属与运行状态初始化
 var BUILDING_INIT = {
     build: {
         own: true
@@ -1067,6 +1090,7 @@ for (var attr in BUILDING_INIT) {
     }
 }
 //物品初始化
+// 各类物品容器（背包/大箱子/各工作台/注册区等）的初始格子与物品
 var BOX_INIT = {
     bag: {
         things: {
@@ -1193,6 +1217,7 @@ if (MODE == 'DEBUG') {
     BOX_INIT.bag.things.blood = 1001;
 }
 //角色状态初始化
+// 玩家六维状态的初始数值（体温为 0 表示与环境同温）
 var PLAYER_STATE_INIT = {
     temp: {
         amount: 0
@@ -1214,6 +1239,7 @@ var PLAYER_STATE_INIT = {
     },
 }
 //道具耐久度初始化
+// 武器耐久度记录（运行时按 ITEM_DATA 中带 durable 的物品动态填充）
 var DURABLE_INIT = {}
 for (var attr in ITEM_DATA) {
     if (ITEM_DATA[attr].durable) {
@@ -1221,6 +1247,7 @@ for (var attr in ITEM_DATA) {
     }
 }
 //集市商人初始化
+// 当前正在集市停留的商队列表（运行时由 handleDayOver 生成）
 var TRADE_INIT = [
     {
         trade: 'wood',
@@ -1236,11 +1263,13 @@ var TRADE_INIT = [
     }
 ]
 //行动冷却初始化
+// 行为冷却计时（如洗澡/如厕等）
 var COOL_DOWN_INIT = {
     shit: 0,
     shower: 0,
 }
 //游戏事件初始化
+// 剧情/事件进度标记（experienced 表示是否已触发过）
 var EVENT_INIT = {
     tramp: {
         foodGot: 0
@@ -1257,6 +1286,7 @@ for (var attr in EVENT_DATA) {
     }
 };
 //地点数据初始化
+// 地图地点的运行状态（visited、资源与怪物数量等），运行时按 PLACE_DATA 填充
 var PLACE_INIT = {}
 for (var attr in PLACE_DATA) {
     PLACE_INIT[attr] = { visited: false }
@@ -1288,6 +1318,7 @@ if (MODE == 'DEBUG') {
     }
 }
 
+// 盗贼随天数成长的属性增量（生命/伤害）
 var ROBBER_DATA = {
     _robber: {
         hpInc: 2,
@@ -1295,12 +1326,14 @@ var ROBBER_DATA = {
         stole: 0.5,
     },
 }
+// 盗贼系统的初始存档（上次来袭日、被偷记录）
 var ROBBER_INIT = {
     lastDate: 50,
     stoled: {},
     stoledAll: {},
     robber: false,
 };
+// 调试模式下直接赋予的技能集合
 var DEBUG_SKILL = {
     def: 0,
     melee: 0,

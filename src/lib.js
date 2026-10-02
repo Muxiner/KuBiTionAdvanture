@@ -1,4 +1,10 @@
-//requestAnimationFrame
+/**
+ * lib.js —— 通用工具库与运行时垫片
+ * 提供 requestAnimationFrame 兼容、动画步进、对象/物品增删、随机抽取、
+ * 深拷贝、数量倍乘等基础函数；同时负责核心库加载失败时的本地回退。
+ * 本文件的函数在 data_*.js 与 main.js 中被全局调用。
+ */
+//requestAnimationFrame：兼容旧浏览器的帧动画接口
 window.requestAnimationFrame = (function () {
     return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -7,7 +13,10 @@ window.requestAnimationFrame = (function () {
             window.setTimeout(callback, 1000 / 60);
         };
 })();
-//requestAnimationFrame
+/**
+ * 基于 rAF 的动画步进封装：回调收到两次帧之间的时间差 step(ms)。
+ * 用法：requestAnimationFrame(bindAnimation(fn)())
+ */
 function bindAnimation(foo) {
     return function () {
         var dt_old = 0;
@@ -20,6 +29,10 @@ function bindAnimation(foo) {
     }
 }
 //御用库函数
+/**
+ * 把 add 中各属性的数值累加到 obj 上（属性不存在则直接赋值）。
+ * 常用于物品容器（things）的合并。
+ */
 function addTo(obj, add) {
     for (var attr in add) {
         if (obj[attr]) {
@@ -29,6 +42,10 @@ function addTo(obj, add) {
         }
     }
 }
+/**
+ * 合并两个物品容器并返回新对象（不改动入参）。
+ * 例：together(bag.things, bigBox.things)
+ */
 function together(a, b) {
     var result = clone(a);
     var add = clone(b);
@@ -49,6 +66,11 @@ function getLength(obj) {
     };
     return count;
 }
+/**
+ * 按数量权重从物品容器中随机抽取一个物品。
+ * 支持值为数字或 {amount:n} 两种形式；返回 {attr:物品id,total:总量}，
+ * 容器为空时 attr 为 false。
+ */
 function getRandomThing(things) {
     var num = 0;
     for (var attr in things) {
@@ -69,6 +91,12 @@ function getRandomThing(things) {
     }
     return { attr: attr, total: total };
 };
+/**
+ * 从对象中随机取一个条目，返回 {attr,value}。
+ * props.noAttr：跳过具有该字段的条目；
+ * props.haveValue：[字段,值] 仅保留字段等于该值的条目。
+ * 无匹配项时返回 false。
+ */
 function getRandom(obj, props) {
     var count = 0;
     for (var attr in obj) {
@@ -137,19 +165,23 @@ function cloneMul(obj, mul, isRound) {
     };
     return o;
 }
+/** 快速构造单键对象：o('wood',5) => {wood:5}。 */
 function o(attr, value) {
     var o = {};
     o[attr] = value;
     return o;
 }
+/** console.log 的简写别名。 */
 function lll(value) {
     console.log(value);
 }
+/** 取对象的第一个成员，返回 {attr,value}；空对象返回 undefined。 */
 function getFirst(obj) {
     for (var attr in obj) {
         return { attr: attr, value: obj[attr] }
     }
 }
+/** 动态向页面 <head> 注入 js/css 文件（用于库回退）。 */
 function loadFile(filename, filetype) {
     if (filetype == "js") {
         var fileref = document.createElement('script');

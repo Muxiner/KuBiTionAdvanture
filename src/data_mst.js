@@ -1,3 +1,10 @@
+/**
+ * data_mst.js —— 怪物数据
+ * PREFIX_DATA：怪物词缀（残暴/狡猾/抗魔等），buff 为属性加成；
+ * UPPER_CHANCE：出现强化词缀的概率；
+ * MST_DATA：怪物本体，字段 maxHp/name/damage/range、reward(击杀必掉落)、
+ *   chanceGet(概率掉落)、chaseChance(追击概率)等。
+ */
 var PREFIX_DATA = {
     atk: {
         name: '残暴的 ',

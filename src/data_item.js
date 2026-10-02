@@ -1,4 +1,16 @@
-//所有物品的数据
+/**
+ * data_item.js —— 全部物品数据表 ITEM_DATA
+ * 每个物品以 id 为键，常用字段：
+ *   name/type(对应 TYPE_DATA)/desc/value  基础信息
+ *   effect               使用后的状态变化 {full/moist/...}
+ *   equipType            装备槽(body/hand/foot/head)
+ *   weaponType/durable   武器类型与耐久上限（dur值为充能类型）
+ *   durableRec/durableAmount  对指定武器充能的卷轴
+ *   tempBuff/tempDownMul/tempUpMul  对体温的影响
+ *   rec/moveFaster       持续恢复 / 移速加成
+ *   sound/canUse         使用音效 / 是否可用
+ * 背包、合成、战斗、交易等系统共享此字典。
+ */
 var ITEM_DATA = {
     //道具
     evilBook: {
