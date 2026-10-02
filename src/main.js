@@ -277,7 +277,8 @@ var VectorComponent = React.createClass({
     render:function(){
         function getBottom(){
             if(this.props.btn_bottom){
-                return <div>{this.props.btn_bottom}</div>
+                // 同时渲染底部说明（如进度条）与按钮（如 收获/取消）
+                return <div>{this.props.msg_bottom}{this.props.btn_bottom}</div>
             }else{
                 return <div style = {{color:this.props.msg_bottom_color}}>{this.props.msg_bottom}</div>
             }
@@ -2945,6 +2946,7 @@ var WaitMakeComponent = React.createClass({
         getScienceLevel     : React.PropTypes.func.isRequired,
         season              : React.PropTypes.string.isRequired,
         skill               : React.PropTypes.object.isRequired,
+        AudioEngine         : React.PropTypes.object.isRequired,
     },
     componentWillMount:function(){
         var level = this.context.getScienceLevel(this.props.building + 'SizeBonus');
@@ -2990,6 +2992,30 @@ var WaitMakeComponent = React.createClass({
             this.context.setStateFromChildren({buildingSaveData:savedata});
         }
     },
+    // 取消生产：按已完成进度返还剩余材料（进度越高返还越少）
+    cancel:function(index){
+        var building = this.props.building;
+        var attachData = this.props.attachData;
+        var buildingSaveData = this.context.buildingSaveData;
+        var item = buildingSaveData[building].list[index];
+        if(!item)return;
+        var data = attachData[item.type];
+        var skill = this.context.skill;
+        var manageLevel = (skill.manage || 0) * SKILL_DATA.manage.buff;
+        var max = item.timeMax / (1 + manageLevel);
+        var progress = max > 0 ? item.timeNow / max : 0;
+        if(progress > 1)progress = 1;
+        var refund = {};
+        for(var attr in data.require){
+            var back = Math.round(data.require[attr] * (1 - progress));
+            if(back > 0)refund[attr] = (refund[attr] || 0) + back;
+        }
+        if(getLength(refund) > 0)this.context.changeItem(refund,'bag');
+        buildingSaveData[building].list.splice(index,1);
+        buildingSaveData[building].hint = false;
+        this.context.setStateFromChildren({buildingSaveData:buildingSaveData});
+        this.context.AudioEngine.playEffect('pick');
+    },
     getAmount:function(amount){
         var skill = this.context.skill;
         var result = amount;
@@ -3024,7 +3050,8 @@ var WaitMakeComponent = React.createClass({
                     result.push(<VectorComponent key = {i} msg_top = {attachData[tmp.type].desc} msg_top_color = {COLOR.BLUE} btn_bottom = {btn}/>)
                 }else{
                     var bar = <ProgressComponent max = {max}  current = {current}/>
-                    result.push(<VectorComponent key = {i} msg_top = {attachData[tmp.type].desc} msg_bottom = {bar} msg_top_color = {COLOR.BLUE} />)
+                    var cancelBtn = <BtnComponent desc = '取消' handleClick = {this.cancel.bind(null,i)}/>;
+                    result.push(<VectorComponent key = {i} msg_top = {attachData[tmp.type].desc} msg_bottom = {bar} btn_bottom = {cancelBtn} msg_top_color = {COLOR.BLUE} />)
                 }
             };
             for (var i = cropList.length; i < size; i++) {
@@ -3160,12 +3187,17 @@ var TrapComponent = React.createClass({
         var level = this.context.getScienceLevel('trapGet');
         return Math.round(itemAmount * (1 + 0.5 * level));
     },
-    distroyTrap:function(index){
+    // 取消陷阱：未捕获时返还诱饵（陷阱无进度，按 0 进度即全额返还）
+    cancel:function(index){
         var buildingSaveData = this.context.buildingSaveData;
-        var list = buildingSaveData.trap.list;
-        list.splice(index,1);
-        this.context.AudioEngine.playEffect('pick');
+        var tmp = buildingSaveData.trap.list[index];
+        if(!tmp)return;
+        var require = TRAP_DATA[tmp.type].require;
+        if(require && getLength(require) > 0)this.context.changeItem(clone(require),'bag');
+        buildingSaveData.trap.list.splice(index,1);
+        buildingSaveData['trap'].hint = false;
         this.context.setStateFromChildren({buildingSaveData:buildingSaveData});
+        this.context.AudioEngine.playEffect('pick');
     },
     render:function(){
         var trap = this.context.buildingSaveData.trap;
@@ -3179,7 +3211,8 @@ var TrapComponent = React.createClass({
                     var btn = <BtnComponent desc = '收获' handleClick = {this.harvest.bind(null,i)}/>;
                     result.push(<VectorComponent key = {i} msg_top = {ITEM_DATA[this.context.buildingSaveData.trap.list[i].itemGet].name} msg_top_color = {COLOR.BLUE} btn_bottom = {btn}/>)
                 }else{
-                    result.push(<VectorComponent onContextMenu = {this.distroyTrap.bind(null,i)} key = {i} msg_top = {this.desc} msg_bottom = {TRAP_DATA[tmp.type].desc} msg_top_color = {COLOR.BLUE} />)
+                    var cancelBtn = <BtnComponent desc = '取消' handleClick = {this.cancel.bind(null,i)}/>;
+                    result.push(<VectorComponent onContextMenu = {this.cancel.bind(null,i)} key = {i} msg_top = {this.desc} msg_bottom = {TRAP_DATA[tmp.type].desc} btn_bottom = {cancelBtn} msg_top_color = {COLOR.BLUE} />)
                 }
             };
             for (var i = list.length; i < size; i++) {

@@ -1666,3 +1666,23 @@ body {
     text-align: center;
     margin: 4px 0;
 }
+
+/* 生产/陷阱向量：可同时容纳 进度条 + 取消/收获 按钮，自动增高 */
+.vector {
+    height: auto;
+    min-height: 50px;
+}
+
+.vector .item {
+    height: auto;
+    min-height: 48px;
+    overflow: visible;
+}
+
+.vector .item > div {
+    line-height: 18px;
+}
+
+.vector .progress {
+    height: 8px;
+}
