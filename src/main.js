@@ -330,7 +330,7 @@ var RequireComponent = React.createClass({
                 result.push(<span key = {count} className = "resourceName" style = {{color:this.props.isGreen?COLOR.GREEN:(this.context.checkHaveResource(attr,amount,bag)?COLOR.GREEN:COLOR.RED)}}>
                                 {name}
                                 <span className = "badge resourceAmount">
-                                    {this.props.showTotal?(amount+'/'+(bag[attr]||0)):amount}
+                                    {this.props.showTotal?(amount+'/'+countBagItem(bag,attr)):amount}
                                 </span>
                                 {total == count + 1 ? null:this.props.separator}
                             </span>);
@@ -1186,6 +1186,7 @@ var BagComponent = React.createClass({
         cancelEquip    :React.PropTypes.func.isRequired,
         changeMsg      :React.PropTypes.func.isRequired,
         AudioEngine    :React.PropTypes.object.isRequired,
+        discardItem    :React.PropTypes.func.isRequired,
     },
     getInitialState:function(){
         return {
@@ -1237,7 +1238,7 @@ var BagComponent = React.createClass({
         var have = this.context.boxSaveData[box].things[item] || 0;
         var amount = (event && event.shiftKey) ? have : 1;
         if(amount < 1)amount = 1;
-        this.context.useItem(o(item,amount),box);
+        this.context.discardItem(item,box,amount);
         this.setState({discardConfirm:null});
         this.context.changeMsg('','item');
         this.context.AudioEngine.playEffect('pick');
@@ -5502,6 +5503,7 @@ var AdvanComponent = React.createClass({
 // 天气季节、以及（账号/本地）存档等核心逻辑。
 var MainComponent = React.createClass({
     startSeason:'',//游戏开始时的季节
+    instanceSeq:1,//耐久类物品实例化时的自增序号
     getInitialState:function(){
         var startSeason = Math.random() > 0.5?'spring':'autumn';
         var state = {
@@ -5517,6 +5519,7 @@ var MainComponent = React.createClass({
             detailedType    :'',
             dungeonSaveData :{stairCount:1,roomCount:1,deepest:1,stairData:{}},
             durableSaveData :clone(DURABLE_INIT),
+            itemInstances   :{},//耐久类物品实例键 -> 基础物品id
             robberSaveData  :clone(ROBBER_INIT),
             eventSaveData   :clone(EVENT_INIT),
             isDueling       :false,
@@ -5558,6 +5561,7 @@ var MainComponent = React.createClass({
         buildingSaveData     : React.PropTypes.object.isRequired,
         cancelEquip          : React.PropTypes.func.isRequired,
         unequipSlot          : React.PropTypes.func.isRequired,
+        discardItem          : React.PropTypes.func.isRequired,
         changeItem           : React.PropTypes.func.isRequired,
         changeMsg            : React.PropTypes.func.isRequired,
         checkFull            : React.PropTypes.func.isRequired,
@@ -5641,6 +5645,7 @@ var MainComponent = React.createClass({
             buildingSaveData    : this.state.buildingSaveData,
             cancelEquip         : this.cancelEquip,
             unequipSlot         : this.unequipSlot,
+            discardItem         : this.discardItem,
             changeItem          : this.changeItem,
             changeMsg           : this.changeMsg,
             checkFull           : this.checkFull,
@@ -6022,31 +6027,59 @@ var MainComponent = React.createClass({
         return i;
     },
     useItemThatPlayerHave:function(require){
-        //可以使用大箱子里的资源
-        var boxSaveData = this.state.boxSaveData;
-        var bag = boxSaveData.bag.things;
-        var bigBox = boxSaveData.bigBox.things;
+        // 从背包/大箱子/装备栏扣除材料（兼容实例化武器/工具按 baseId 扣除）
         for(var attr in require){
-            if(bag[attr]){
-                if(bag[attr] > require[attr]){
-                    bag[attr] -= require[attr];
-                }else{
-                    if(bigBox[attr]){
-                        bigBox[attr] -= require[attr] - bag[attr];
-                    }
-                    delete bag[attr];
-                }
-            }else{
-                bigBox[attr] -= require[attr];
-            }
-            if(bigBox[attr] == 0){
-                delete bigBox[attr];
-            };
-            if(bag[attr] == 0){
-                delete bag[attr];
-            };
+            var need = require[attr];
+            need = this.consumeFromBox('bag',attr,need);
+            if(need > 0)need = this.consumeFromBox('bigBox',attr,need);
+            if(need > 0)need = this.consumeFromEquip(attr,need);
         }
-
+    },
+    // 从装备栏扣除某基础物品（已装备的工具被配方消耗时的兜底）
+    consumeFromEquip:function(baseId,amount){
+        var currentEquip = this.state.currentEquip;
+        var durableSaveData = this.state.durableSaveData;
+        var itemInstances = this.state.itemInstances;
+        for(var slot in currentEquip){
+            if(amount <= 0)break;
+            var it = currentEquip[slot];
+            if(it && itemBaseId(it) == baseId){
+                currentEquip[slot] = null;
+                if(it.indexOf('#') >= 0){
+                    delete durableSaveData[it];
+                    delete itemInstances[it];
+                    delete ITEM_DATA[it];
+                }
+                amount--;
+            }
+        }
+        this.setState({currentEquip:currentEquip,durableSaveData:durableSaveData,itemInstances:itemInstances});
+        return amount;
+    },
+    // 从指定容器扣除某基础物品 amount 个：优先扣未实例化堆叠，再扣实例
+    consumeFromBox:function(box,baseId,amount){
+        var boxSaveData = this.state.boxSaveData;
+        var tar = boxSaveData[box].things;
+        var durableSaveData = this.state.durableSaveData;
+        var itemInstances = this.state.itemInstances;
+        if(tar[baseId]){
+            var take = Math.min(amount,tar[baseId]);
+            tar[baseId] -= take;
+            amount -= take;
+            if(tar[baseId] <= 0)delete tar[baseId];
+        }
+        for(var k in tar){
+            if(amount <= 0)break;
+            if(k.indexOf('#') >= 0 && itemBaseId(k) == baseId){
+                delete tar[k];
+                delete durableSaveData[k];
+                delete ITEM_DATA[k];
+                delete itemInstances[k];
+                amount--;
+            }
+        }
+        this.setState({boxSaveData:boxSaveData,durableSaveData:durableSaveData,itemInstances:itemInstances});
+        return amount;
     },
     getItemThatPlayerHave:function(){
         //可以使用大箱子里的资源
@@ -6147,19 +6180,71 @@ var MainComponent = React.createClass({
 
         if(this.state.settings.sort)this.sort('bag');
     },
+    // 创建耐久类物品的一个实例（独立耐久、不堆叠），并注册动态 ITEM_DATA 条目
+    createInstance:function(baseId,durableSaveData,itemInstances){
+        var key;
+        do{ key = baseId + '#' + (this.instanceSeq++); }while(ITEM_DATA[key]);
+        var data = ITEM_DATA[baseId];
+        var copy = {};
+        for(var k in data)copy[k] = data[k];
+        copy.baseId = baseId;
+        copy.isInstance = true;
+        copy.instanceId = key;
+        ITEM_DATA[key] = copy;
+        durableSaveData[key] = 0;
+        itemInstances[key] = baseId;
+        return key;
+    },
     // 增减指定容器中的物品数量（数量<=0 时删除该条目）
+    // 耐久类武器/工具按“实例”处理：各自独立耐久、不堆叠
     changeItem:function(items,box,isNegative){
         var boxSaveData = this.state.boxSaveData;
         var tar = boxSaveData[box].things;
-        for (var attr in items) {
-            if(boxSaveData[box].things[attr]){
-                tar[attr] += isNegative?-items[attr]:items[attr];
-            }else{
-                tar[attr] = items[attr];
+        var durableSaveData = this.state.durableSaveData;
+        var itemInstances = this.state.itemInstances;
+        var self = this;
+        function addInstances(baseId,n){
+            for(var i = 0;i < n;i++){
+                tar[self.createInstance(baseId,durableSaveData,itemInstances)] = 1;
             }
-            if(tar[attr] <= 0 || isNaN(tar[attr]))delete tar[attr];
+        }
+        function removeInstances(baseId,n){
+            // 优先移除实例（耐久损耗最多的先坏），不足再扣未实例化堆叠
+            var keys = [];
+            for(var k in tar){
+                if(k.indexOf('#') >= 0 && itemBaseId(k) == baseId)keys.push(k);
+            }
+            keys.sort(function(a,b){ return (durableSaveData[b]||0) - (durableSaveData[a]||0); });
+            for(var i = 0;i < keys.length && n > 0;i++){
+                var k = keys[i];
+                delete tar[k];
+                delete durableSaveData[k];
+                delete ITEM_DATA[k];
+                delete itemInstances[k];
+                n--;
+            }
+            if(n > 0 && tar[baseId]){
+                var take = Math.min(n,tar[baseId]);
+                tar[baseId] -= take; n -= take;
+                if(tar[baseId] <= 0)delete tar[baseId];
+            }
+        }
+        for (var attr in items) {
+            var value = isNegative ? -items[attr] : items[attr];
+            var data = ITEM_DATA[itemBaseId(attr)];
+            if(data && data.durable && attr.indexOf('#') < 0){
+                if(value > 0)addInstances(attr,value);
+                else if(value < 0)removeInstances(attr,-value);
+            }else{
+                if(tar[attr]){
+                    tar[attr] += value;
+                }else{
+                    tar[attr] = value;
+                }
+                if(tar[attr] <= 0 || isNaN(tar[attr]))delete tar[attr];
+            }
         };
-        this.setState({boxSaveData:boxSaveData});
+        this.setState({boxSaveData:boxSaveData,durableSaveData:durableSaveData,itemInstances:itemInstances});
     },
     useItem:function(items,box){
         var box = box || 'bag';
@@ -6168,6 +6253,19 @@ var MainComponent = React.createClass({
             o[attr] = -items[attr];
         }
         this.changeItem(o,box);
+    },
+    // 丢弃物品（用于详情面板“丢弃”按钮）：耐久实例一并清理注册
+    discardItem:function(item,box,amount){
+        amount = amount || 1;
+        this.useItem(o(item,amount),box);
+        if(item.indexOf('#') >= 0){
+            var durableSaveData = this.state.durableSaveData;
+            var itemInstances = this.state.itemInstances;
+            delete durableSaveData[item];
+            delete itemInstances[item];
+            delete ITEM_DATA[item];
+            this.setState({durableSaveData:durableSaveData,itemInstances:itemInstances});
+        }
     },
     clickUse:function(item,box){
         var type = ITEM_DATA[item].type;
@@ -6654,17 +6752,37 @@ var MainComponent = React.createClass({
     },
     durableChange:function(list,isNegative){
         var o = this.state.durableSaveData;
+        var currentEquip = this.state.currentEquip;
+        var boxSaveData = this.state.boxSaveData;
+        var itemInstances = this.state.itemInstances;
         for (var attr in list){
             var itemName = attr,amount = list[attr];
             if(o[itemName]==undefined)continue;
             o[itemName] += isNegative? -amount:amount;
             if(o[itemName] >= this.getMaxDurable(itemName)){
-                o[itemName] = 0;
-                var use = {};use[itemName] = 1;
-                this.useItem(use,'bag');
+                if(itemName.indexOf('#') >= 0){
+                    // 实例化武器/工具损坏：从装备槽/任意容器中移除该实例并清理
+                    for(var slot in currentEquip){
+                        if(currentEquip[slot] == itemName)currentEquip[slot] = null;
+                    }
+                    for(var b in boxSaveData){
+                        if(boxSaveData[b].things && boxSaveData[b].things[itemName]){
+                            delete boxSaveData[b].things[itemName];
+                            break;
+                        }
+                    }
+                    delete o[itemName];
+                    delete ITEM_DATA[itemName];
+                    delete itemInstances[itemName];
+                }else{
+                    // 兼容旧的非实例化武器
+                    o[itemName] = 0;
+                    var use = {};use[itemName] = 1;
+                    this.useItem(use,'bag');
+                }
             }
         }
-        this.setState({durableSaveData:o});
+        this.setState({durableSaveData:o,currentEquip:currentEquip,boxSaveData:boxSaveData,itemInstances:itemInstances});
     },
     getTempDesc:function(){
         var playerState = this.state.playerState;
@@ -6754,9 +6872,14 @@ var MainComponent = React.createClass({
     },
     checkHaveResource:function(resName,resAmount,bag){
         // check form bagData to stateData
-        // 多用型的检查
+        // 多用型的检查（按 baseId 统计，兼容实例化武器/工具，并计入装备栏）
         var state = this.state.playerState;
-        if(bag[resName] && bag[resName] >= resAmount)return true;
+        var total = countBagItem(bag,resName);
+        for(var slot in this.state.currentEquip){
+            var eq = this.state.currentEquip[slot];
+            if(eq && itemBaseId(eq) == resName)total++;
+        }
+        if(total >= resAmount)return true;
         if(state[resName] && state[resName].amount >= resAmount)return true;
         return false;
     },
@@ -6853,6 +6976,50 @@ var MainComponent = React.createClass({
             for(var es = 0;es < equipSlotList.length;es++){
                 if(data.currentEquip[equipSlotList[es]] === undefined)data.currentEquip[equipSlotList[es]] = null;
             }
+        }
+        // 耐久类武器/工具实例化：同名武器各自独立耐久、不堆叠。
+        // - 旧存档里以 baseId 堆叠的耐久物品，拆分为实例；
+        // - 已有实例键在读档时重新注册动态 ITEM_DATA 条目；
+        // - 首次迁移时把所有已拥有武器/工具耐久刷新为满（durableRefreshed 标记，只执行一次）。
+        if(!data.durableSaveData)data.durableSaveData = {};
+        if(!data.itemInstances)data.itemInstances = {};
+        var refreshDurability = !data.durableRefreshed;
+        for(var boxName in data.boxSaveData){
+            var thingsBox = data.boxSaveData[boxName].things;
+            if(!thingsBox)continue;
+            for(var tk in thingsBox){
+                var tkCount = thingsBox[tk];
+                if(tk.indexOf('#') >= 0){
+                    // 已有实例：注册动态 ITEM_DATA
+                    var base = data.itemInstances[tk] || tk.split('#')[0];
+                    if(ITEM_DATA[base] && !ITEM_DATA[tk]){
+                        var inst = clone(ITEM_DATA[base]);
+                        inst.baseId = base; inst.isInstance = true; inst.instanceId = tk;
+                        ITEM_DATA[tk] = inst;
+                    }
+                    data.itemInstances[tk] = base;
+                    if(data.durableSaveData[tk] === undefined)data.durableSaveData[tk] = 0;
+                }else if(ITEM_DATA[tk] && ITEM_DATA[tk].durable){
+                    // 旧堆叠 -> 拆分为实例
+                    delete thingsBox[tk];
+                    for(var ci = 0;ci < tkCount;ci++){
+                        var ikey;
+                        do{ ikey = tk + '#' + (this.instanceSeq++); }while(ITEM_DATA[ikey] || data.itemInstances[ikey]);
+                        var inst2 = clone(ITEM_DATA[tk]);
+                        inst2.baseId = tk; inst2.isInstance = true; inst2.instanceId = ikey;
+                        ITEM_DATA[ikey] = inst2;
+                        thingsBox[ikey] = 1;
+                        data.itemInstances[ikey] = tk;
+                        data.durableSaveData[ikey] = 0;
+                    }
+                }
+            }
+        }
+        if(refreshDurability){
+            for(var instKey in data.itemInstances){
+                data.durableSaveData[instKey] = 0;
+            }
+            data.durableRefreshed = true;
         }
         //新地图资源
         for(var place in PLACE_DATA){

@@ -176,6 +176,23 @@ function lll(value) {
     console.log(value);
 }
 /**
+ * 物品实例化支持：耐久类武器/工具在背包中以 baseId#序号 的实例键存放，
+ * 实例键对应的 ITEM_DATA 条目会带有 baseId 字段。此函数把任意键还原为物品基础 id。
+ */
+function itemBaseId(id) {
+    return (ITEM_DATA[id] && ITEM_DATA[id].baseId) || id;
+}
+/**
+ * 统计容器(bag)中某基础物品的总数量（含未实例化的堆叠与各实例）。
+ */
+function countBagItem(bag, id) {
+    var n = 0;
+    for (var k in bag) {
+        if (itemBaseId(k) == id) n += bag[k];
+    }
+    return n;
+}
+/**
  * 根据现有材料(背包/箱子合并后的 bag)，计算某配方最多可制作的次数。
  * require 为 {物品id:需求量}；材料不足或需求为空时返回 0。
  */
@@ -184,7 +201,7 @@ function getCraftableCount(require, bag) {
     for (var attr in require) {
         var need = require[attr];
         if (!need) continue;
-        var c = Math.floor((bag[attr] || 0) / need);
+        var c = Math.floor(countBagItem(bag, attr) / need);
         if (c < min) min = c;
     }
     return (min === Infinity) ? 0 : min;
