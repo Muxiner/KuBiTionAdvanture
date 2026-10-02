@@ -1541,3 +1541,28 @@ body {
         width: 100%;
     }
 }
+
+/* 全局提示（禁用原因等）：悬浮水平垂直居中 */
+.toast {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 180px;
+    max-width: 70%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    border-radius: 6px;
+    text-align: center;
+    line-height: 20px;
+    z-index: 100001;
+    pointer-events: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.toast p {
+    margin: 0;
+}

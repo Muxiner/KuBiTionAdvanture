@@ -514,6 +514,7 @@ var BtnComponent = React.createClass({
     contextTypes:{
         checkHaveResourceAll:React.PropTypes.func.isRequired,
         AudioEngine         :React.PropTypes.object.isRequired,
+        showMsg             :React.PropTypes.func.isRequired,
     },
     getDefaultProps:function(){
         return {
@@ -526,13 +527,24 @@ var BtnComponent = React.createClass({
             canEvent:false,
             sound:'pick',
             className:'btn',
+            disabledReason:null,
         }
     },
     getDisabled:function(){
         return this.props.disabled||!this.context.checkHaveResourceAll(this.props.requireList,true)
     },
+    getDisabledReason:function(){
+        //先判定材料，再给出调用方指定的其它原因（如饱食/水分不足、冷却中）
+        if(this.props.requireList && !this.context.checkHaveResourceAll(this.props.requireList,true))return '材料不足';
+        if(this.props.disabled)return this.props.disabledReason||'';
+        return '';
+    },
     handleClick:function(isRight){
-        if(this.getDisabled())return;
+        if(this.getDisabled()){
+            var reason = this.getDisabledReason();
+            if(reason)this.context.showMsg(<p key = {Math.random()}>{reason}</p>);
+            return;
+        }
         this.context.AudioEngine.playEffect(this.props.sound);
 
         if(this.props.handleRightClick && isRight){
@@ -546,7 +558,8 @@ var BtnComponent = React.createClass({
         if(this.props.handleMouseEnter)this.props.handleMouseEnter();
     },
     render:function(){
-        return <button style = {this.props.style} onContextMenu = {this.handleClick.bind(null,'right')} onClick = {this.handleClick.bind(null,false)} onMouseEnter = {this.handleMouseEnter} className = {this.props.className + (this.getDisabled()?" disabled":'')}>{this.props.desc||this.props.children}</button>
+        var disabledReason = this.getDisabled()?this.getDisabledReason():'';
+        return <button title = {disabledReason||undefined} style = {this.props.style} onContextMenu = {this.handleClick.bind(null,'right')} onClick = {this.handleClick.bind(null,false)} onMouseEnter = {this.handleMouseEnter} className = {this.props.className + (this.getDisabled()?" disabled":'')}>{this.props.desc||this.props.children}</button>
     }
 });
 
@@ -1497,7 +1510,7 @@ var StudioComponent = React.createClass({
                                                 <td>{ITEM_DATA[cookResult].desc}</td>
                                                 <td><input className = 'scheduleInput form-control' value = {String(this.state.cookAmount)} type = 'number' onChange = {this.changeCookAmount}/></td>
                                                 <td>耗时:{Math.round(this.getCookTime())}</td>
-                                                <td><BtnComponent disabled = {disabled} desc = '烹调' handleClick = {this.handleCook}/></td>
+                                                <td><BtnComponent disabled = {disabled} disabledReason = {'饱食或水分不足，或烹调数量无效'} desc = '烹调' handleClick = {this.handleCook}/></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1544,7 +1557,7 @@ var StudioComponent = React.createClass({
                                 <td><RequireComponent requireList = {tmp.require} haveBox = {true}/></td>
                                 <td>{ITEM_DATA[attr].desc}</td>
                                 <td>
-                                    <BtnComponent disabled = {disabled} handleClick = {this.updateBuilding.bind(this,attr)} desc = "升级" />
+                                    <BtnComponent disabled = {disabled} disabledReason = {'饱食或水分不足，撑不过升级耗时'} handleClick = {this.updateBuilding.bind(this,attr)} desc = "升级" />
                                 </td>
                             </tr>);
                 count ++;
@@ -1593,7 +1606,7 @@ var StudioComponent = React.createClass({
                                     {this.props.alwayMakeOne?null:<td><input className = 'scheduleInput form-control' value = {String(amount)} type = 'number' onChange = {this.updateSchedule}/></td>}
                                     <td><RequireComponent haveBox = {true} withSpace = {true} showTotal = {true} requireList = {totalRequire} /></td>
                                     <td>{Math.round(this.getTimeNeed(this.props.attachData[name].timeNeed * amount))}</td>
-                                    <td><BtnComponent disabled = {disabled} handleClick = {this.make.bind(this,name)} desc = "执行" /></td>
+                                    <td><BtnComponent disabled = {disabled} disabledReason = {'饱食或水分不足，或容器已满'} handleClick = {this.make.bind(this,name)} desc = "执行" /></td>
                                 </tr></tbody>
                             </table>
                     </div>
@@ -1742,7 +1755,7 @@ var ActionComponent = React.createClass({
                                     {require?<td><RequireComponent haveBox = {true} requireList = {cloneMul(require,this.state.timeNeed)}/></td>:null}
                                     <td><RequireComponent isGreen = 'true' requireList = {canGet}/></td>
                                     <td>{getTimeDesc.bind(this)()}</td>
-                                    {hasCooledDown?<td><BtnComponent disabled = {disabled} handleClick = {this.act.bind(this,name)} desc = {this.props.desc} /></td>:<td><BtnComponent disabled = {true} desc = {this.props.desc + '(冷却:' + Math.round(coolDown) + ')'} /></td>}
+                                    {hasCooledDown?<td><BtnComponent disabled = {disabled} disabledReason = {'饱食或水分不足，撑不过该行动耗时'} handleClick = {this.act.bind(this,name)} desc = {this.props.desc} /></td>:<td><BtnComponent disabled = {true} disabledReason = {'冷却中，还需约 ' + Math.round(coolDown) + ' 小时'} desc = {this.props.desc + '(冷却:' + Math.round(coolDown) + ')'} /></td>}
                                 </tr></tbody>
                             </table>
                     </div>
@@ -2807,7 +2820,7 @@ var BuildComponent = React.createClass({
                                 <td><RequireComponent haveBox = {true} requireList = {data.require}/></td>
                                 <td>{data.desc}</td>
                                 <td>{data.timeNeed}</td>
-                                <td><BtnComponent desc = {'建造'} disabled = {maxTimeToUse <= data.timeNeed} requireList = {data.require} handleClick = {this.build.bind(this,attr)}/></td>
+                                <td><BtnComponent desc = {'建造'} disabled = {maxTimeToUse <= data.timeNeed} disabledReason = {'饱食或水分不足，撑不过 ' + data.timeNeed + ' 小时（约剩 ' + Math.round(maxTimeToUse) + ' 小时）'} requireList = {data.require} handleClick = {this.build.bind(this,attr)}/></td>
                             </tr>);
                 count ++;
 
@@ -5010,6 +5023,7 @@ var AdvanComponent = React.createClass({
         currentScene: React.PropTypes.string.isRequired,
         season      : React.PropTypes.string.isRequired,
         generation  : React.PropTypes.number.isRequired,
+        msgList     : React.PropTypes.array.isRequired,
     },
     childContextTypes:{
         setTitle  : React.PropTypes.func.isRequired,
@@ -5147,6 +5161,7 @@ var AdvanComponent = React.createClass({
                             {getDisplay.bind(this)()}
                         </div>
                     </div>
+                    {this.context.msgList && this.context.msgList.length?<div className = 'toast'>{this.context.msgList[this.context.msgList.length - 1]}</div>:null}
                 </div>
                 <StateComponent/>
             </div>
