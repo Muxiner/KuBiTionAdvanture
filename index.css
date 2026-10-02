@@ -1725,3 +1725,26 @@ body {
 .makeRequire {
     white-space: nowrap;
 }
+
+/* 大箱子布局：容器铺满，内容用 flex 网格从左填充 */
+.bigBox {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    margin: 0;
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    overflow: auto;
+    background: #fff;
+}
+
+.bigBox .boxList {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: flex-start;
+    margin: 4px;
+    padding: 0;
+    width: calc(100% - 8px);
+    box-sizing: border-box;
+}
