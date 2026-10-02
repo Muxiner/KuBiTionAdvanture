@@ -1632,7 +1632,6 @@ var StudioComponent = React.createClass({
                             <div className = 'studioBottom' >
                                 {this.state.displayWindow?schedule.bind(this)():''}
                                 {this.props.alwayMakeOne?null:<BoxComponent box = {this.props.type}/>}
-                                {this.props.alwayMakeOne?null:<BoxTransferComponent box = {this.props.type}/>}
                                 <BtnBack/>
                             </div>
                         </div>
@@ -3364,7 +3363,6 @@ var WellComponent = React.createClass({
                     <p>当前水井深度等级：<span style = {{color:COLOR.BLUE}}>{level}</span></p>
                     <p>每日产水量：<span style = {{color:COLOR.BLUE}}>{yieldAmount}</span></p>
                     <BoxComponent box = 'well'/>
-                    <BoxTransferComponent box = 'well'/>
                     <StudioComponent isBuildingUpdate = {true} type = 'wellUpdate'/>
                     <BtnBack/>
                 </div>
@@ -3393,7 +3391,6 @@ var ToiletComponent = React.createClass({
                     </div>
                     <div>
                         <BoxComponent box = 'shit'/>
-                        <BoxTransferComponent box = 'shit'/>
                         {level>1?(
                             <div style = {{display:'inline-block',verticalAlign:'middle'}}>
                                 <table className = 'table table-hover table-condensed'>
