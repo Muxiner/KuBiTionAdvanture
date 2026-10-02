@@ -1387,6 +1387,9 @@ body {
     width: 100%;
     min-height: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 /* 建造窗口：buildTable 高度随窗口高度自适应 */
@@ -1396,11 +1399,26 @@ body {
     align-items: stretch;
 }
 
-.buildWindow > .buildTable {
+/* 各类 tableOuter / studioTableOuter 高度随容器（窗口）高度自适应 */
+.advan .tableOuter,
+.advanOuter .tableOuter,
+.viewOuter .tableOuter,
+.updateOuter .tableOuter {
     flex: 1 1 auto;
+    height: auto;
     max-height: none;
     min-height: 0;
     overflow: auto;
+    background: #fff;
+}
+
+/* 窗口内的升级/生产容器纵向排列，使内部表格可自适应 */
+.advanOuter .updateOuter {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 /* 窗口/内容容器（viewOuter 等）与 advan 同宽高，铺满并居中 */

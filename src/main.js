@@ -1027,7 +1027,7 @@ var UpgradePlaceComponent = React.createClass({
                     </div>
         }
         return  <div>
-                    <div className = "tableOuter" style = {{margin:'auto',width:350,height:300}}>
+                    <div className = "tableOuter">
                         <table className="table table-condensed table-hover">
                             <thead>
                                 <tr><td>教师</td><td>内容</td><td>学费</td></tr>
@@ -1478,7 +1478,7 @@ var StudioComponent = React.createClass({
             if(!result)return null;
             return  <div>
                         <div className = 'updateOuter'>
-                            <div className = "studioTableOuter" style = {{maxHeight:this.state.displayWindow?'200px':(324 - 52 -58+46) +'px'}}>
+                            <div className = "studioTableOuter">
                                 <table className="table table-condensed table-hover ">
                                     <tbody>
                                         {result}
@@ -1522,7 +1522,7 @@ var StudioComponent = React.createClass({
 
             return <div style = {{width:'100%',height:'100%'}}>
                         <div className = 'viewOuter'>
-                            <div className = "tableOuter studioTableOuter" style = {{maxHeight:this.state.displayWindow?'200px':(324 - 52 -58+46) +'px'}}>
+                            <div className = "tableOuter studioTableOuter">
                                 <table className="table table-condensed table-hover ">
                                     <thead><tr><td>成品</td><td>需求</td><td>描述</td></tr></thead>
                                     <tbody>
