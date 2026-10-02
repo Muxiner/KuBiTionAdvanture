@@ -200,10 +200,12 @@ var ItemComponent = React.createClass({
     },
     checkIfISCurrentEquip:function(){
         var item = this.props.item;
-        var equipType = ITEM_DATA[item].equipType;
-        if(!equipType)return false;
-        var currentEquip = clone(this.context.currentEquip);
-        return (currentEquip[equipType] == item);
+        if(!ITEM_DATA[item] || !ITEM_DATA[item].equipType)return false;
+        var currentEquip = this.context.currentEquip;
+        for(var slot in currentEquip){
+            if(currentEquip[slot] == item)return true;
+        }
+        return false;
     },
     render:function(){
         var item = this.props.item;
@@ -1176,6 +1178,7 @@ var BagComponent = React.createClass({
         getMaxDurable  :React.PropTypes.func.isRequired,
         getTempDesc    :React.PropTypes.func.isRequired,
         currentEquip   :React.PropTypes.object.isRequired,
+        unequipSlot    :React.PropTypes.func.isRequired,
         playerState    :React.PropTypes.object.isRequired,
         handleItemClick:React.PropTypes.func.isRequired,
         currentBox     :React.PropTypes.string.isRequired,
@@ -1234,6 +1237,18 @@ var BagComponent = React.createClass({
                         <span className = 'ownedAmount'>×{entry.amount}</span>
                     </div>;
         });
+    },
+    // 装备栏：显示 头/身/足/颈/武器1/武器2；点击已装备槽可卸下放回背包
+    getEquipBar:function(){
+        var currentEquip = this.context.currentEquip;
+        return EQUIP_SLOTS.map(function(slot){
+            var item = currentEquip[slot];
+            var label = EQUIP_TYPE_DATA[slot] || slot;
+            return <div className = 'equipSlot' key = {slot} onClick = {item?this.context.unequipSlot.bind(null,slot):null} title = {item?ITEM_DATA[item].name:'（空）'}>
+                        <span className = 'equipSlotLabel'>{label}</span>
+                        <span className = {item?'equipSlotItem':'equipSlotItem empty'}>{item?ITEM_DATA[item].name:'空'}</span>
+                    </div>;
+        }.bind(this));
     },
     render:function() {
         var detailedType = this.context.detailedType;
@@ -1335,6 +1350,9 @@ var BagComponent = React.createClass({
                         背包
                     </div>
                     <div className="panel-body  clearFix">
+                        <div className = "equipBar">
+                            {this.getEquipBar()}
+                        </div>
                         <div className = "equip" id = "equip">
                             <BoxComponent box = 'bag'/>
                         </div>
@@ -4108,6 +4126,7 @@ var BattleChoiceComponent = React.createClass({
         useTime             :React.PropTypes.func.isRequired,
         boxSaveData         :React.PropTypes.object.isRequired,
         defaultWeapon       :React.PropTypes.array.isRequired,
+        currentEquip        :React.PropTypes.object.isRequired,
         setStateFromChildren:React.PropTypes.func.isRequired,
         playerStateUse      :React.PropTypes.func.isRequired,
         playerState         :React.PropTypes.object.isRequired,
@@ -4115,9 +4134,9 @@ var BattleChoiceComponent = React.createClass({
     },
     componentWillMount:function(){
         var defaultWeapon = this.context.defaultWeapon;
-        var boxSaveData = this.context.boxSaveData;
+        var weapons = this.getAllWeaponsInBag();
         for (var i = 0; i < 2; i++) {
-            if(!boxSaveData.bag.things[defaultWeapon[i]]){
+            if(!weapons[defaultWeapon[i]]){
                 defaultWeapon[i] = this.getFirstWeapon();
             };
         };
@@ -4138,12 +4157,20 @@ var BattleChoiceComponent = React.createClass({
         }
     },
     getAllWeaponsInBag:function(){
+        // 背包 + 装备栏中的武器
         var result = {};
         var bagThings = this.context.boxSaveData.bag.things;
         result['noWeapon'] = true;
         for(var attr in bagThings){
             if(ITEM_DATA[attr].type == 'weapon'){
                 result[attr] = true;
+            }
+        }
+        var currentEquip = this.context.currentEquip;
+        for(var slot in currentEquip){
+            var eq = currentEquip[slot];
+            if(eq && ITEM_DATA[eq] && ITEM_DATA[eq].type == 'weapon'){
+                result[eq] = true;
             }
         }
         return result;
@@ -4185,8 +4212,7 @@ var BattleChoiceComponent = React.createClass({
     getWeapon:function(index){
         var defaultWeapon = this.context.defaultWeapon;
         var weapons = this.getAllWeaponsInBag();
-        var boxSaveData = this.context.boxSaveData;
-        var selectedWeapon = (boxSaveData.bag.things[defaultWeapon[index]] && defaultWeapon[index])||this.getFirstWeapon();
+        var selectedWeapon = (weapons[defaultWeapon[index]] && defaultWeapon[index])||this.getFirstWeapon();
         return selectedWeapon;
     },
     handleInterval:function(index){
@@ -5396,7 +5422,7 @@ var MainComponent = React.createClass({
             buildingSaveData:clone(BUILDING_INIT),
             coolDownSaveData:clone(COOL_DOWN_INIT),
             currentBox      :'',
-            currentEquip    :{body:null,hand:null,foot:null,head:null},
+            currentEquip    :{head:null,body:null,foot:null,neck:null,hand:null,weapon1:null,weapon2:null},
             currentScene    :'home',
             defaultWeapon   :[],
             detailedItem    :'',
@@ -5444,6 +5470,7 @@ var MainComponent = React.createClass({
         boxSaveData          : React.PropTypes.object.isRequired,
         buildingSaveData     : React.PropTypes.object.isRequired,
         cancelEquip          : React.PropTypes.func.isRequired,
+        unequipSlot          : React.PropTypes.func.isRequired,
         changeItem           : React.PropTypes.func.isRequired,
         changeMsg            : React.PropTypes.func.isRequired,
         checkFull            : React.PropTypes.func.isRequired,
@@ -5526,6 +5553,7 @@ var MainComponent = React.createClass({
             boxSaveData         : this.state.boxSaveData,
             buildingSaveData    : this.state.buildingSaveData,
             cancelEquip         : this.cancelEquip,
+            unequipSlot         : this.unequipSlot,
             changeItem          : this.changeItem,
             changeMsg           : this.changeMsg,
             checkFull           : this.checkFull,
@@ -5721,19 +5749,11 @@ var MainComponent = React.createClass({
             }.bind(this),0.3);
             this.AudioEngine.playEffect(item.sound || 'pick');
         }
-        if(box == 'bag' && ITEM_DATA[item].equipType){
+        if(box == 'bag' && (ITEM_DATA[item].equipType || ITEM_DATA[item].type == 'weapon')){
             if(getLength(this.state.mstState) != 0){
                 this.showMsg(<p key = {Math.random()} >你不能在战斗中更改装备！</p>)
             }else{
-                var equipType = ITEM_DATA[item].equipType;
-                var currentEquip = clone(this.state.currentEquip);
-                if(currentEquip[equipType] == item){
-                    currentEquip[equipType] = null;
-                }else{
-                    currentEquip[equipType] = item;
-                }
-                this.setStateFromChildren({currentEquip:currentEquip});
-                this.AudioEngine.playEffect('wear');
+                this.equipItem(item);
             }
         }
         //能力提升物品
@@ -5957,14 +5977,54 @@ var MainComponent = React.createClass({
         var moistTime =  Math.floor(this.state.playerState.moist.amount/MOIST_DESC_PER_HOUR - 0.0001);
         return moistTime > fullTime?fullTime:moistTime;
     },
+    // 从背包装备物品：移入装备栏（不再占用背包格子）
+    // 武器有 2 个槽位(weapon1/weapon2)，其余按 equipType(head/body/foot/neck/hand)
+    equipItem:function(item){
+        var data = ITEM_DATA[item];
+        if(!data)return;
+        if(!this.state.boxSaveData.bag.things[item])return;
+        var currentEquip = clone(this.state.currentEquip);
+        var slot;
+        if(data.type == 'weapon'){
+            // 优先放入空武器槽，都满则替换 武器1
+            if(!currentEquip.weapon1)slot = 'weapon1';
+            else if(!currentEquip.weapon2)slot = 'weapon2';
+            else slot = 'weapon1';
+        }else if(data.equipType){
+            slot = data.equipType;
+            if(currentEquip[slot] === undefined)currentEquip[slot] = null;
+        }else{
+            return;
+        }
+        var old = currentEquip[slot];
+        currentEquip[slot] = item;
+        this.useItem(o(item,1),'bag');
+        if(old)this.changeItem(o(old,1),'bag');
+        this.setState({currentEquip:currentEquip});
+        this.AudioEngine.playEffect('wear');
+    },
+    // 卸下装备栏某槽的物品，放回背包
+    unequipSlot:function(slot){
+        var currentEquip = clone(this.state.currentEquip);
+        var item = currentEquip[slot];
+        if(!item)return;
+        if(this.checkFull(this.state.boxSaveData.bag,item)){
+            this.showMsg(<p key = {Math.random()} >背包已满，无法卸下！</p>);
+            return;
+        }
+        currentEquip[slot] = null;
+        this.changeItem(o(item,1),'bag');
+        this.setState({currentEquip:currentEquip});
+        this.AudioEngine.playEffect('pick');
+    },
     cancelEquip:function(itemName){
-        //卸下装备
-        var equipType = ITEM_DATA[itemName].equipType;
-        if(equipType){
-            var currentEquip = (this.state.currentEquip);
-            if(currentEquip[equipType] != itemName)return;
-            currentEquip[equipType] = null;
-            this.setState({currentEquip:currentEquip});
+        //卸下装备（在任意槽位中查找并放回背包）
+        var currentEquip = this.state.currentEquip;
+        for(var slot in currentEquip){
+            if(currentEquip[slot] == itemName){
+                this.unequipSlot(slot);
+                return;
+            }
         }
     },
     // 在背包与当前打开的容器之间转移物品（Ctrl/Shift 可批量）

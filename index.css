@@ -1808,3 +1808,48 @@ body {
 .building:hover {
     line-height: 1.2;
 }
+
+/* 装备栏（头/身/足/颈/武器1/武器2），不占用背包格子 */
+.equipBar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.equipSlot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid #c8d0b1;
+    border-radius: 5px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 11px;
+    overflow: hidden;
+}
+
+.equipSlotLabel {
+    font-size: 10px;
+    color: #999;
+}
+
+.equipSlotItem {
+    color: #333;
+    white-space: nowrap;
+    max-width: 44px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.equipSlotItem.empty {
+    color: #ccc;
+}
+
+.equipSlot:hover {
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}

@@ -1056,11 +1056,15 @@ var TEMP_DATA = {
 // EQUIP_TYPE_DATA：装备槽位（身体/手/脚/头）的显示名
 var EQUIP_TYPE_DATA = {
     body: '身体',
-    hand: '手',
+    hand: '手套',
+    weapon1: '武器1',
+    weapon2: '武器2',
     foot: '足',
     head: '头',
     neck: '颈',
 }
+// 装备栏槽位顺序（用于右侧装备栏展示；武器默认两个槽）
+var EQUIP_SLOTS = ['head', 'body', 'foot', 'neck', 'hand', 'weapon1', 'weapon2'];
 
 //游戏剧本初始化数据//////////////////////////////////////////////////////////////////////
 // 以下 INIT 模板用于新开档 / 读档补丁：它们给出各系统在游戏开始时的默认结构，
