@@ -834,57 +834,68 @@ var NormalMenuComponent = React.createClass({
                 break;
                 case'settings':
                 var settings = this.context.settings;
+                var canSaveRemote = this.context.currentScene == 'home' && (getLength(this.context.mstState) == 0) && !this.context.robberSaveData.robber;
                 return (
-                    <div className = 'skillMenu'>
-                        <div style = {{marginTop:10}}>
-                            <div>
+                    <div className = 'skillMenu settingsMenu'>
+                        <div className = 'settingsRow'>
+                            <div className = 'settingsField'>
                                 <label htmlFor="account">账号</label>
-                                <input onChange = {this.handleChange.bind(this,'account')} type="text" className = "form-control" id="account" value = {settings.save_account}></input>
+                                <input onChange = {this.handleChange.bind(this,'account')} type="text" className = "form-control settingsInput" id="account" value = {settings.save_account}></input>
+                            </div>
+                            <div className = 'settingsField'>
                                 <label htmlFor="pass">密码</label>
-                                <input onChange = {this.handleChange.bind(this,'pass')} type="password" className = "form-control" id="pass" value = {settings.save_pass}></input>
-                            </div>
-                            <div>
-                                {this.context.currentScene != 'home'?<p style = {{color:'#ddd'}}>在家才能保存哦。。。</p>:null}
-                                {getLength(this.context.mstState) != 0?<p style = {{color:'#ddd'}}>战斗中不能保存哦。。。</p>:null}
-                                {this.context.robberSaveData.robber?<p style = {{color:'#ddd'}}>你正处于危险之中。。。</p>:null}
-                                <BtnComponent disabled = {this.context.currentScene != 'home' || (getLength(this.context.mstState) != 0)||(this.context.robberSaveData.robber)} handleClick = {this.willUpload}>保存</BtnComponent>
-                                <BtnComponent handleClick = {this.download}>读取</BtnComponent>
+                                <input onChange = {this.handleChange.bind(this,'pass')} type="password" className = "form-control settingsInput" id="pass" value = {settings.save_pass}></input>
                             </div>
                         </div>
-                        <div style = {{marginTop:10}}>
-                            <label>本地存档</label>
-                            {function(){
-                                var canSave = this.context.currentScene == 'home' && (getLength(this.context.mstState) == 0) && !this.context.robberSaveData.robber;
-                                var localSaves = this.state.localSaves || this.context.getLocalSaves();
-                                var seasonName = {spring:'春',summer:'夏',autumn:'秋',winter:'冬'};
-                                var result = [];
-                                for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
-                                    (function(slot){
-                                        var save = localSaves[slot];
-                                        var desc = save
-                                            ? ((save.generation?'轮回' + save.generation + ' ':'') + (seasonName[save.season]||'') + '第' + save.day + '日')
-                                            : '空存档';
-                                        result.push(
-                                            <div key = {'localSave' + slot} style = {{display:'flex',alignItems:'center',marginBottom:4}}>
-                                                <span style = {{flex:1,textAlign:'left'}}>{slot + '. ' + desc}</span>
-                                                <BtnComponent disabled = {!canSave} handleClick = {this.handleLocalSave.bind(this,slot)}>保存</BtnComponent>
-                                                <BtnComponent disabled = {!save} handleClick = {this.handleLocalLoad.bind(this,slot)}>读取</BtnComponent>
-                                                <BtnComponent disabled = {!save} handleClick = {this.handleLocalDelete.bind(this,slot)}>删除</BtnComponent>
-                                            </div>
-                                        );
-                                    }.bind(this))(i);
-                                }
-                                return result;
-                            }.bind(this)()}
+                        {function(){
+                            var warns = [];
+                            if(this.context.currentScene != 'home')warns.push('在家才能保存哦。。。');
+                            if(getLength(this.context.mstState) != 0)warns.push('战斗中不能保存哦。。。');
+                            if(this.context.robberSaveData.robber)warns.push('你正处于危险之中。。。');
+                            if(warns.length == 0)return null;
+                            return <div className = 'settingsRow settingsWarn'>
+                                        {warns.map(function(w,i){return <span key = {i}>{w}</span>})}
+                                    </div>;
+                        }.bind(this)()}
+                        <div className = 'settingsRow'>
+                            <BtnComponent disabled = {!canSaveRemote} handleClick = {this.willUpload}>保存</BtnComponent>
+                            <BtnComponent handleClick = {this.download}>读取</BtnComponent>
                         </div>
-
-                        <label className = "checkbox" htmlFor="autoSave">
+                        <div className = 'settingsRow settingsTitle'>本地存档</div>
+                        {function(){
+                            var canSave = canSaveRemote;
+                            var localSaves = this.state.localSaves || this.context.getLocalSaves();
+                            var seasonName = {spring:'春',summer:'夏',autumn:'秋',winter:'冬'};
+                            var result = [];
+                            for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
+                                (function(slot){
+                                    var save = localSaves[slot];
+                                    var desc = save
+                                        ? ((save.generation?'轮回' + save.generation + ' ':'') + (seasonName[save.season]||'') + '第' + save.day + '日')
+                                        : '空存档';
+                                    result.push(
+                                        <div key = {'localSave' + slot} className = 'settingsRow localSaveRow'>
+                                            <span className = 'localSaveDesc'>{slot + '. ' + desc}</span>
+                                            <BtnComponent disabled = {!canSave} handleClick = {this.handleLocalSave.bind(this,slot)}>保存</BtnComponent>
+                                            <BtnComponent disabled = {!save} handleClick = {this.handleLocalLoad.bind(this,slot)}>读取</BtnComponent>
+                                            <BtnComponent disabled = {!save} handleClick = {this.handleLocalDelete.bind(this,slot)}>删除</BtnComponent>
+                                        </div>
+                                    );
+                                }.bind(this))(i);
+                            }
+                            return result;
+                        }.bind(this)()}
+                        <label className = 'settingsRow settingsCheckbox' htmlFor="autoSave">
                             <input checked = {this.context.settings.autoSave} onChange = {this.handleAuto} id="autoSave" type="checkbox" />
                             <span>出门时保存</span>
                         </label>
-                        <BtnComponent handleClick = {this.context.setVolume}>声音：{this.context.AudioEngine.on?'开':'关'}</BtnComponent>
-                        <BtnComponent handleClick = {this.setSort}>自动整理背包：{this.context.settings.sort?'开':'关'}</BtnComponent>
-                        <div><a target="blank" href = "http://1.maou.sinaapp.com/?page_id=47">作者的小站</a></div>
+                        <div className = 'settingsRow'>
+                            <BtnComponent handleClick = {this.context.setVolume}>声音：{this.context.AudioEngine.on?'开':'关'}</BtnComponent>
+                            <BtnComponent handleClick = {this.setSort}>自动整理背包：{this.context.settings.sort?'开':'关'}</BtnComponent>
+                        </div>
+                        <div className = 'settingsRow'>
+                            <a target="blank" href = "http://1.maou.sinaapp.com/?page_id=47">作者的小站</a>
+                        </div>
                     </div>
                 )
             }

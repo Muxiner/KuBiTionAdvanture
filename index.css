@@ -90,7 +90,7 @@ html,
     clear: both;
     height: 0;
     overflow: hidden;
-    visibily: hidden;
+    visibility: hidden;
 }
 
 .clearFix {
@@ -274,15 +274,18 @@ html,
 }
 
 .menu {
-    width: 500px;
-    height: 400px;
+    min-width: 69%;
+    min-height: 65%;
     margin: auto;
     padding: 10px;
     background: #DBDBCB;
 }
 
 .menuMain {
-    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 64%;
     background: #FFF;
     border: 1px solid #ddd;
 }
@@ -300,7 +303,78 @@ html,
     cursor: pointer;
 }
 
-.skillMenu {}
+.skillMenu {
+    display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;     /* 垂直居中 */
+}
+
+/* 设置界面：纵向均匀排布，整体水平、垂直居中 */
+.settingsMenu {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 14px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.settingsMenu .settingsRow {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.settingsMenu .settingsField {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.settingsMenu .settingsField > label {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.settingsMenu .settingsInput {
+    width: 150px;
+    height: 32px;
+    padding: 4px 8px;
+    display: inline-block;
+}
+
+.settingsMenu .settingsTitle {
+    font-weight: bold;
+}
+
+.settingsMenu .settingsWarn {
+    color: #B25242;
+}
+
+.settingsMenu .settingsWarn > span {
+    margin: 0 6px;
+}
+
+.settingsMenu .localSaveRow > .localSaveDesc {
+    width: 150px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.settingsMenu .settingsCheckbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+.settingsMenu .settingsCheckbox > input {
+    margin-right: 6px;
+}
 
 .skill {
     vertical-align: middle;
@@ -330,80 +404,6 @@ html,
     color: black;
     cursor: pointer;
 }
-
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-/*//////////////////////////*/
-
 
 p {
     margin: 0;
@@ -877,6 +877,7 @@ p {
 
 .panel-body {
     position: relative;
+    margin-bottom: 20px;
 }
 
 .schedule {
@@ -1279,4 +1280,189 @@ td:nth-child(1) {
 .dungeon {
     width: 100%;
     height: 100%;
+}
+/* ===== 响应式布局：铺满窗口并随窗口自适应（覆盖上方固定像素布局） ===== */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.background {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.outer {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    margin: 0;
+}
+
+#game {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.main {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.advanMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    float: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.advanMain > .panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.advanOuter {
+    flex: 1 1 auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+}
+
+/* advan 铺满 advanOuter */
+.advan {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    overflow: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* 各场景根部件（home / branch / tableOuter / dungeon 等）均铺满 advan 并居中 */
+.advan > div {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+}
+
+/* home 场景：建筑平铺并居中 */
+.home {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* 表格类场景（分支/地点等）铺满并居中 */
+.branch,
+.tableOuter {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.branch {
+    max-height: none;
+}
+
+.table {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.stateMain {
+    width: 100%;
+    height: auto;
+    margin: 12px 0 0;
+    float: none;
+}
+
+.equipMain {
+    flex: 0 0 320px;
+    width: 320px;
+    height: auto;
+    margin: 0;
+    float: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.equipMain > .panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.equip {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 8px;
+    float: none;
+}
+
+.menuOuter {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.menuInner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+}
+
+@media (max-width: 760px) {
+    .main {
+        flex-direction: column;
+    }
+
+    .advanMain {
+        flex: 1 1 auto;
+    }
+
+    .equipMain {
+        flex: 0 0 45%;
+        width: 100%;
+    }
 }
