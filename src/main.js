@@ -3247,6 +3247,26 @@ var CookRecipeComponent = React.createClass({
         getTheMaxTimeToUse   :React.PropTypes.func.isRequired,
         getBuildingLevel     :React.PropTypes.func.isRequired,
         AudioEngine          :React.PropTypes.object.isRequired,
+        changeMsg            :React.PropTypes.func.isRequired,
+    },
+    // 生成食谱成品的作用文本（用于悬浮提示）
+    getEffectText:function(id){
+        var data = ITEM_DATA[id];
+        if(!data)return '';
+        var parts = [];
+        if(data.desc)parts.push(data.desc);
+        if(data.effect){
+            var eff = [];
+            for(var attr in data.effect){
+                eff.push((STATE_DATA[attr] ? STATE_DATA[attr].name : attr) + (data.effect[attr] > 0 ? '+' : '') + data.effect[attr]);
+            }
+            if(eff.length)parts.push('效果：' + eff.join('、'));
+        }
+        return parts.join('\n');
+    },
+    // 悬浮时在右侧显示该食谱成品的详情
+    showRecipeDetail:function(id){
+        this.context.changeMsg(id,'item');
     },
     // 单份烹调耗时（受炊具升级科技影响）
     getCookTime:function(){
@@ -3293,7 +3313,7 @@ var CookRecipeComponent = React.createClass({
             var require = this.getRequire(recipe);
             var name = ITEM_DATA[recipe.name] ? ITEM_DATA[recipe.name].name : recipe.name;
             var disabled = maxTime < timeNeed || !this.context.checkHaveResourceAll(require,true) || this.context.checkFull('cooked',recipe.name);
-            return <tr key = {index}>
+            return <tr key = {index} title = {this.getEffectText(recipe.name)} onMouseEnter = {this.showRecipeDetail.bind(this,recipe.name)}>
                         <td style = {{color:COLOR.BLUE}}>{name}</td>
                         <td><RequireComponent haveBox = {true} requireList = {require}/></td>
                         <td>{timeNeed}</td>
@@ -3313,7 +3333,7 @@ var CookRecipeComponent = React.createClass({
 var CookerComponent = React.createClass({
     render:function(){
         return<div>
-                    <p>你可以使用炊具更大程度地利用食物。选择食谱即可一键烹调。</p>
+                    <p>你可以使用炊具更大程度地利用食物。选择食谱即可一键烹调（悬浮食谱可查看作用）。</p>
                     <div>
                         <BoxComponent box = 'cooked'/>
                     </div>
