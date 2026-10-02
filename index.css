@@ -1615,3 +1615,45 @@ body {
     padding: 0;
     margin: 0;
 }
+
+/* 右侧“所有物品”汇总列表 */
+.equipMain .equip,
+.equipMain .detail {
+    float: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ownedList {
+    clear: both;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    font-size: 12px;
+    padding: 4px 10px 10px;
+    border-top: 1px solid #ddd;
+    margin-top: 6px;
+}
+
+.ownedTitle {
+    font-weight: bold;
+    margin: 6px 0 4px;
+}
+
+.ownedItem {
+    display: flex;
+    justify-content: space-between;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+.ownedName {
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ownedAmount {
+    color: #B25242;
+    margin-left: 8px;
+}

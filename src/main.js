@@ -1175,6 +1175,28 @@ var BagComponent = React.createClass({
         var detailedItem = this.context.detailedItem;
         this.context.handleItemClick(detailedItem,this.getItemBoxFromDetail());
     },
+    // 汇总所有容器（背包/大箱子/各工作台等）内的物品，按数量降序生成列表
+    getOwnedList:function(){
+        var boxSaveData = this.context.boxSaveData;
+        var owned = {};
+        for(var box in boxSaveData){
+            var things = boxSaveData[box] && boxSaveData[box].things;
+            if(!things)continue;
+            for(var id in things){
+                owned[id] = (owned[id] || 0) + things[id];
+            }
+        }
+        var list = [];
+        for(var id in owned)list.push({id:id,amount:owned[id]});
+        list.sort(function(a,b){return b.amount - a.amount;});
+        return list.map(function(entry){
+            var name = ITEM_DATA[entry.id] ? ITEM_DATA[entry.id].name : entry.id;
+            return <div className = 'ownedItem' key = {entry.id}>
+                        <span className = 'ownedName'>{name}</span>
+                        <span className = 'ownedAmount'>×{entry.amount}</span>
+                    </div>;
+        });
+    },
     render:function() {
         var detailedType = this.context.detailedType;
         var detailedItem = this.context.detailedItem;
@@ -1281,7 +1303,10 @@ var BagComponent = React.createClass({
                         <div className = "detail" id = "detail">
                             {getDetail.bind(this)()}
                         </div>
-
+                        <div className = "ownedList">
+                            <div className = "ownedTitle">所有物品</div>
+                            {this.getOwnedList()}
+                        </div>
                     </div>
                 </div>
     }
