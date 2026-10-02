@@ -1381,6 +1381,61 @@ body {
     justify-content: center;
 }
 
+/* 窗口（callWindow）根部件直接渲染在 advanOuter 下，同样铺满 */
+.advanOuter > div {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+/* 窗口/内容容器（viewOuter 等）与 advan 同宽高，铺满并居中 */
+.viewOuter,
+.updateOuter {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.oppo {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* 加载进度：遮罩铺满，进度条水平垂直居中 */
+.mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.waitBar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transform: translate(-50%, -50%);
+}
+
+.waitBar:hover {
+    transform: translate(-50%, -50%) scaleX(1.1) scaleY(1.1);
+}
+
 /* home 场景：建筑平铺并居中 */
 .home {
     width: 100%;
