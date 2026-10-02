@@ -1853,3 +1853,14 @@ body {
 .equipSlot:hover {
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
 }
+
+/* 物品详情：丢弃操作区 */
+.detailDiscard {
+    margin-top: 6px;
+}
+
+.detailDiscard .discardHint {
+    font-size: 11px;
+    color: #888;
+    margin-left: 6px;
+}

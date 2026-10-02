@@ -560,7 +560,7 @@ var BtnComponent = React.createClass({
         if(this.props.disabled)return this.props.disabledReason||'';
         return '';
     },
-    handleClick:function(isRight){
+    handleClick:function(isRight,event){
         if(this.getDisabled()){
             var reason = this.getDisabledReason();
             if(reason)this.context.showMsg(<p key = {Math.random()}>{reason}</p>);
@@ -569,9 +569,9 @@ var BtnComponent = React.createClass({
         this.context.AudioEngine.playEffect(this.props.sound);
 
         if(this.props.handleRightClick && isRight){
-            this.props.handleRightClick()
+            this.props.handleRightClick(event)
         }else{
-            this.props.handleClick();
+            this.props.handleClick(event);
         }
     },
     handleMouseEnter:function(){
@@ -1182,6 +1182,15 @@ var BagComponent = React.createClass({
         playerState    :React.PropTypes.object.isRequired,
         handleItemClick:React.PropTypes.func.isRequired,
         currentBox     :React.PropTypes.string.isRequired,
+        useItem        :React.PropTypes.func.isRequired,
+        cancelEquip    :React.PropTypes.func.isRequired,
+        changeMsg      :React.PropTypes.func.isRequired,
+        AudioEngine    :React.PropTypes.object.isRequired,
+    },
+    getInitialState:function(){
+        return {
+            discardConfirm:null,
+        }
     },
     getDefaultProps:function(){
         return {
@@ -1215,6 +1224,26 @@ var BagComponent = React.createClass({
     useItemFromDetail:function(){
         var detailedItem = this.context.detailedItem;
         this.context.handleItemClick(detailedItem,this.getItemBoxFromDetail());
+    },
+    // 丢弃物品：默认丢 1 个，按住 Shift 丢该容器内全部；需二次确认
+    handleDiscard:function(item,event){
+        if(this.state.discardConfirm != item){
+            this.setState({discardConfirm:item});
+            return;
+        }
+        var box = this.getItemBoxFromDetail();
+        if(!box)return;
+        this.context.cancelEquip(item);
+        var have = this.context.boxSaveData[box].things[item] || 0;
+        var amount = (event && event.shiftKey) ? have : 1;
+        if(amount < 1)amount = 1;
+        this.context.useItem(o(item,amount),box);
+        this.setState({discardConfirm:null});
+        this.context.changeMsg('','item');
+        this.context.AudioEngine.playEffect('pick');
+    },
+    cancelDiscard:function(){
+        this.setState({discardConfirm:null});
     },
     // 汇总所有容器（背包/大箱子/各工作台等）内的物品，按数量降序生成列表
     getOwnedList:function(){
@@ -1305,6 +1334,22 @@ var BagComponent = React.createClass({
                             {(IS_IPAD && ITEM_DATA[detailedItem].canUse)?<BtnComponent disabled = {!this.getItemBoxFromDetail()} handleClick = {this.useItemFromDetail}>使用</BtnComponent>:null}
                             {(IS_IPAD && ITEM_DATA[detailedItem].equipType )?<BtnComponent disabled = {this.getItemBoxFromDetail()!='bag'} handleClick = {this.useItemFromDetail}>装备</BtnComponent>:null}
                         </div>
+                        {(ITEM_DATA[detailedItem].type != 'quest' && ITEM_DATA[detailedItem].type != 'special')?
+                            <div className = "detailVector detailDiscard">
+                                {this.state.discardConfirm == detailedItem ?
+                                    <span>
+                                        <BtnComponent disabled = {!this.getItemBoxFromDetail()} handleClick = {this.handleDiscard.bind(this,detailedItem)}>确认丢弃</BtnComponent>
+                                        <BtnComponent handleClick = {this.cancelDiscard}>取消</BtnComponent>
+                                        <span className = "discardHint">Shift=丢全部</span>
+                                    </span>
+                                    :
+                                    <span>
+                                        <BtnComponent disabled = {!this.getItemBoxFromDetail()} handleClick = {this.handleDiscard.bind(this,detailedItem)}>丢弃</BtnComponent>
+                                        <span className = "discardHint">点两次·Shift=丢全部</span>
+                                    </span>
+                                }
+                            </div>
+                        : null}
                         {getDetailDesc.bind(this)()}
                     </div>
         }
