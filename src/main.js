@@ -3342,6 +3342,43 @@ var CookRecipeComponent = React.createClass({
         AudioEngine          :React.PropTypes.object.isRequired,
         changeMsg            :React.PropTypes.func.isRequired,
     },
+    getInitialState:function(){
+        return {
+            cookAmounts:{},   // 以配方键记录每行选择的数量
+        }
+    },
+    // 配方唯一键（用于稳定保存每行数量，列表排序变化时不错位）
+    recipeKey:function(recipe){
+        return recipe.name + '|' + recipe.require.slice().sort().join(',');
+    },
+    // 该配方可制作的最大数量：同时受现有材料与可用时间限制
+    getAmountMax:function(recipe){
+        var require = this.getRequire(recipe);
+        var bag = together(this.context.boxSaveData.bag.things,this.context.boxSaveData.bigBox.things);
+        var byMat = getCraftableCount(require,bag);
+        var byTime = Math.floor(this.context.getTheMaxTimeToUse() / this.getCookTime());
+        var max = Math.min(byMat,byTime);
+        return max > 0 ? max : 0;
+    },
+    getAmount:function(recipe){
+        var max = this.getAmountMax(recipe);
+        var v = this.state.cookAmounts[this.recipeKey(recipe)] || 1;
+        if(v > max)v = max;
+        if(v < 1)v = 1;
+        return v;
+    },
+    changeCookAmount:function(recipe,sender){
+        var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
+        var value = parseInt(obj.value);
+        if(isNaN(value))value = 1;
+        var max = this.getAmountMax(recipe);
+        if(max < 1)max = 1;
+        if(value > max)value = max;
+        if(value < 1)value = 1;
+        var amounts = clone(this.state.cookAmounts);
+        amounts[this.recipeKey(recipe)] = value;
+        this.setState({cookAmounts:amounts});
+    },
     // 生成食谱成品的作用文本（用于悬浮提示）
     getEffectText:function(id){
         return getItemInfoText(id);
@@ -3364,16 +3401,17 @@ var CookRecipeComponent = React.createClass({
         }
         return require;
     },
-    cook:function(recipe){
-        var require = this.getRequire(recipe);
+    cook:function(recipe,amount){
+        amount = amount || 1;
+        var require = cloneMul(this.getRequire(recipe),amount);
         function callBack(){
             this.context.useItemThatPlayerHave(require);
             var o = {};
-            o[recipe.name] = 1;
+            o[recipe.name] = amount;
             this.context.changeItem(o,'cooked');
             this.context.AudioEngine.playEffect('build');
         }
-        this.context.useTime(callBack.bind(this),this.getCookTime());
+        this.context.useTime(callBack.bind(this),this.getCookTime()*amount);
     },
     render:function(){
         var timeNeed = this.getCookTime();
@@ -3392,19 +3430,23 @@ var CookRecipeComponent = React.createClass({
             return getCraftableCount(this.getRequire(b),bag) - getCraftableCount(this.getRequire(a),bag);
         }.bind(this));
         var rows = recipes.map(function(recipe,index){
-            var require = this.getRequire(recipe);
+            var amount = this.getAmount(recipe);
+            var max = this.getAmountMax(recipe);
+            var require = cloneMul(this.getRequire(recipe),amount);
+            var totalTime = this.getCookTime() * amount;
             var name = ITEM_DATA[recipe.name] ? ITEM_DATA[recipe.name].name : recipe.name;
-            var disabled = maxTime < timeNeed || !this.context.checkHaveResourceAll(require,true) || this.context.checkFull('cooked',recipe.name);
+            var disabled = amount < 1 || amount > max || maxTime < totalTime || !this.context.checkHaveResourceAll(require,true) || this.context.checkFull('cooked',recipe.name);
             return <tr key = {index} title = {this.getEffectText(recipe.name)} onMouseEnter = {this.showRecipeDetail.bind(this,recipe.name)}>
                         <td style = {{color:COLOR.BLUE}}>{name}</td>
-                        <td><RequireComponent haveBox = {true} requireList = {require}/></td>
-                        <td>{timeNeed}</td>
-                        <td><BtnComponent style = {{margin:'0px'}} requireList = {require} disabled = {disabled} disabledReason = {'材料不足、饱食/水分不足或成品箱已满'} handleClick = {this.cook.bind(this,recipe)} desc = "烹调" /></td>
+                        <td><RequireComponent haveBox = {true} requireList = {require} showTotal = {true}/></td>
+                        <td>{Math.round(totalTime*10)/10}</td>
+                        <td><input className = 'scheduleInput form-control' value = {String(amount)} type = 'number' min = '1' max = {String(max > 0 ? max : 1)} onChange = {this.changeCookAmount.bind(this,recipe)}/></td>
+                        <td><BtnComponent style = {{margin:'0px'}} requireList = {require} disabled = {disabled} disabledReason = {'材料不足、数量超出、饱食/水分不足或成品箱已满'} handleClick = {this.cook.bind(this,recipe,amount)} desc = "烹调" /></td>
                     </tr>;
         }.bind(this));
         return  <div className = "tableOuter cookTableOuter">
                     <table className="table table-condensed table-hover">
-                        <thead><tr><td>成品</td><td>需求</td><td>耗时</td><td></td></tr></thead>
+                        <thead><tr><td>成品</td><td>需求</td><td>耗时</td><td>个数</td><td></td></tr></thead>
                         <tbody>
                             {rows}
                         </tbody>
@@ -3415,7 +3457,7 @@ var CookRecipeComponent = React.createClass({
 var CookerComponent = React.createClass({
     render:function(){
         return<div>
-                    <p>你可以使用炊具更大程度地利用食物。选择食谱即可一键烹调（悬浮食谱可查看作用）。</p>
+                    <p>你可以使用炊具更大程度地利用食物。填写「个数」后点「烹调」即可按数量制作（悬浮食谱可查看作用）。</p>
                     <div>
                         <BoxComponent box = 'cooked'/>
                     </div>
