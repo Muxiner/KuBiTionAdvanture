@@ -175,6 +175,20 @@ function o(attr, value) {
 function lll(value) {
     console.log(value);
 }
+/**
+ * 根据现有材料(背包/箱子合并后的 bag)，计算某配方最多可制作的次数。
+ * require 为 {物品id:需求量}；材料不足或需求为空时返回 0。
+ */
+function getCraftableCount(require, bag) {
+    var min = Infinity;
+    for (var attr in require) {
+        var need = require[attr];
+        if (!need) continue;
+        var c = Math.floor((bag[attr] || 0) / need);
+        if (c < min) min = c;
+    }
+    return (min === Infinity) ? 0 : min;
+}
 /** 取对象的第一个成员，返回 {attr,value}；空对象返回 undefined。 */
 function getFirst(obj) {
     for (var attr in obj) {

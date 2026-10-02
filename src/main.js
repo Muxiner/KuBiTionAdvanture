@@ -1667,8 +1667,8 @@ var StudioComponent = React.createClass({
         }
         function getMakeDesc(){
             var list = attachData;
-            var result = [];
-            var count = 0;
+            var bag = together(this.context.boxSaveData.bag.things,this.context.boxSaveData.bigBox.things);
+            var entries = [];
             for (var attr in  list) {
                 var tmp = list[attr];
                 //只需一次的，科技类的物品的检查
@@ -1679,15 +1679,21 @@ var StudioComponent = React.createClass({
                 if(attachData[attr].event  && !this.context.eventSaveData[attachData[attr].event].experienced)continue;
                 //需要建筑的情况的检查
                 if(tmp.building && !this.context.buildingSaveData[tmp.building].own)continue;
-                // var isFull =  !( (box.size > getLength(box.things)) || (box.things[attr] != undefined) );
-                result.push(<tr onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count}>
+                entries.push({attr:attr,tmp:tmp});
+            };
+            // 按「现有材料可制作的次数」从多到少排序
+            entries.sort(function(a,b){
+                return getCraftableCount(b.tmp.require,bag) - getCraftableCount(a.tmp.require,bag);
+            });
+            var result = entries.map(function(entry,count){
+                var attr = entry.attr, tmp = entry.tmp;
+                return <tr onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count}>
                                 <td>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</td>
                                 <td><RequireComponent requireList = {tmp.require} haveBox = {true}/></td>
                                 <td>{ITEM_DATA[attr].desc}</td>
-                            </tr>);
-                count ++;
-            };
-            if(count == 0)return false;
+                            </tr>;
+            }.bind(this));
+            if(entries.length == 0)return false;
             return result;
         }
         function schedule(){
@@ -2905,29 +2911,32 @@ var BuildComponent = React.createClass({
             ;
         }
         var getRow = function(){
-            var result = [],count = 0;
+            var boxSaveData = this.context.boxSaveData;
+            var bag = together(boxSaveData.bag.things,boxSaveData.bigBox.things);
+            var entries = [];
             for (var attr in buildingList) {
                 var building = buildingList[attr];
                 var data = BUILDING_DATA[attr];
-
-                var boxSaveData = this.context.boxSaveData;
-
                 if(data.science && !boxSaveData.scienceTable.things[data.science])continue;
                 if(data.building && !buildingList[data.building].own)continue;
-
-                var maxTimeToUse = this.context.getTheMaxTimeToUse();
                 if(building.own)continue;
-                result.push(<tr key = {count}>
+                entries.push({attr:attr,data:data});
+            };
+            // 按「现有材料可制作的次数」从多到少排序
+            entries.sort(function(a,b){
+                return getCraftableCount(b.data.require,bag) - getCraftableCount(a.data.require,bag);
+            });
+            var maxTimeToUse = this.context.getTheMaxTimeToUse();
+            return entries.map(function(entry,count){
+                var attr = entry.attr, data = entry.data;
+                return <tr key = {count}>
                                 <td>{data.name}</td>
                                 <td><RequireComponent haveBox = {true} requireList = {data.require}/></td>
                                 <td>{data.desc}</td>
                                 <td>{data.timeNeed}</td>
                                 <td><BtnComponent desc = {'建造'} disabled = {maxTimeToUse <= data.timeNeed} disabledReason = {'饱食或水分不足，撑不过 ' + data.timeNeed + ' 小时（约剩 ' + Math.round(maxTimeToUse) + ' 小时）'} requireList = {data.require} handleClick = {this.build.bind(this,attr)}/></td>
-                            </tr>);
-                count ++;
-
-            };
-            return result
+                            </tr>;
+            }.bind(this));
         }
         return  <div className = 'buildWindow'>
                     <div  className = "tableOuter buildTable">
@@ -3044,23 +3053,27 @@ var WaitMakeComponent = React.createClass({
         }
         function getCropTypeDesc(){
             var list = attachData;
-            var result = [];
-            var count = 0;
+            var bag = together(this.context.boxSaveData.bag.things,this.context.boxSaveData.bigBox.things);
+            var entries = [];
             for (var attr in  list) {
-                var tmp = list[attr];
-
+                entries.push({attr:attr,tmp:list[attr]});
+            };
+            // 按「现有材料可制作的次数」从多到少排序
+            entries.sort(function(a,b){
+                return getCraftableCount(b.tmp.require,bag) - getCraftableCount(a.tmp.require,bag);
+            });
+            var result = entries.map(function(entry,count){
+                var attr = entry.attr, tmp = entry.tmp;
                 var crop = this.context.buildingSaveData[building];
                 var isFull = crop.size <= crop.list.length;
-                result.push(<tr key = {count}>
+                return <tr key = {count}>
                                 <td style={{color:COLOR.BLUE}}>{grtDesc.bind(this)() + tmp.desc}</td>
                                 <td><RequireComponent haveBox = {true} requireList = {tmp.require} /></td>
                                 <td>{tmp.timeMax/(1 + manageLevel)}</td>
                                 <td><RequireComponent isGreen = {true} requireList = {o(tmp.itemGet,this.getAmount(tmp.itemAmount))}/></td>
                                 <td><BtnComponent style = {{margin:'0px'}} requireList = {tmp.require} disabled = {isFull} handleClick = {this.farm.bind(this,attr)} desc = "设置" /></td>
-                            </tr>);
-
-                count ++;
-            };
+                            </tr>;
+            }.bind(this));
             return result;
         }
         function grtDesc(){
@@ -3195,27 +3208,31 @@ var TrapComponent = React.createClass({
         }
         function getTrapTypeDesc(){
             var list = TRAP_DATA;
-            var result = [];
-            var count = 0
-
             var chanceLevel = this.context.getScienceLevel('trapChance');
             var getLevel = this.context.getScienceLevel('trapGet');
             var trap = this.context.buildingSaveData.trap;
-
+            var bag = together(this.context.boxSaveData.bag.things,this.context.boxSaveData.bigBox.things);
+            var entries = [];
             for (var attr in  list) {
                 var tmp = list[attr];
                 if(tmp.science && (!this.context.boxSaveData.scienceTable.things[tmp.science]))continue;
+                entries.push({attr:attr,tmp:tmp});
+            };
+            // 按「现有材料可制作的次数」从多到少排序
+            entries.sort(function(a,b){
+                return getCraftableCount(b.tmp.require,bag) - getCraftableCount(a.tmp.require,bag);
+            });
+            var result = entries.map(function(entry,count){
+                var attr = entry.attr, tmp = entry.tmp;
                 var isFull = trap.size <= trap.list.length;
-                result.push(<tr key = {count}>
+                return <tr key = {count}>
                                 <td style={{color:COLOR.BLUE}}>{this.desc + tmp.desc}</td>
                                 <td><RequireComponent haveBox ={true} requireList = {tmp.require} /></td>
                                 <td><ProgressComponent current = {tmp.chance * (1 + chanceLevel * 0.5)} max = {1} /></td>
                                 <td><RequireComponent isGreen = {true}  requireList = {cloneMul(tmp.itemGet,1 + 0.5 * getLevel)} separator = ' 或 ' /></td>
                                 <td><BtnComponent style = {{margin:'0px'}} requireList = {tmp.require} disabled = {isFull} handleClick = {this.makeTrap.bind(this,attr)} desc = "设置" /></td>
-                            </tr>);
-
-                count ++;
-            };
+                            </tr>;
+            }.bind(this));
             return result;
         }
         return  <div>
@@ -3285,6 +3302,11 @@ var CookRecipeComponent = React.createClass({
             }
             return true;
         });
+        // 按「现有材料可制作的次数」从多到少排序
+        var bag = together(this.context.boxSaveData.bag.things,this.context.boxSaveData.bigBox.things);
+        recipes.sort(function(a,b){
+            return getCraftableCount(this.getRequire(b),bag) - getCraftableCount(this.getRequire(a),bag);
+        }.bind(this));
         var rows = recipes.map(function(recipe,index){
             var require = this.getRequire(recipe);
             var name = ITEM_DATA[recipe.name] ? ITEM_DATA[recipe.name].name : recipe.name;
