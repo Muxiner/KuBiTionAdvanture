@@ -1757,22 +1757,21 @@ body {
 
 .buildingGroup {
     margin: 2px 0 8px;
-    text-align: left;
+    text-align: center;
 }
 
 .buildingGroupTitle {
     font-size: 12px;
     color: #6b6b6b;
     padding: 2px 6px;
-    border-left: 3px solid #A1A693;
-    margin-left: 4px;
+    text-align: center;
 }
 
 .buildingGroupItems {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 8px;
     padding: 4px 6px;
 }
