@@ -1584,3 +1584,17 @@ body {
 .toast p {
     margin: 0;
 }
+
+/* 所有 .btn 按钮固定宽度 */
+.btn {
+    width: 80px;
+    min-width: 80px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* 例外：保留建筑格（.building 本身也是 .btn）的原尺寸 */
+.building {
+    width: 60px;
+    min-width: 60px;
+}
