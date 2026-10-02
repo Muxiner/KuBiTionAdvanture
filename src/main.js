@@ -670,8 +670,8 @@ var CustomMenuComponent = React.createClass({
         return <div>{this.context.menuDesc}</div>
     }
 });
-// 大箱子快捷转移：把「大箱子」与当前建筑容器之间的物品批量取用/放回
-// props.box 为当前容器名（如 'cooker' / 'makeTable' / 'well' 等）
+// 容器快捷转移：把当前建筑容器内的物品一键放入「大箱子」
+// props.box 为当前容器名（如 'cooked' 等）
 var BoxTransferComponent = React.createClass({
     getDefaultProps:function(){
         return {
@@ -683,22 +683,6 @@ var BoxTransferComponent = React.createClass({
         checkFull   :React.PropTypes.func.isRequired,
         changeItem  :React.PropTypes.func.isRequired,
         AudioEngine :React.PropTypes.object.isRequired,
-    },
-    // 从大箱子取用：把大箱子里的物品种类移入当前容器（受容量限制）
-    takeIn:function(){
-        var box = this.props.box;
-        if(!box || box == 'bigBox')return;
-        var boxSaveData = this.context.boxSaveData;
-        var from = boxSaveData['bigBox'].things;
-        var move = {};
-        for(var id in from){
-            if(this.context.checkFull(boxSaveData[box],id))continue;
-            move[id] = from[id];
-        }
-        if(getLength(move) == 0)return;
-        this.context.changeItem(clone(move),box);
-        this.context.changeItem(clone(move),'bigBox',true);
-        this.context.AudioEngine.playEffect('exchange');
     },
     // 放入大箱子：把当前容器内的物品全部移回大箱子（受容量限制）
     putOut:function(){
@@ -719,7 +703,6 @@ var BoxTransferComponent = React.createClass({
     render:function(){
         if(!this.props.box || this.props.box == 'bigBox')return null;
         return <div className = 'boxTransfer'>
-                    <BtnComponent handleClick = {this.takeIn}>从大箱子取用</BtnComponent>
                     <BtnComponent handleClick = {this.putOut}>放入大箱子</BtnComponent>
                 </div>;
     }
