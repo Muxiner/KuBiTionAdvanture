@@ -212,7 +212,7 @@ var ItemComponent = React.createClass({
         var isCurrentEquip = this.checkIfISCurrentEquip(item);
         var maxDurable = this.context.getMaxDurable(item);
         return      <div className = {"item " + (isCurrentEquip?'currentEquip':'')} onMouseEnter = {this.itemMouseEnter} onClick = {this.itemMouseClick} onContextMenu = {this.itemClickRight}>
-                        <p style = {{color:(TYPE_DATA[ITEM_DATA[this.props.item].type].color||COLOR.BLACK)}}>{ITEM_DATA[item].name}</p>
+                        <p style = {{color:((TYPE_DATA[ITEM_DATA[this.props.item].type]||{}).color||COLOR.BLACK)}}>{ITEM_DATA[item].name}</p>
                         {ITEM_DATA[item].durable?<ProgressComponent  addStyle = {{position: 'absolute',width: '30px',left: '9px',top: '22px',height: '5px'}} max = {maxDurable} current = {maxDurable - this.context.durableSaveData[item]} />:null}
                         <span className = "badge itemAmount">{this.props.amount}</span>
                     </div>
@@ -1296,7 +1296,7 @@ var BagComponent = React.createClass({
                         </p>
                         {equipType?<p className = "detailVector effectHeading clearFix">{EQUIP_TYPE_DATA[equipType]}</p>:null}
                         <p className = "detailVector effectHeading clearFix">
-                            {equipShow || TYPE_DATA[ITEM_DATA[detailedItem].type].name}
+                            {equipShow || (TYPE_DATA[ITEM_DATA[detailedItem].type] ? TYPE_DATA[ITEM_DATA[detailedItem].type].name : ITEM_DATA[detailedItem].type)}
                         </p>
                         {(!IS_IPAD && ITEM_DATA[detailedItem].canUse)?<p className = "detailVector effectHeading clearFix" >右键使用</p> : null}
                         {maxDurable != undefined?<div className = "detailVector effectHeading clearFix" >耐久度：{maxDurable - durable}/{maxDurable}</div> : null}
