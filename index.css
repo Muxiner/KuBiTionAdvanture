@@ -1657,3 +1657,9 @@ body {
     color: #B25242;
     margin-left: 8px;
 }
+
+/* 大箱子快捷转移按钮组 */
+.boxTransfer {
+    text-align: center;
+    margin: 4px 0;
+}

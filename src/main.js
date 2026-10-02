@@ -670,6 +670,60 @@ var CustomMenuComponent = React.createClass({
         return <div>{this.context.menuDesc}</div>
     }
 });
+// 大箱子快捷转移：把「大箱子」与当前建筑容器之间的物品批量取用/放回
+// props.box 为当前容器名（如 'cooker' / 'makeTable' / 'well' 等）
+var BoxTransferComponent = React.createClass({
+    getDefaultProps:function(){
+        return {
+            box:null,
+        }
+    },
+    contextTypes:{
+        boxSaveData :React.PropTypes.object.isRequired,
+        checkFull   :React.PropTypes.func.isRequired,
+        changeItem  :React.PropTypes.func.isRequired,
+        AudioEngine :React.PropTypes.object.isRequired,
+    },
+    // 从大箱子取用：把大箱子里的物品种类移入当前容器（受容量限制）
+    takeIn:function(){
+        var box = this.props.box;
+        if(!box || box == 'bigBox')return;
+        var boxSaveData = this.context.boxSaveData;
+        var from = boxSaveData['bigBox'].things;
+        var move = {};
+        for(var id in from){
+            if(this.context.checkFull(boxSaveData[box],id))continue;
+            move[id] = from[id];
+        }
+        if(getLength(move) == 0)return;
+        this.context.changeItem(clone(move),box);
+        this.context.changeItem(clone(move),'bigBox',true);
+        this.context.AudioEngine.playEffect('exchange');
+    },
+    // 放入大箱子：把当前容器内的物品全部移回大箱子（受容量限制）
+    putOut:function(){
+        var box = this.props.box;
+        if(!box || box == 'bigBox')return;
+        var boxSaveData = this.context.boxSaveData;
+        var from = clone(boxSaveData[box].things);
+        var move = {};
+        for(var id in from){
+            if(this.context.checkFull(boxSaveData['bigBox'],id))continue;
+            move[id] = from[id];
+        }
+        if(getLength(move) == 0)return;
+        this.context.changeItem(clone(move),'bigBox');
+        this.context.changeItem(clone(move),box,true);
+        this.context.AudioEngine.playEffect('exchange');
+    },
+    render:function(){
+        if(!this.props.box || this.props.box == 'bigBox')return null;
+        return <div className = 'boxTransfer'>
+                    <BtnComponent handleClick = {this.takeIn}>从大箱子取用</BtnComponent>
+                    <BtnComponent handleClick = {this.putOut}>放入大箱子</BtnComponent>
+                </div>;
+    }
+});
 // ===== 2) 菜单与系统界面 =====
 // 常规主菜单：技能列表/描述、设置；账号存档与本地多槽存档的保存/读取/删除
 var NormalMenuComponent = React.createClass({
@@ -1578,6 +1632,7 @@ var StudioComponent = React.createClass({
                             <div className = 'studioBottom' >
                                 {this.state.displayWindow?schedule.bind(this)():''}
                                 {this.props.alwayMakeOne?null:<BoxComponent box = {this.props.type}/>}
+                                {this.props.alwayMakeOne?null:<BoxTransferComponent box = {this.props.type}/>}
                                 <BtnBack/>
                             </div>
                         </div>
@@ -3197,6 +3252,7 @@ var CookerComponent = React.createClass({
                         {' => '}
                         <BoxComponent box = 'cooked'/>
                     </div>
+                    <BoxTransferComponent box = 'cooker'/>
                     <StudioComponent desc = '烹调' type = 'cooked'/>
                     <div>
                         <StudioComponent isBuildingUpdate = {true} type = 'cookerUpdate'/>
@@ -3225,6 +3281,7 @@ var WellComponent = React.createClass({
                     <p>当前水井深度等级：<span style = {{color:COLOR.BLUE}}>{level}</span></p>
                     <p>每日产水量：<span style = {{color:COLOR.BLUE}}>{yieldAmount}</span></p>
                     <BoxComponent box = 'well'/>
+                    <BoxTransferComponent box = 'well'/>
                     <StudioComponent isBuildingUpdate = {true} type = 'wellUpdate'/>
                     <BtnBack/>
                 </div>
@@ -3253,6 +3310,7 @@ var ToiletComponent = React.createClass({
                     </div>
                     <div>
                         <BoxComponent box = 'shit'/>
+                        <BoxTransferComponent box = 'shit'/>
                         {level>1?(
                             <div style = {{display:'inline-block',verticalAlign:'middle'}}>
                                 <table className = 'table table-hover table-condensed'>
