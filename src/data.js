@@ -400,6 +400,31 @@ var BUILDING_UPDATE_DATA = {
         },
     }
 }
+// BUILDING_LAYOUT：家中建筑的功能分类与显示尺寸。
+// category 用于分组；size(large/medium/small) 按使用频率决定按钮大小。
+var BUILDING_LAYOUT = {
+    build:        { category: 'build',    size: 'medium' },
+    sleepPlace:   { category: 'life',     size: 'large'  },
+    toilet:       { category: 'life',     size: 'small'  },
+    well:         { category: 'life',     size: 'medium' },
+    makeTable:    { category: 'craft',    size: 'large'  },
+    alchemyTable: { category: 'craft',    size: 'medium' },
+    magicTable:   { category: 'craft',    size: 'small'  },
+    scienceTable: { category: 'craft',    size: 'medium' },
+    cooker:       { category: 'craft',    size: 'medium' },
+    bigBox:       { category: 'storage',  size: 'large'  },
+    farm:         { category: 'business', size: 'medium' },
+    alco:         { category: 'business', size: 'medium' },
+    trap:         { category: 'business', size: 'small'  },
+};
+// 功能分类的顺序与显示名
+var BUILDING_CATEGORY = {
+    build:    { name: '建造', order: 0 },
+    life:     { name: '生活', order: 1 },
+    craft:    { name: '制作', order: 2 },
+    business: { name: '经营', order: 3 },
+    storage:  { name: '储物', order: 4 },
+};
 // TRAP_DATA：陷阱表。字段：require(诱饵)、itemGet(捕获产物与数量)、chance(每日捕获概率)、science(前置科技)
 var TRAP_DATA = {
     antiRogue: {

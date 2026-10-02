@@ -1748,3 +1748,64 @@ body {
     width: calc(100% - 8px);
     box-sizing: border-box;
 }
+
+/* 家中建筑：按功能分组，按使用频率调整大小 */
+.home {
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.buildingGroup {
+    margin: 2px 0 8px;
+    text-align: left;
+}
+
+.buildingGroupTitle {
+    font-size: 12px;
+    color: #6b6b6b;
+    padding: 2px 6px;
+    border-left: 3px solid #A1A693;
+    margin-left: 4px;
+}
+
+.buildingGroupItems {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 4px 6px;
+}
+
+.building {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.building.building-large {
+    width: 96px;
+    height: 96px;
+    min-width: 96px;
+    font-size: 15px;
+}
+
+.building.building-medium {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    font-size: 13px;
+}
+
+.building.building-small {
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    font-size: 11px;
+}
+
+.building:hover {
+    line-height: 1.2;
+}

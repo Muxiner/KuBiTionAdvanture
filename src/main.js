@@ -1738,8 +1738,9 @@ var BuildingComponent = React.createClass({
     render:function(){
         var buildingSaveData = this.context.buildingSaveData;
         var building = this.props.building;
+        var size = (BUILDING_LAYOUT[building] && BUILDING_LAYOUT[building].size) || 'medium';
         return (
-                <div onClick = {this.handleClick} className = 'building btn btn-default'>
+                <div onClick = {this.handleClick} className = {'building btn btn-default building-' + size}>
                     {BUILDING_DATA[building].name}
                     {buildingSaveData[building].hint?<span className = 'badge'>!</span>:null}
                 </div>
@@ -3952,32 +3953,36 @@ var HomeComponent = React.createClass({
                         <BtnComponent handleClick = {this.handleKnown} desc = '接受现实'/>
                     </div>;
         }
-        var result = [];
         var buildings = this.context.buildingSaveData;
-        var getBuildingList = function(buildings){
-            //建筑数量
-            var countUnOwn = 0;
-            for (var attr in buildings) {
-                if(!buildings[attr].own){
-                    countUnOwn++;
-                }
-            };
-
-            for (var attr in buildings) {
-                if(!buildings[attr].own || (countUnOwn == 0 && attr == 'build'))continue;
-
-
-        //检查为空
-                if(attr == 'build' && (this.getOwnAndUnOwnNumber(buildings).countUnOwn == 0))continue;
-                if(attr == 'scienceTable' && this.isAllScienceLearned() == true)continue;
-
-                result.push(<BuildingComponent key = {attr} building = {attr}/>);
-            };
-            return result;
+        var countUnOwn = this.getOwnAndUnOwnNumber(buildings).countUnOwn;
+        // 按功能分类归组
+        var groups = {};
+        for(var attr in buildings){
+            if(!buildings[attr].own)continue;
+            if(attr == 'build' && countUnOwn == 0)continue;
+            if(attr == 'scienceTable' && this.isAllScienceLearned() == true)continue;
+            var cat = (BUILDING_LAYOUT[attr] && BUILDING_LAYOUT[attr].category) || 'craft';
+            (groups[cat] = groups[cat] || []).push(attr);
         }
+        var cats = [];
+        for(var c in groups)cats.push(c);
+        cats.sort(function(a,b){
+            var oa = BUILDING_CATEGORY[a] ? BUILDING_CATEGORY[a].order : 99;
+            var ob = BUILDING_CATEGORY[b] ? BUILDING_CATEGORY[b].order : 99;
+            return oa - ob;
+        });
         return <div>
                     <div className = 'home'>
-                        {getBuildingList.bind(this,this.context.buildingSaveData)()}
+                        {cats.map(function(cat){
+                            return <div className = 'buildingGroup' key = {cat}>
+                                        <div className = 'buildingGroupTitle'>{BUILDING_CATEGORY[cat] ? BUILDING_CATEGORY[cat].name : cat}</div>
+                                        <div className = 'buildingGroupItems'>
+                                            {groups[cat].map(function(attr){
+                                                return <BuildingComponent key = {attr} building = {attr}/>;
+                                            })}
+                                        </div>
+                                    </div>;
+                        })}
                     </div>
                     <div>
                         <BtnComponent desc = '出门' handleClick = {this.handleGoOut}/>
