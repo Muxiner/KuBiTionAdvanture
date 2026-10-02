@@ -1605,3 +1605,13 @@ body {
 .buildWindow > .btn {
     align-self: center;
 }
+
+/* 向量小格（陷阱收获等）内的按钮，强制不超过格子宽度 */
+.vector .btn {
+    width: 38px;
+    min-width: 0;
+    max-width: 38px;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
