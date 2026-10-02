@@ -1607,12 +1607,9 @@ var StudioComponent = React.createClass({
             return <div style = {{width:'100%',height:'100%'}}>
                         <div className = 'viewOuter'>
                             <div className = "tableOuter studioTableOuter">
-                                <table className="table table-condensed table-hover ">
-                                    <thead><tr><td>成品</td><td>需求</td></tr></thead>
-                                    <tbody>
-                                        {result}
-                                    </tbody>
-                                </table>
+                                <div className = "makeGrid">
+                                    {result}
+                                </div>
                             </div>
                             <div className = 'studioBottom' >
                                 {this.state.displayWindow?schedule.bind(this)():''}
@@ -1670,10 +1667,10 @@ var StudioComponent = React.createClass({
             });
             var result = entries.map(function(entry,count){
                 var attr = entry.attr, tmp = entry.tmp;
-                return <tr onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
-                                <td>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</td>
-                                <td><RequireComponent requireList = {tmp.require} haveBox = {true}/></td>
-                            </tr>;
+                return <div className = 'makeItem' onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
+                                <span className = 'makeName'>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</span>
+                                <span className = 'makeRequire'><RequireComponent requireList = {tmp.require} haveBox = {true}/></span>
+                            </div>;
             }.bind(this));
             if(entries.length == 0)return false;
             return result;
