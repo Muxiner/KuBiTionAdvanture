@@ -1397,6 +1397,7 @@ var StudioComponent = React.createClass({
         checkFull           : React.PropTypes.func.isRequired,
         AudioEngine         : React.PropTypes.object.isRequired,
         eventSaveData       : React.PropTypes.object.isRequired,
+        changeMsg           : React.PropTypes.func.isRequired,
     },
     getDefaultProps:function(){
         return {
@@ -1606,7 +1607,7 @@ var StudioComponent = React.createClass({
                         <div className = 'viewOuter'>
                             <div className = "tableOuter studioTableOuter">
                                 <table className="table table-condensed table-hover ">
-                                    <thead><tr><td>成品</td><td>需求</td><td>描述</td></tr></thead>
+                                    <thead><tr><td>成品</td><td>需求</td></tr></thead>
                                     <tbody>
                                         {result}
                                     </tbody>
@@ -1634,10 +1635,9 @@ var StudioComponent = React.createClass({
                 //科技类的物品的检查
                 if(BUILDING_UPDATE_DATA[type][attr].science  && !this.context.boxSaveData[type].things[BUILDING_UPDATE_DATA[type][attr].science])continue;
                 var disabled = !this.context.checkHaveResourceAll(tmp.require,true) || !haveTimeToMake.bind(this,attr)();
-                result.push(<tr key = {'update' + count}>
+                result.push(<tr key = {'update' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
                                 <td>{ITEM_DATA[attr].name}</td>
                                 <td><RequireComponent requireList = {tmp.require} haveBox = {true}/></td>
-                                <td>{ITEM_DATA[attr].desc}</td>
                                 <td>
                                     <BtnComponent disabled = {disabled} disabledReason = {'饱食或水分不足，撑不过升级耗时'} handleClick = {this.updateBuilding.bind(this,attr)} desc = "升级" />
                                 </td>
@@ -1669,10 +1669,9 @@ var StudioComponent = React.createClass({
             });
             var result = entries.map(function(entry,count){
                 var attr = entry.attr, tmp = entry.tmp;
-                return <tr onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count}>
+                return <tr onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
                                 <td>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</td>
                                 <td><RequireComponent requireList = {tmp.require} haveBox = {true}/></td>
-                                <td>{ITEM_DATA[attr].desc}</td>
                             </tr>;
             }.bind(this));
             if(entries.length == 0)return false;
@@ -3251,18 +3250,7 @@ var CookRecipeComponent = React.createClass({
     },
     // 生成食谱成品的作用文本（用于悬浮提示）
     getEffectText:function(id){
-        var data = ITEM_DATA[id];
-        if(!data)return '';
-        var parts = [];
-        if(data.desc)parts.push(data.desc);
-        if(data.effect){
-            var eff = [];
-            for(var attr in data.effect){
-                eff.push((STATE_DATA[attr] ? STATE_DATA[attr].name : attr) + (data.effect[attr] > 0 ? '+' : '') + data.effect[attr]);
-            }
-            if(eff.length)parts.push('效果：' + eff.join('、'));
-        }
-        return parts.join('\n');
+        return getItemInfoText(id);
     },
     // 悬浮时在右侧显示该食谱成品的详情
     showRecipeDetail:function(id){

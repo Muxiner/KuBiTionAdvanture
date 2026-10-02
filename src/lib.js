@@ -189,6 +189,24 @@ function getCraftableCount(require, bag) {
     }
     return (min === Infinity) ? 0 : min;
 }
+/**
+ * 生成物品的作用文本（描述 + 状态效果），用于按钮/配方的悬浮提示。
+ * 例：'清爽可口的酱料。\n效果：满腹+4、水分+2'
+ */
+function getItemInfoText(id) {
+    var data = ITEM_DATA[id];
+    if (!data) return '';
+    var parts = [];
+    if (data.desc) parts.push(data.desc);
+    if (data.effect) {
+        var eff = [];
+        for (var attr in data.effect) {
+            eff.push((STATE_DATA[attr] ? STATE_DATA[attr].name : attr) + (data.effect[attr] > 0 ? '+' : '') + data.effect[attr]);
+        }
+        if (eff.length) parts.push('效果：' + eff.join('、'));
+    }
+    return parts.join('\n');
+}
 /** 取对象的第一个成员，返回 {attr,value}；空对象返回 undefined。 */
 function getFirst(obj) {
     for (var attr in obj) {
