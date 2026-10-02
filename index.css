@@ -1598,3 +1598,12 @@ body {
     width: 60px;
     min-width: 60px;
 }
+
+/* 按钮在其容器内水平居中 */
+.advan > div > .btn,
+.advanOuter > div > .btn,
+.viewOuter > .btn,
+.updateOuter > .btn,
+.buildWindow > .btn {
+    align-self: center;
+}
