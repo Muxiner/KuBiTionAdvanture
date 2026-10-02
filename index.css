@@ -361,6 +361,12 @@ html,
     margin: 0 6px;
 }
 
+.settingsMenu .settingsStatus {
+    min-height: 18px;
+    font-size: 13px;
+    color: #4a7a3a;
+}
+
 .settingsMenu .localSaveRow > .localSaveDesc {
     width: 150px;
     text-align: left;

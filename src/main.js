@@ -668,6 +668,7 @@ var NormalMenuComponent = React.createClass({
             menuType:menuType,
             selectedSkill:null,
             localSaves:null,
+            saveMsg:'',
         }
     },
     componentWillMount:function(){
@@ -679,28 +680,31 @@ var NormalMenuComponent = React.createClass({
     refreshLocalSaves:function(){
         this.setState({localSaves:this.context.getLocalSaves()});
     },
+    slotName:function(slot){
+        return slot == LOCAL_SAVE_AUTO_SLOT?'自动存档':('第' + slot + '号');
+    },
     handleLocalSave:function(slot){
-        if(confirm('确定覆盖第' + slot + '号本地存档吗？')){
-            if(this.context.saveLocal(slot)){
-                this.refreshLocalSaves();
-                alert('本地保存成功！');
-            }
+        //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
+        if(this.context.saveLocal(slot)){
+            this.refreshLocalSaves();
+            this.setState({saveMsg:this.slotName(slot) + '保存成功'});
+        }else{
+            this.setState({saveMsg:this.slotName(slot) + '保存失败'});
         }
     },
     handleLocalLoad:function(slot){
         var saves = this.context.getLocalSaves();
         if(!saves[slot]){
-            alert('该存档位是空的...');
+            this.setState({saveMsg:'该存档位是空的...'});
             return;
         }
-        if(confirm('确定读取第' + slot + '号本地存档吗？当前未保存的进度会丢失。')){
-            this.context.loadLocal(slot);
-        }
+        this.context.loadLocal(slot);
     },
     handleLocalDelete:function(slot){
-        if(confirm('确定删除第' + slot + '号本地存档吗？')){
+        if(confirm('确定删除' + this.slotName(slot) + '存档吗？')){
             this.context.deleteLocal(slot);
             this.refreshLocalSaves();
+            this.setState({saveMsg:this.slotName(slot) + '已删除'});
         }
     },
     upload:function() {
@@ -734,9 +738,10 @@ var NormalMenuComponent = React.createClass({
         this.context.setStateFromChildren({settings:settings});
     },
     willUpload:function(){
-        if(confirm('确定保存吗？')){
-            this.upload();
-        }
+        //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
+        this.context.upload(true, function(ok, reason){
+            this.setState({saveMsg:ok?'账号保存成功':('账号保存失败' + (reason?'（' + reason + '）':''))});
+        }.bind(this));
     },
     setSort:function(){
         var settings = this.context.settings;
@@ -861,29 +866,33 @@ var NormalMenuComponent = React.createClass({
                             <BtnComponent disabled = {!canSaveRemote} handleClick = {this.willUpload}>保存</BtnComponent>
                             <BtnComponent handleClick = {this.download}>读取</BtnComponent>
                         </div>
-                        <div className = 'settingsRow settingsTitle'>本地存档</div>
+                        <div className = 'settingsRow settingsStatus'>{this.state.saveMsg}</div>
+                        <div className = 'settingsRow settingsTitle'>自动存档</div>
                         {function(){
+                            var self = this;
                             var canSave = canSaveRemote;
                             var localSaves = this.state.localSaves || this.context.getLocalSaves();
                             var seasonName = {spring:'春',summer:'夏',autumn:'秋',winter:'冬'};
-                            var result = [];
-                            for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
-                                (function(slot){
-                                    var save = localSaves[slot];
-                                    var desc = save
-                                        ? ((save.generation?'轮回' + save.generation + ' ':'') + (seasonName[save.season]||'') + '第' + save.day + '日')
-                                        : '空存档';
-                                    result.push(
-                                        <div key = {'localSave' + slot} className = 'settingsRow localSaveRow'>
-                                            <span className = 'localSaveDesc'>{slot + '. ' + desc}</span>
-                                            <BtnComponent disabled = {!canSave} handleClick = {this.handleLocalSave.bind(this,slot)}>保存</BtnComponent>
-                                            <BtnComponent disabled = {!save} handleClick = {this.handleLocalLoad.bind(this,slot)}>读取</BtnComponent>
-                                            <BtnComponent disabled = {!save} handleClick = {this.handleLocalDelete.bind(this,slot)}>删除</BtnComponent>
-                                        </div>
-                                    );
-                                }.bind(this))(i);
+                            function makeRow(slot,label){
+                                var save = localSaves[slot];
+                                var desc = save
+                                    ? ((save.generation?'轮回' + save.generation + ' ':'') + (seasonName[save.season]||'') + '第' + save.day + '日')
+                                    : '空存档';
+                                return (
+                                    <div key = {'localSave' + slot} className = 'settingsRow localSaveRow'>
+                                        <span className = 'localSaveDesc'>{label + ' ' + desc}</span>
+                                        <BtnComponent disabled = {!canSave} handleClick = {self.handleLocalSave.bind(self,slot)}>保存</BtnComponent>
+                                        <BtnComponent disabled = {!save} handleClick = {self.handleLocalLoad.bind(self,slot)}>读取</BtnComponent>
+                                        <BtnComponent disabled = {!save} handleClick = {self.handleLocalDelete.bind(self,slot)}>删除</BtnComponent>
+                                    </div>
+                                );
                             }
-                            return result;
+                            var rows = [makeRow(LOCAL_SAVE_AUTO_SLOT,'')];
+                            rows.push(<div key = 'manualTitle' className = 'settingsRow settingsTitle'>本地存档</div>);
+                            for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
+                                rows.push(makeRow(i,i + '.'));
+                            }
+                            return rows;
                         }.bind(this)()}
                         <label className = 'settingsRow settingsCheckbox' htmlFor="autoSave">
                             <input checked = {this.context.settings.autoSave} onChange = {this.handleAuto} id="autoSave" type="checkbox" />
@@ -3636,6 +3645,7 @@ var HomeComponent = React.createClass({
         setCurrentScene     : React.PropTypes.func.isRequired,
         settings            : React.PropTypes.object.isRequired,
         upload              : React.PropTypes.func.isRequired,
+        saveLocal           : React.PropTypes.func.isRequired,
         time                : React.PropTypes.object.isRequired,
         robberSaveData      : React.PropTypes.object.isRequired,
         callWindow          : React.PropTypes.func.isRequired,
@@ -3648,7 +3658,12 @@ var HomeComponent = React.createClass({
         this.context.setCurrentScene('branch');
         var settings = this.context.settings;
         if(settings.autoSave){
-            this.context.upload(true);
+            //自动保存：写入专用本地自动存档槽
+            this.context.saveLocal(LOCAL_SAVE_AUTO_SLOT);
+            //若已配置账号密码，同时保存到后端
+            if(settings.save_account && settings.save_pass){
+                this.context.upload(true);
+            }
         }
     },
     getOwnAndUnOwnNumber:function(list){
@@ -5171,7 +5186,7 @@ var MainComponent = React.createClass({
             skill           :{},
             time            :{day:1,hour:6},
             tradeSaveData   :clone(TRADE_INIT),
-            settings        :{sort:false},
+            settings        :{sort:false,autoSave:true},
             wind            :null,
             maouLevel       :0,
             campSaveData    :{
@@ -6521,7 +6536,7 @@ var MainComponent = React.createClass({
                     self.loadData(htmlobj.responseText);
         }});
     },
-    upload:function(doNotShow){
+    upload:function(doNotShow, callback){
         var saveData = clone(this.state);
         var save_account = saveData.settings.save_account;
         var save_pass = saveData.settings.save_pass;
@@ -6551,13 +6566,16 @@ var MainComponent = React.createClass({
             success:function(){
                 if(htmlobj.responseText=='incorrect pass'){
                     alert("密码错误...");
+                    callback&&callback(false,'密码错误');
                     return;
                 }
                 if(htmlobj.responseText=='invalid'){
                     alert("账号、密码必须是3-12位的数字以及字母的组合...");
+                    callback&&callback(false,'账号或密码格式错误');
                     return;
                 }
                 if(!doNotShow)alert("保存成功！");
+                callback&&callback(true);
                     // self.setState({saveData:decodeURI(encodeURI(JSON.stringify(saveData)))});
         }});
     },
@@ -6565,9 +6583,9 @@ var MainComponent = React.createClass({
         return LOCAL_SAVE_PREFIX + slot;
     },
     getLocalSaves:function(){
-        //读取所有本地存档槽的元信息
+        //读取所有本地存档槽的元信息（含自动存档槽 0）
         var result = {};
-        for(var i = 1;i <= LOCAL_SAVE_SLOTS;i++){
+        for(var i = LOCAL_SAVE_AUTO_SLOT;i <= LOCAL_SAVE_SLOTS;i++){
             var raw = null;
             try{
                 raw = localStorage.getItem(this.getLocalSaveKey(i));

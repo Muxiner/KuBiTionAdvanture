@@ -16,6 +16,7 @@ var SAVE_URL = './api/save.php';
 //本地存档
 var LOCAL_SAVE_PREFIX = 'kubitionadvanture_save_';
 var LOCAL_SAVE_SLOTS = 3;
+var LOCAL_SAVE_AUTO_SLOT = 0; //专用自动存档槽
 var DELAY_MUL = (MODE == 'DEBUG') ? 0 : 400;
 // var DELAY_MUL = 400;
 var MIX_DELAY = 100;
