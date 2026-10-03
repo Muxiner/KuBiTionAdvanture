@@ -1697,604 +1697,604 @@ var ITEM_DATA = {
     //科技
     securityBox_1: {
         name: '木质保险箱',
-        type: 'securityBox',
+        type: '安全属性',
         desc: '减少(10%)失窃数量。',
     },
     securityBox_2: {
         name: '铁质保险箱',
-        type: 'securityBox',
+        type: '安全属性',
         desc: '减少(10%)失窃数量。',
     },
     securityBox_3: {
         name: '金质保险箱',
-        type: 'securityBox',
+        type: '安全属性',
         desc: '减少(10%)失窃数量。',
     },
     securityBox_4: {
         name: '水晶保险箱',
-        type: 'securityBox',
+        type: '安全属性',
         desc: '减少(10%)失窃数量。',
     },
     securityBox_5: {
         name: '宝石保险箱',
-        type: 'securityBox',
+        type: '安全属性',
         desc: '减少(10%)失窃数量。',
     },
 
     makeSpeed_1: {
         name: '微型车床',
-        type: 'makeSpeed',
+        type: '制作台属性',
         desc: '增加(20%)制作速度。',
     },
     makeSpeed_2: {
         name: '小型车床',
-        type: 'makeSpeed',
+        type: '制作台属性',
         desc: '增加(20%)制作速度。',
     },
     makeSpeed_3: {
         name: '中型车床',
-        type: 'makeSpeed',
+        type: '制作台属性',
         desc: '增加(20%)制作速度。',
     },
     makeSpeed_4: {
         name: '大型车床',
-        type: 'makeSpeed',
+        type: '制作台属性',
         desc: '增加(20%)制作速度。',
     },
     makeSpeed_5: {
         name: '数控车床',
-        type: 'makeSpeed',
+        type: '制作台属性',
         desc: '增加(20%)制作速度。',
     },
 
     collectDec_1: {
         name: '斗车',
-        type: 'collectDec',
+        type: '采集消耗减免属性',
         desc: '减少(20%)采集消耗。',
     },
     collectDec_2: {
         name: '推土机',
-        type: 'collectDec',
+        type: '采集消耗减免属性',
         desc: '减少(20%)采集消耗。',
     },
     collectDec_3: {
         name: '抓钢机',
-        type: 'collectDec',
+        type: '采集消耗减免属性',
         desc: '减少(20%)采集消耗。',
     },
     collectDec_4: {
         name: '挖掘机',
-        type: 'collectDec',
+        type: '采集消耗减免属性',
         desc: '减少(20%)采集消耗。',
     },
 
     trapGet_1: {
         name: '尖刺陷阱(I)',
-        type: 'trapGet',
+        type: '陷阱收益属性',
         desc: '增加(50%)陷阱的收益。',
     },
     trapGet_2: {
         name: '尖刺陷阱(II)',
-        type: 'trapGet',
+        type: '陷阱收益属性',
         desc: '增加(50%)陷阱的收益。',
     },
     trapGet_3: {
         name: '尖刺陷阱(III)',
-        type: 'trapGet',
+        type: '陷阱收益属性',
         desc: '增加(50%)陷阱的收益。',
     },
 
     trapChance_1: {
         name: '诱饵(I)',
-        type: 'trapChance',
+        type: '陷阱属性',
         desc: '增加(50%)捕获几率。',
     },
     trapChance_2: {
         name: '诱饵(II)',
-        type: 'trapChance',
+        type: '陷阱属性',
         desc: '增加(50%)捕获几率。',
     },
     trapChance_3: {
         name: '诱饵(III)',
-        type: 'trapChance',
+        type: '陷阱属性',
         desc: '增加(50%)捕获几率。',
     },
 
     antiRogue: {
         name: '防盗陷阱',
-        type: 'trapChance',
+        type: '陷阱属性',
         desc: '你可以建造防盗陷阱来防御盗贼入侵。',
     },
 
     lock_1: {
         name: '锁具(I)',
-        type: 'lockUpdate',
+        type: '防盗能力',
         desc: '增加(1)天盗贼破门而入的间隔。',
     },
     lock_2: {
         name: '锁具(II)',
-        type: 'lockUpdate',
+        type: '防盗能力',
         desc: '增加(1)天盗贼破门而入的间隔。',
     },
     lock_3: {
         name: '锁具(III)',
-        type: 'lockUpdate',
+        type: '防盗能力',
         desc: '增加(1)天盗贼破门而入的间隔。',
     },
 
     cooker_1: {
         name: '炊具升级(I)',
-        type: 'cookerUpdate',
+        type: '烹饪技能',
         desc: '加快(20%)烹饪速度。',
     },
     cooker_2: {
         name: '炊具升级(II)',
-        type: 'cookerUpdate',
+        type: '烹饪技能',
         desc: '加快(20%)烹饪速度。',
     },
     cooker_3: {
         name: '炊具升级(III)',
-        type: 'cookerUpdate',
+        type: '烹饪技能',
         desc: '加快(20%)烹饪速度。',
     },
     cooker_4: {
         name: '炊具升级(IV)',
-        type: 'cookerUpdate',
+        type: '烹饪技能',
         desc: '加快(20%)烹饪速度。',
     },
     cooker_5: {
         name: '炊具升级(V)',
-        type: 'cookerUpdate',
+        type: '烹饪技能',
         desc: '加快(20%)烹饪速度。',
     },
 
     upgradePlace: {
         name: '学院',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '集聚各种各样有才能的人。',
     },
     tool: {
         name: '工具制作',
-        type: 'durableUpdate',
+        type: '锻造技术',
         desc: '你可以制作木棒、铲子、锄头以及铁镐。',
     },
     meterial: {
         name: '材料提纯',
-        type: 'durableUpdate',
+        type: '锻造技术',
         desc: '你可以制作零件、草绳结以及纸。',
     },
     durableUpdate_1: {
         name: '锻造(I)',
-        type: 'durableUpdate',
+        type: '锻造技术',
         desc: '增加所有非魔法武器的耐久度(25%)。',
     },
     durableUpdate_2: {
         name: '锻造(II)',
-        type: 'durableUpdate',
+        type: '锻造技术',
         desc: '增加所有非魔法武器的耐久度(25%)。',
     },
     durableUpdate_3: {
         name: '锻造(III)',
-        type: 'durableUpdate',
+        type: '锻造技术',
         desc: '增加所有非魔法武器的耐久度(25%)。',
     },
     magicDurableUpdate_1: {
         name: '提炼(I)',
-        type: 'magicDurableUpdate',
+        type: '魔法锻造技术',
         desc: '增加所有魔法武器的耐久度(25%)。',
     },
     magicDurableUpdate_2: {
         name: '提炼(II)',
-        type: 'magicDurableUpdate',
+        type: '魔法锻造技术',
         desc: '增加所有魔法武器的耐久度(25%)。',
     },
     magicDurableUpdate_3: {
         name: '提炼(III)',
-        type: 'magicDurableUpdate',
+        type: '魔法锻造技术',
         desc: '增加所有魔法武器的耐久度(25%)。',
     },
     magicWeapon: {
         name: '附魔武器',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '能够制造先进的附魔武器。'
     },
     magicEquip: {
         name: '附魔装备(I)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '能够制造先进的附魔装备。'
     },
     magicEquip_2: {
         name: '附魔装备(II)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '能够制造先进的附魔装备。'
     },
     bagSize_1: {
         name: '背包扩容(I)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_2: {
         name: '背包扩容(II)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_3: {
         name: '背包扩容(III)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_4: {
         name: '背包扩容(IV)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_5: {
         name: '超级魔法背包(I)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_6: {
         name: '超级魔法背包(II)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_7: {
         name: '超级魔法背包(III)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     bagSize_8: {
         name: '超级魔法背包(IV)',
-        type: 'bagSizeBonus',
+        type: '背包属性',
         desc: '背包空间增加(1)。'
     },
     trapSize_1: {
         name: '陷阱扩容(I)',
-        type: 'trapSizeBonus',
+        type: '陷阱空间属性',
         desc: '陷阱空间增加(1)。'
     },
     trapSize_2: {
         name: '陷阱扩容(II)',
-        type: 'trapSizeBonus',
+        type: '陷阱空间属性',
         desc: '陷阱空间增加(1)。'
     },
     farmSize_1: {
         name: '农田扩建(I)',
-        type: 'farmSizeBonus',
+        type: '农田属性',
         desc: '农田空间增加(1)。'
     },
     farmSize_2: {
         name: '农田扩建(II)',
-        type: 'farmSizeBonus',
+        type: '农田属性',
         desc: '农田空间增加(1)。'
     },
     farmSize_3: {
         name: '农田扩建(III)',
-        type: 'farmSizeBonus',
+        type: '农田属性',
         desc: '农田空间增加(1)。'
     },
     farmSize_4: {
         name: '农田扩建(IV)',
-        type: 'farmSizeBonus',
+        type: '农田属性',
         desc: '农田空间增加(1)。'
     },
     farmSize_5: {
         name: '农田扩建(V)',
-        type: 'farmSizeBonus',
+        type: '农田属性',
         desc: '农田空间增加(1)。'
     },
     farmSize_6: {
         name: '农田扩建(VI)',
-        type: 'farmSizeBonus',
+        type: '农田属性',
         desc: '农田空间增加(1)。'
     },
     alcoSize_1: {
         name: '酒桶扩建(I)',
-        type: 'alcoSizeBonus',
+        type: '酒桶属性',
         desc: '酒桶空间增加(1)。'
     },
     alcoSize_2: {
         name: '酒桶扩建(II)',
-        type: 'alcoSizeBonus',
+        type: '酒桶属性',
         desc: '酒桶空间增加(1)。'
     },
     alcoSize_3: {
         name: '酒桶扩建(III)',
-        type: 'alcoSizeBonus',
+        type: '酒桶属性',
         desc: '酒桶空间增加(1)。'
     },
     alcoSize_4: {
         name: '酒桶扩建(IV)',
-        type: 'alcoSizeBonus',
+        type: '酒桶属性',
         desc: '酒桶空间增加(1)。'
     },
     alcoSize_5: {
         name: '酒桶扩建(V)',
-        type: 'alcoSizeBonus',
+        type: '酒桶属性',
         desc: '酒桶空间增加(1)。'
     },
     alcoSize_6: {
         name: '酒桶扩建(VI)',
-        type: 'alcoSizeBonus',
+        type: '酒桶属性',
         desc: '酒桶空间增加(1)。'
     },
     bigBoxSize_1: {
         name: '箱子扩容(I)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_2: {
         name: '箱子扩容(II)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_3: {
         name: '箱子扩容(III)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_4: {
         name: '箱子扩容(IV)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_5: {
         name: '箱子扩容(V)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_6: {
         name: '箱子扩容(VI)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_7: {
         name: '箱子扩容(VII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_8: {
         name: '箱子扩容(VIII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_9: {
         name: '箱子扩容(IX)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_10: {
         name: '箱子扩容(X)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_11: {
         name: '箱子扩容(XI)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_12: {
         name: '箱子扩容(XII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_13: {
         name: '箱子扩容(XII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_14: {
         name: '箱子扩容(XIV)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_15: {
         name: '箱子扩容(XV)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_16: {
         name: '箱子扩容(XVI)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_17: {
         name: '箱子扩容(XVII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_18: {
         name: '箱子扩容(XVIII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_19: {
         name: '箱子扩容(XIX)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_20: {
         name: '箱子扩容(XX)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_21: {
         name: '箱子扩容(XXI)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     bigBoxSize_22: {
         name: '箱子扩容(XXII)',
-        type: 'bigBoxSizeBonus',
+        type: '箱子属性',
         desc: '箱子空间增加(4)。'
     },
     map_1: {
         name: '地图测绘(I)',
-        type: 'mapBonus',
+        type: '地图属性',
         desc: '在地图上标出新地点(2)。'
     },
     map_2: {
         name: '地图测绘(II)',
-        type: 'mapBonus',
+        type: '地图属性',
         desc: '在地图上标出新地点(2)。'
     },
     map_3: {
         name: '地图测绘(III)',
-        type: 'mapBonus',
+        type: '地图属性',
         desc: '在地图上标出新地点(2)。'
     },
     map_4: {
         name: '地牢钥匙',
-        type: 'mapBonus',
+        type: '地图属性',
         desc: '你可以前往地牢开始真正的冒险。'
     },
     potion_1: {
         name: '炼金提纯(I)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会制作更多的药剂。'
     },
     potion_2: {
         name: '炼金提纯(II)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会制作更多更多的药剂。'
     },
     smith_1: {
         name: '铁匠工具(I)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会打造更多的武器。'
     },
     smith_2: {
         name: '铁匠工具(II)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会打造更多更多的武器。'
     },
     gun_expert: {
         name: '枪械专家',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会打造更多的枪械。'
     },
     tailor_1: {
         name: '裁缝工具(I)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会制作防具。'
     },
     tailor_2: {
         name: '裁缝工具(II)',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '学会制作更多的防具。'
     },
     beacon: {
         name: '卵石路',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '商人会更加频繁地聚集在集市。',
     },
     beacon_2: {
         name: '交易信标',
-        type: 'unknownBonus',
+        type: '科技',
         desc: '更多商人会聚集在集市。',
     },
 
     beaconMax_1: {
         name: '老旧的马车',
-        type: 'beaconMax',
+        type: '通勤性能',
         desc: '增加商人(50%)的最大交易量。',
     },
     beaconMax_2: {
         name: '普通的马车',
-        type: 'beaconMax',
+        type: '通勤性能',
         desc: '增加商人(50%)的最大交易量。',
     },
     beaconMax_3: {
         name: '宽敞的马车',
-        type: 'beaconMax',
+        type: '通勤性能',
         desc: '增加商人(50%)的最大交易量。',
     },
     beaconMax_4: {
         name: '豪华的马车',
-        type: 'beaconMax',
+        type: '通勤性能',
         desc: '增加商人(50%)的最大交易量。',
     },
 
     wellDig_1: {
         name: '地下水挖掘(I)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
     wellDig_2: {
         name: '地下水挖掘(II)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
     wellDig_3: {
         name: '地下水挖掘(III)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
     wellDig_4: {
         name: '地下水挖掘(IV)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
     wellDig_5: {
         name: '地下水挖掘(V)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
     wellDig_6: {
         name: '地下水挖掘(VI)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
     wellDig_7: {
         name: '地下水挖掘(VII)',
-        type: 'wellBonus',
+        type: '井产量',
         desc: '井每天的产量额外增加(1)。',
     },
 
     showerPlace: {
         name: '大水缸',
-        type: 'showerPlace',
+        type: '卫浴功能',
         desc: '可以洗澡。',
     },
     marshGasTank: {
         name: '沼气池',
-        type: 'showerPlace',
+        type: '卫浴功能',
         desc: '可以将废弃物以一比一地方式转化为肥料。',
     },
     bed_1: {
         name: '木床',
-        type: 'sleepPlace',
+        type: '休息场所功能',
         desc: '木板做的床。',
     },
     bed_2: {
         name: '凉席',
-        type: 'sleepPlace',
+        type: '休息场所功能',
         desc: '稍微柔软一些的床。',
     },
     bed_3: {
         name: '棉被',
-        type: 'sleepPlace',
+        type: '休息场所功能',
         desc: '更加快速得恢复你的精力。',
     },
     bed_4: {
         name: '枕头',
-        type: 'sleepPlace',
+        type: '休息场所功能',
         desc: '更加快速得恢复你的精力。',
     },
     heatedBed: {
         name: '火炕',
-        type: 'sleepPlace',
+        type: '休息场所功能',
         desc: '在冬天睡觉的话，一个火炕是必须的。',
     },
     scrollScience: {
         name: '传送魔咒',
-        type: 'unknownBonus',
+        type: '科技',
         science: 'dungeonKey',
         desc: '你可以制造回城卷轴。',
     },
     dungeonRopeScience: {
         name: '探险绳索',
-        type: 'unknownBonus',
+        type: '科技',
         science: 'dungeonKey',
         desc: '你可以制造穿洞绳。',
     },

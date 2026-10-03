@@ -908,7 +908,7 @@ var MainComponent = React.createClass({
                 if(tmp.succeed)continue;
                 var data = TRAP_DATA[tmp.type];
                 var chance = data.chance;
-                var level = this.getScienceLevel('trapChance');
+                var level = this.getScienceLevel('陷阱属性');
                 chance *= 1 + 0.5 * level;
                 if(Math.random() < chance){
                     tmp.itemGet = getRandom(data.itemGet).attr;
@@ -954,9 +954,9 @@ var MainComponent = React.createClass({
 
         //set robber
         var robberSaveData = this.state.robberSaveData;
-        var level = this.getScienceLevel('lockUpdate');
-        var securityBox = this.getScienceLevel('securityBox');
-        var stoledPersont = STOLE * Math.pow(0.9,securityBox);
+        var level = this.getScienceLevel('防盗能力');
+        var 安全属性 = this.getScienceLevel('安全属性');
+        var stoledPersont = STOLE * Math.pow(0.9,安全属性);
 
         var deadLine = ROBBER_DAY + (MODE == 'DEBUG'?0:level) + Math.random()*3 - Math.random()*3;
         if(day - robberSaveData.lastDate > deadLine){
@@ -1009,7 +1009,7 @@ var MainComponent = React.createClass({
             }
             for(var attr in boxSaveData[box].things){
                 if(
-                    (ITEM_DATA[attr].type == 'food') || (ITEM_DATA[attr].type == 'cooked') || (ITEM_DATA[attr].type == 'met') 
+                    (ITEM_DATA[attr].type == 'food') || (ITEM_DATA[attr].type == 'cooked') || (ITEM_DATA[attr].type == 'met')
                     ){
                     var amount = boxSaveData[box].things[attr];
 
@@ -1244,7 +1244,7 @@ var MainComponent = React.createClass({
 
                 //春季产出翻倍
                 if(season == 'spring' && (building == 'farm'))list[i].timeNow += timeNeed;
-                
+
                 //成熟提醒
                 var timeMax = attachData[list[i].type].timeMax/(1 + manageLevel);
                 if(list[i].timeNow > timeMax){
@@ -1283,7 +1283,7 @@ var MainComponent = React.createClass({
     getMaxDurable:function  (item) {
         var durable = ITEM_DATA[item].durable;
         var weaponType = ITEM_DATA[item].weaponType;
-        var level = weaponType == 'melee' ? this.getScienceLevel('durableUpdate') : this.getScienceLevel('magicDurableUpdate');
+        var level = weaponType == 'melee' ? this.getScienceLevel('锻造技术') : this.getScienceLevel('魔法锻造技术');
         return Math.round(durable * (1 + level * 0.25));
     },
     durableChange:function(list,isNegative){
@@ -1657,7 +1657,7 @@ var MainComponent = React.createClass({
         this.setState(data);
         this.setState({showMenu:''});
         this.setState({currentScene:'home'});
-        var level = this.getScienceLevel('bagSizeBonus');
+        var level = this.getScienceLevel('背包属性');
         var boxSaveData = this.state.boxSaveData;
         boxSaveData['bag'].size = BAG_BASE_SIZE + level;
         this.setState({boxSaveData:boxSaveData});

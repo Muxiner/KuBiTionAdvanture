@@ -394,7 +394,7 @@ var TrapComponent = React.createClass({
         AudioEngine         : React.PropTypes.object.isRequired,
     },
     componentWillMount:function(){
-        var level = this.context.getScienceLevel('trapSizeBonus');
+        var level = this.context.getScienceLevel('陷阱空间属性');
         var buildingSaveData = this.context.buildingSaveData;
         buildingSaveData['trap'].size = 2 + level;
     },
@@ -426,7 +426,7 @@ var TrapComponent = React.createClass({
         }
     },
     getAmount:function(itemAmount){
-        var level = this.context.getScienceLevel('trapGet');
+        var level = this.context.getScienceLevel('陷阱收益属性');
         return Math.round(itemAmount * (1 + 0.5 * level));
     },
     // 取消陷阱：未捕获时返还诱饵（陷阱无进度，按 0 进度即全额返还）
@@ -464,8 +464,8 @@ var TrapComponent = React.createClass({
         }
         function getTrapTypeDesc(){
             var list = TRAP_DATA;
-            var chanceLevel = this.context.getScienceLevel('trapChance');
-            var getLevel = this.context.getScienceLevel('trapGet');
+            var chanceLevel = this.context.getScienceLevel('陷阱属性');
+            var getLevel = this.context.getScienceLevel('陷阱收益属性');
             var trap = this.context.buildingSaveData.trap;
             var bag = together(this.context.boxSaveData.bag.things,this.context.boxSaveData.bigBox.things);
             var entries = [];
@@ -570,7 +570,7 @@ var CookRecipeComponent = React.createClass({
     },
     // 单份烹调耗时（受炊具升级科技影响）
     getCookTime:function(){
-        var level = this.context.getBuildingLevel('cookerUpdate');
+        var level = this.context.getBuildingLevel('烹饪技能');
         return COOK_TIME_NEED * Math.pow(COOK_SPEED_MUL,level);
     },
     // 把配方数组 [食材,食材] 转成需求对象 {食材:数量}
@@ -645,7 +645,7 @@ var CookerComponent = React.createClass({
                     <BoxTransferComponent box = 'cooked'/>
                     <CookRecipeComponent/>
                     <div>
-                        <StudioComponent isBuildingUpdate = {true} type = 'cookerUpdate'/>
+                        <StudioComponent isBuildingUpdate = {true} type = '烹饪技能'/>
                     </div>
                     <BtnBack/>
                 </div>
@@ -841,7 +841,7 @@ var PlaceComponent = React.createClass({
         return timeNeed;
     },
     getRequire:function(require){
-        var level = this.context.getScienceLevel('collectDec');
+        var level = this.context.getScienceLevel('采集消耗减免属性');
         function mul(obj,mul){
             var o = {};
             var mul = mul||1;

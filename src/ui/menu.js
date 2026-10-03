@@ -557,7 +557,7 @@ var BagComponent = React.createClass({
         };
     },
     componentWillMount:function(){
-        var level = this.context.getScienceLevel('bagSizeBonus');
+        var level = this.context.getScienceLevel('背包属性');
         var boxSaveData = this.context.boxSaveData;
         boxSaveData['bag'].size = BAG_BASE_SIZE + level;
     },

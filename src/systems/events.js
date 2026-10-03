@@ -114,7 +114,7 @@ var QuestComponent = React.createClass({
         var eventSaveData = this.context.eventSaveData;
         eventSaveData[this.props.event].experienced = true;
         this.context.setStateFromChildren({eventSaveData:eventSaveData});
-        
+
         this.props.callBack && this.props.callBack();
     },
     onForeverDone:function(){
@@ -728,7 +728,7 @@ var TradeComponent = React.createClass({
         var skill = this.context.skill;
         var sellerLevel = (skill.seller || 0) * SKILL_DATA.seller.buff;
 
-        var beaconMax = this.context.getScienceLevel('beaconMax');
+        var beaconMax = this.context.getScienceLevel('通勤性能');
 
         var trade = this.props.trade;
         var detail = TRADE_DATA[trade];
@@ -830,7 +830,7 @@ var TradeComponent = React.createClass({
 
     },
     render:function(){
-        var currenState = this.getTradingState(); 
+        var currenState = this.getTradingState();
         if(this.state.robbing){
             return  (
                         <BattleComponent mst = {this.props.trade}/>

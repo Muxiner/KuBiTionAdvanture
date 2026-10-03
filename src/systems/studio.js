@@ -11,7 +11,7 @@ var ScienceComponent = React.createClass({
         setStateFromChildren:React.PropTypes.func.isRequired,
     },
     onUpdate:function(name){
-        var level = this.context.getScienceLevel('bagSizeBonus');
+        var level = this.context.getScienceLevel('背包属性');
         var boxSaveData = this.context.boxSaveData;
         boxSaveData['bag'].size = BAG_BASE_SIZE + level;
     },
@@ -59,7 +59,7 @@ var StudioComponent = React.createClass({
     },
     getTimeNeed:function(timeNeed){
         if(this.props.attachData != MAKE_DATA)return timeNeed;
-        var level = this.context.getScienceLevel('makeSpeed');
+        var level = this.context.getScienceLevel('制作台属性');
         return Math.pow(MAKE_SPEED_MUL,level) * timeNeed;
     },
     make:function(name){
@@ -170,7 +170,7 @@ var StudioComponent = React.createClass({
     },
     getCookTime:function(){
         var amount = this.state.cookAmount;
-        var level = this.context.getBuildingLevel('cookerUpdate');
+        var level = this.context.getBuildingLevel('烹饪技能');
         var result = amount * COOK_TIME_NEED * (Math.pow(COOK_SPEED_MUL,level));
         return result;
     },

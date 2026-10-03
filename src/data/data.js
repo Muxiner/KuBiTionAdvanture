@@ -199,7 +199,7 @@ var BUILDING_DATA = {
 };
 // BUILDING_UPDATE_DATA：建筑升级/科技解锁表（升级项目、材料、耗时、前置科技）
 var BUILDING_UPDATE_DATA = {
-    cookerUpdate: {
+    烹饪技能: {
         cooker_1: {
             timeNeed: 4,
             require: { "iron": 4, 'wood': 4 },
@@ -368,14 +368,14 @@ var BUILDING_UPDATE_DATA = {
         },
     },
     toiletUpdate: {
-        showerPlace: {
+        卫浴功能: {
             timeNeed: 4,
             require: { "wood": 30 },
         },
         marshGasTank: {
             timeNeed: 4,
             require: { "wood": 100 },
-            science: 'showerPlace',
+            science: '卫浴功能',
         },
     },
     sleepPlaceUpdate: {
@@ -1193,7 +1193,7 @@ var BOX_INIT = {
         size: 100,
         isDone: true,
     },
-    cookerUpdate: {
+    烹饪技能: {
         things: {
         },
         size: 100,
