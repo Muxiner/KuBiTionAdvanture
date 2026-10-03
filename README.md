@@ -4,6 +4,7 @@
 
 - 游戏地址：https://jeason1997.github.io/KuBiTionAdvanture/
 - 技术栈：纯前端（React `createClass` + 浏览器内 Babel），无构建工具；jQuery / Bootstrap / FastClick。
+- 新人上手：[`新人上手.md`](./新人上手.md)（运行、改数据、读代码路径）；逐文件说明见 [`项目文件说明.md`](./项目文件说明.md)。
 
 ## 本地运行
 
@@ -21,8 +22,8 @@ index.html            # 入口：加载第三方库、数据脚本，并顺序�
 css/                  # 分类样式 01-base … 09-responsive（按序加载）
 src/
   lib.js              # 通用工具库
-  data/               # 数据表（物品/配方/事件/地点/怪物/地牢/全局常量）
-  ui/                 # 通用 UI 与菜单、背包(装备栏/属性/物品统计)
+  data/               # 数据表（物品/配方/事件/事件文本/地点/怪物/地牢/全局常量）
+  ui/                 # 通用 UI；menu/ 为菜单/背包子系统（index/normalMenu/skillPanel/settingsPanel/bag/…）
   systems/            # 制造、事件、交易
   scenes/             # 家/地点、战斗、地牢、顶层面板
   core/MainComponent  # 全局状态中心
@@ -72,3 +73,4 @@ saves/                # 本地存档后端数据目录
 - `index.css` 按功能拆分为 `css/01-09` 分类样式并按序加载
 - 根目录第三方 JS 库（jquery/react/react-dom）统一移入 `build/`
 - 为源码功能相关 JS 文件补充必要注释；新增项目文件说明与协作约定（每轮自动提交）
+- 新增《新人上手》文档；项目文件说明同步 menu 拆分、事件文本等最新结构
