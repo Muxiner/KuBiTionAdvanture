@@ -183,6 +183,20 @@ function itemBaseId(id) {
     return (ITEM_DATA[id] && ITEM_DATA[id].baseId) || id;
 }
 /**
+ * 读取某物品的耐久损耗值（0=全新）。stackable 物品的耐久是按每份存的数组，
+ * 这里返回其中损耗最小的一份（最接近全新）作为展示值。
+ */
+function durableWear(durableSaveData, id) {
+    var w = durableSaveData[id];
+    if (Array.isArray(w)) {
+        if (w.length === 0) return 0;
+        var m = w[0];
+        for (var i = 1; i < w.length; i++) { if (w[i] < m) m = w[i]; }
+        return m;
+    }
+    return w || 0;
+}
+/**
  * 统计容器(bag)中某基础物品的总数量（含未实例化的堆叠与各实例）。
  */
 function countBagItem(bag, id) {

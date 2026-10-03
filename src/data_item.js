@@ -1481,6 +1481,7 @@ var ITEM_DATA = {
         damage: 200,
         require: { hp: 2 },
         durable: 1,
+        stackable: true, // 耐久独立但只占用一个格子（堆叠存放）
     },
     staff: {
         name: '法杖',

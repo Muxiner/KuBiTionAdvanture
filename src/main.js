@@ -213,7 +213,7 @@ var ItemComponent = React.createClass({
         var maxDurable = this.context.getMaxDurable(item);
         return      <div className = {"item " + (isCurrentEquip?'currentEquip':'')} onMouseEnter = {this.itemMouseEnter} onClick = {this.itemMouseClick} onContextMenu = {this.itemClickRight}>
                         <p style = {{color:((TYPE_DATA[ITEM_DATA[this.props.item].type]||{}).color||COLOR.BLACK)}}>{ITEM_DATA[item].name}</p>
-                        {ITEM_DATA[item].durable?<ProgressComponent  addStyle = {{position: 'absolute',width: '30px',left: '9px',top: '22px',height: '5px'}} max = {maxDurable} current = {maxDurable - this.context.durableSaveData[item]} />:null}
+                        {ITEM_DATA[item].durable?<ProgressComponent  addStyle = {{position: 'absolute',width: '30px',left: '9px',top: '22px',height: '5px'}} max = {maxDurable} current = {maxDurable - durableWear(this.context.durableSaveData,item)} />:null}
                         <span className = "badge itemAmount">{this.props.amount}</span>
                     </div>
     }
@@ -1319,7 +1319,7 @@ var BagComponent = React.createClass({
                 }
             }
             var maxDurable = ITEM_DATA[detailedItem].durable && this.context.getMaxDurable(detailedItem);
-            var durable = this.context.durableSaveData[detailedItem];
+            var durable = durableWear(this.context.durableSaveData,detailedItem);
             return  <div className = "detailHead">
                         <p className = "detailVector effectHeading clearFix">
                             {ITEM_DATA[detailedItem].name}
@@ -5852,11 +5852,11 @@ var MainComponent = React.createClass({
                 for(var attr in durableSaveData){
                     var wt = ITEM_DATA[attr].weaponType;
                     if(wt == durableRec || (durableRec == 'unmagic' && (wt == 'melee'||wt == 'shoot'))){
-                        // var max = ITEM_DATA[attr].durable;
-                        // var rec = Math.round(max * (ITEM_DATA[item].durableAmount || 1));
-                        // durableSaveData[attr] -= rec;
-                        // if(durableSaveData[attr] < 0)
-                        durableSaveData[attr] = 0;
+                        if(Array.isArray(durableSaveData[attr])){
+                            for(var ci2 = 0;ci2 < durableSaveData[attr].length;ci2++)durableSaveData[attr][ci2] = 0;
+                        }else{
+                            durableSaveData[attr] = 0;
+                        }
                     }
                 }
                 this.setState({durableSaveData:durableSaveData});
@@ -6089,6 +6089,11 @@ var MainComponent = React.createClass({
             tar[baseId] -= take;
             amount -= take;
             if(tar[baseId] <= 0)delete tar[baseId];
+            // stackable 耐久物品：同步移除对应份数的耐久记录
+            if(ITEM_DATA[baseId] && ITEM_DATA[baseId].stackable && Array.isArray(durableSaveData[baseId])){
+                durableSaveData[baseId].splice(0,take);
+                if(durableSaveData[baseId].length === 0)delete durableSaveData[baseId];
+            }
         }
         for(var k in tar){
             if(amount <= 0)break;
@@ -6251,12 +6256,36 @@ var MainComponent = React.createClass({
                 if(tar[baseId] <= 0)delete tar[baseId];
             }
         }
+        // stackable 耐久物品：只占一个格子（堆叠数量），耐久按每份存入数组
+        function addStackable(baseId,n){
+            var oldCount = tar[baseId] || 0;
+            tar[baseId] = oldCount + n;
+            var arr = Array.isArray(durableSaveData[baseId]) ? durableSaveData[baseId] : [];
+            while(arr.length < oldCount)arr.push(0);
+            for(var i = 0;i < n;i++)arr.push(0);
+            durableSaveData[baseId] = arr;
+        }
+        function removeStackable(baseId,n){
+            var oldCount = tar[baseId] || 0;
+            var take = Math.min(n,oldCount);
+            tar[baseId] = oldCount - take;
+            var arr = Array.isArray(durableSaveData[baseId]) ? durableSaveData[baseId] : [];
+            arr.splice(0,take);
+            if(tar[baseId] <= 0)delete tar[baseId];
+            if(arr.length === 0)delete durableSaveData[baseId];
+            else durableSaveData[baseId] = arr;
+        }
         for (var attr in items) {
             var value = isNegative ? -items[attr] : items[attr];
             var data = ITEM_DATA[itemBaseId(attr)];
             if(data && data.durable && attr.indexOf('#') < 0){
-                if(value > 0)addInstances(attr,value);
-                else if(value < 0)removeInstances(attr,-value);
+                if(data.stackable){
+                    if(value > 0)addStackable(attr,value);
+                    else if(value < 0)removeStackable(attr,-value);
+                }else{
+                    if(value > 0)addInstances(attr,value);
+                    else if(value < 0)removeInstances(attr,-value);
+                }
             }else{
                 if(tar[attr]){
                     tar[attr] += value;
@@ -6780,6 +6809,27 @@ var MainComponent = React.createClass({
         for (var attr in list){
             var itemName = attr,amount = list[attr];
             if(o[itemName]==undefined)continue;
+            // stackable 耐久物品：耐久为数组（每份一份），只占一个格子
+            if(Array.isArray(o[itemName])){
+                var arr = o[itemName];
+                if(arr.length === 0){ delete o[itemName]; continue; }
+                // 取损耗最小的一份来承受本次损耗
+                var idx = 0;
+                for(var i = 1;i < arr.length;i++){ if(arr[i] < arr[idx])idx = i; }
+                arr[idx] += isNegative? -amount:amount;
+                if(arr[idx] >= this.getMaxDurable(itemName)){
+                    arr.splice(idx,1);
+                    for(var b0 in boxSaveData){
+                        if(boxSaveData[b0].things && boxSaveData[b0].things[itemName]){
+                            boxSaveData[b0].things[itemName] -= 1;
+                            if(boxSaveData[b0].things[itemName] <= 0)delete boxSaveData[b0].things[itemName];
+                            break;
+                        }
+                    }
+                }
+                if(arr.length === 0)delete o[itemName];
+                continue;
+            }
             o[itemName] += isNegative? -amount:amount;
             if(o[itemName] >= this.getMaxDurable(itemName)){
                 if(itemName.indexOf('#') >= 0){
@@ -7009,11 +7059,27 @@ var MainComponent = React.createClass({
         for(var boxName in data.boxSaveData){
             var thingsBox = data.boxSaveData[boxName].things;
             if(!thingsBox)continue;
-            for(var tk in thingsBox){
+            var boxKeys = [];
+            for(var tk0 in thingsBox)boxKeys.push(tk0);
+            for(var ki = 0;ki < boxKeys.length;ki++){
+                var tk = boxKeys[ki];
+                if(thingsBox[tk] === undefined)continue;
                 var tkCount = thingsBox[tk];
                 if(tk.indexOf('#') >= 0){
-                    // 已有实例：注册动态 ITEM_DATA
                     var base = data.itemInstances[tk] || tk.split('#')[0];
+                    if(ITEM_DATA[base] && ITEM_DATA[base].stackable){
+                        // stackable：实例并入同一格堆叠（耐久存入数组）
+                        thingsBox[base] = (thingsBox[base] || 0) + tkCount;
+                        var arrSt = Array.isArray(data.durableSaveData[base]) ? data.durableSaveData[base] : [];
+                        for(var z = 0;z < tkCount;z++)arrSt.push(data.durableSaveData[tk] || 0);
+                        data.durableSaveData[base] = arrSt;
+                        delete thingsBox[tk];
+                        delete data.durableSaveData[tk];
+                        delete data.itemInstances[tk];
+                        delete ITEM_DATA[tk];
+                        continue;
+                    }
+                    // 已有实例：注册动态 ITEM_DATA
                     if(ITEM_DATA[base] && !ITEM_DATA[tk]){
                         var inst = clone(ITEM_DATA[base]);
                         inst.baseId = base; inst.isInstance = true; inst.instanceId = tk;
@@ -7022,17 +7088,25 @@ var MainComponent = React.createClass({
                     data.itemInstances[tk] = base;
                     if(data.durableSaveData[tk] === undefined)data.durableSaveData[tk] = 0;
                 }else if(ITEM_DATA[tk] && ITEM_DATA[tk].durable){
-                    // 旧堆叠 -> 拆分为实例
-                    delete thingsBox[tk];
-                    for(var ci = 0;ci < tkCount;ci++){
-                        var ikey;
-                        do{ ikey = tk + '#' + (this.instanceSeq++); }while(ITEM_DATA[ikey] || data.itemInstances[ikey]);
-                        var inst2 = clone(ITEM_DATA[tk]);
-                        inst2.baseId = tk; inst2.isInstance = true; inst2.instanceId = ikey;
-                        ITEM_DATA[ikey] = inst2;
-                        thingsBox[ikey] = 1;
-                        data.itemInstances[ikey] = tk;
-                        data.durableSaveData[ikey] = 0;
+                    if(ITEM_DATA[tk].stackable){
+                        // stackable：保持堆叠，耐久为数组（长度=数量）
+                        var arr1 = Array.isArray(data.durableSaveData[tk]) ? data.durableSaveData[tk] : [];
+                        while(arr1.length < tkCount)arr1.push(0);
+                        arr1.length = tkCount;
+                        data.durableSaveData[tk] = arr1;
+                    }else{
+                        // 旧堆叠 -> 拆分为实例
+                        delete thingsBox[tk];
+                        for(var ci = 0;ci < tkCount;ci++){
+                            var ikey;
+                            do{ ikey = tk + '#' + (this.instanceSeq++); }while(ITEM_DATA[ikey] || data.itemInstances[ikey]);
+                            var inst2 = clone(ITEM_DATA[tk]);
+                            inst2.baseId = tk; inst2.isInstance = true; inst2.instanceId = ikey;
+                            ITEM_DATA[ikey] = inst2;
+                            thingsBox[ikey] = 1;
+                            data.itemInstances[ikey] = tk;
+                            data.durableSaveData[ikey] = 0;
+                        }
                     }
                 }
             }
@@ -7040,6 +7114,11 @@ var MainComponent = React.createClass({
         if(refreshDurability){
             for(var instKey in data.itemInstances){
                 data.durableSaveData[instKey] = 0;
+            }
+            for(var cb in data.durableSaveData){
+                if(Array.isArray(data.durableSaveData[cb])){
+                    for(var ai = 0;ai < data.durableSaveData[cb].length;ai++)data.durableSaveData[cb][ai] = 0;
+                }
             }
             data.durableRefreshed = true;
         }
