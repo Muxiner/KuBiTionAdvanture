@@ -1130,7 +1130,6 @@ var PlaceComponent = React.createClass({
                         {getEvents.bind(this)()}
                     </tbody>
                     </table>
-                    <BtnHome placeName = {name}/>
                 </div>
     }
 });
@@ -1336,7 +1335,6 @@ var BranchComponent = React.createClass({
                         </div>
                         {this.context.eventSaveData.trade.experienced?<div className = 'marketPane'><TradeListComponent/></div>:null}
                     </div>
-                    <BtnHome/>
                 </div>
 
     }

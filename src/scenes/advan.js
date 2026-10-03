@@ -164,6 +164,12 @@ var AdvanComponent = React.createClass({
                             {getDisplay.bind(this)()}
                         </div>
                     </div>
+                    {/* 回家按钮：独立容器，外出场景（分支/地点等）始终显示 */}
+                    {this.props.children == null && this.context.currentScene != 'home' && this.context.currentScene != 'dungeon' ?
+                        <div className = 'homeBtnBar'>
+                            <BtnHome placeName = {PLACE_DATA[this.context.currentScene] ? this.context.currentScene : null}/>
+                        </div>
+                    : null}
                     {this.context.msgList && this.context.msgList.length?<div className = 'toast'>{this.context.msgList[this.context.msgList.length - 1]}</div>:null}
                 </div>
                 <StateComponent/>

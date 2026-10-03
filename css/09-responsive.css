@@ -784,3 +784,12 @@ body {
     max-height: none;
     overflow: visible;
 }
+
+/* 常驻「回家」按钮容器（冒险面板右下角，独立于场景内容） */
+.homeBtnBar {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 200;
+    pointer-events: auto;
+}

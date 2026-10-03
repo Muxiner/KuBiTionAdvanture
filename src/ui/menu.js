@@ -450,7 +450,6 @@ var UpgradePlaceComponent = React.createClass({
                             </tbody>
                         </table>
                     </div>
-                    <BtnHome placeName = {'upgradePlace'}/>
                 </div>
 
     }
