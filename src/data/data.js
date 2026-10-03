@@ -368,10 +368,14 @@ var BUILDING_UPDATE_DATA = {
         },
     },
     toiletUpdate: {
+        showerPlace: {
+            timeNeed: 4,
+            require: { "wood": 30 },
+        },
         marshGasTank: {
             timeNeed: 4,
             require: { "wood": 100 },
-            science: '卫浴功能',
+            science: 'showerPlace',
         },
     },
     sleepPlaceUpdate: {
