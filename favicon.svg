@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="13" fill="#2f3b24" stroke="#9FAA83" stroke-width="2"/>
+  <text x="32" y="46" text-anchor="middle"
+        font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, Heiti SC, sans-serif"
+        font-size="38" font-weight="700" fill="#dfe6c8">苦</text>
+</svg>
