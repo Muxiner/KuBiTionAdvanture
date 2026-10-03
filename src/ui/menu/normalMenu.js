@@ -7,6 +7,7 @@ var NormalMenuComponent = React.createClass({
         setStateFromChildren: React.PropTypes.func.isRequired,
         menuHint: React.PropTypes.number.isRequired,
     },
+    // 默认打开设置页；有菜单提示（menuHint）时直接打开技能页
     getInitialState: function () {
         var menuType = 'settings';
         if (this.context.menuHint) {
@@ -16,6 +17,7 @@ var NormalMenuComponent = React.createClass({
             menuType: menuType,
         }
     },
+    // 打开菜单即清空菜单提示角标
     componentWillMount: function () {
         this.context.setStateFromChildren({ menuHint: 0 });
     },

@@ -20,6 +20,7 @@ var BagComponent = React.createClass({
             changeMsg: null
         };
     },
+    // 按「背包属性」科技重算背包容量
     componentWillMount: function () {
         var level = this.context.getScienceLevel('背包属性');
         var boxSaveData = this.context.boxSaveData;

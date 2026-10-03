@@ -7,6 +7,7 @@
 //逻辑层
 // 顶层冒险面板：显示时间/季节，按 currentScene 路由场景或渲染 callWindow 打开的窗口，
 // 并承载加载进度遮罩与全局提示
+// 顶层冒险面板：显示时间/季节，按 currentScene 路由场景或渲染 callWindow 打开的窗口
 var AdvanComponent = React.createClass({
     getDefaultProps: function () {
         return {

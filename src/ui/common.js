@@ -20,22 +20,22 @@ var ItemComponent = React.createClass({
         }
     },
     contextTypes: {
-        useItem: React.PropTypes.func.isRequired,
-        useTime: React.PropTypes.func.isRequired,
-        changeMsg: React.PropTypes.func.isRequired,
-        handleExchange: React.PropTypes.func.isRequired,
-        playerStateChange: React.PropTypes.func.isRequired,
-        isDueling: React.PropTypes.bool.isRequired,
-        AudioEngine: React.PropTypes.object.isRequired,
-        durableSaveData: React.PropTypes.object.isRequired,
-        getMaxDurable: React.PropTypes.func.isRequired,
-        currentEquip: React.PropTypes.object.isRequired,
+        useItem:              React.PropTypes.func.isRequired,
+        useTime:              React.PropTypes.func.isRequired,
+        changeMsg:            React.PropTypes.func.isRequired,
+        handleExchange:       React.PropTypes.func.isRequired,
+        playerStateChange:    React.PropTypes.func.isRequired,
+        isDueling:            React.PropTypes.bool.isRequired,
+        AudioEngine:          React.PropTypes.object.isRequired,
+        durableSaveData:      React.PropTypes.object.isRequired,
+        getMaxDurable:        React.PropTypes.func.isRequired,
+        currentEquip:         React.PropTypes.object.isRequired,
         setStateFromChildren: React.PropTypes.func.isRequired,
-        skill: React.PropTypes.object.isRequired,
-        dungeonSaveData: React.PropTypes.object.isRequired,
-        mstState: React.PropTypes.object.isRequired,
-        showMsg: React.PropTypes.func.isRequired,
-        handleItemClick: React.PropTypes.func.isRequired,
+        skill:                React.PropTypes.object.isRequired,
+        dungeonSaveData:      React.PropTypes.object.isRequired,
+        mstState:             React.PropTypes.object.isRequired,
+        showMsg:              React.PropTypes.func.isRequired,
+        handleItemClick:      React.PropTypes.func.isRequired,
     },
     itemMouseEnter: function () {
         this.context.changeMsg(this.props.item, 'item');
@@ -90,6 +90,7 @@ var ItemComponent = React.createClass({
         </div>
     }
 });
+// 单个状态格：显示状态名与数值，按数值插值底色，悬停展示说明
 var StateVectorComponent = React.createClass({
     contextTypes: {
         playerState: React.PropTypes.object.isRequired,
@@ -137,6 +138,7 @@ var StateVectorComponent = React.createClass({
         </div>
     }
 });
+// 通用向量格：上/下两行文本，可带底部按钮或进度条
 var VectorComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -165,6 +167,7 @@ var VectorComponent = React.createClass({
         </div>
     }
 });
+// 需求显示：按拥有情况标红/绿显示材料数量，可选显示拥有总量
 var RequireComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -215,6 +218,7 @@ var RequireComponent = React.createClass({
         </span>
     }
 });
+// 进度条：按 current/max 计算填充宽度
 var ProgressComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -232,6 +236,7 @@ var ProgressComponent = React.createClass({
         </div>
     }
 });
+// 容器格子：按容器 size 渲染物品格与空格，进入时登记 currentBox
 var BoxComponent = React.createClass({
     contextTypes: {
         boxSaveData: React.PropTypes.object.isRequired,
@@ -287,6 +292,7 @@ var BoxComponent = React.createClass({
         </ul>
     }
 });
+// 返回按钮：关闭当前窗口，并可选执行回调
 var BtnBack = React.createClass({
     contextTypes: {
         callWindow: React.PropTypes.func.isRequired,
@@ -307,6 +313,7 @@ var BtnBack = React.createClass({
         return <BtnComponent disabled={this.props.disabled} handleClick={callBack.bind(this)} desc='返回' />
     }
 });
+// 回家按钮：从外部地点耗时返回家中
 var BtnHome = React.createClass({
     getDefaultProps: function () {
         return {
@@ -344,6 +351,7 @@ var BtnHome = React.createClass({
         return <BtnComponent desc='回家' handleClick={this.gohome} />
     }
 });
+// 资源富集显示：把资源/怪物数量折算为「很少~大量」文字
 var ResourceDisplayComponent = React.createClass({
     getDefaultProps: function () {
         return {

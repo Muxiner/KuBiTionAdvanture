@@ -3,6 +3,7 @@
  * 科研台、制造台/炼金台/秘术台（StudioComponent）、建筑入口、通用耗时行动(ActionComponent)。
  */
 
+// 科研台：以「只做一次」的方式消耗材料研究科技，成品存入 scienceTable
 var ScienceComponent = React.createClass({
     contextTypes: {
         getScienceLevel: React.PropTypes.func.isRequired,
@@ -10,6 +11,7 @@ var ScienceComponent = React.createClass({
         boxSaveData: React.PropTypes.object.isRequired,
         setStateFromChildren: React.PropTypes.func.isRequired,
     },
+    // 研究完成后刷新背包容量（背包属性科技会扩大背包）
     onUpdate: function (name) {
         var level = this.context.getScienceLevel('背包属性');
         var boxSaveData = this.context.boxSaveData;
@@ -19,6 +21,7 @@ var ScienceComponent = React.createClass({
         return <StudioComponent onUpdate={this.onUpdate} type='scienceTable' alwayMakeOne={true} attachData={SCIENCE_DATA} />
     }
 })
+// 制作/科研/建筑升级通用组件：按 attachData(type) 列配方、计算耗时并执行
 var StudioComponent = React.createClass({
     contextTypes: {
         buildingSaveData: React.PropTypes.object.isRequired,
@@ -57,11 +60,13 @@ var StudioComponent = React.createClass({
             alwayMakeOne: false,
         }
     },
+    // 计算实际耗时：制作台属性科技会缩短制造台的制作时间
     getTimeNeed: function (timeNeed) {
         if (this.props.attachData != MAKE_DATA) return timeNeed;
         var level = this.context.getScienceLevel('制作台属性');
         return Math.pow(MAKE_SPEED_MUL, level) * timeNeed;
     },
+    // 执行制作：按数量扣除材料，耗时结束后把产物放入对应成品箱
     make: function (name) {
         var data = this.props.attachData[name];
         var amount = this.state.makeAmount;
@@ -84,6 +89,7 @@ var StudioComponent = React.createClass({
         this.context.useTime(callBack.bind(this), this.getTimeNeed(data.timeNeed * amount));
         if (data.timeNeed * amount > 2) this.context.AudioEngine.playEffect('build');
     },
+    // 执行建筑升级：扣除材料并把该升级项记入对应容器
     updateBuilding: function (name) {
         var data = BUILDING_UPDATE_DATA[this.props.type][name];
         var o = {};
@@ -98,6 +104,7 @@ var StudioComponent = React.createClass({
         this.context.useTime(callBack.bind(this), data.timeNeed);
         if (data.timeNeed > 2) this.context.AudioEngine.playEffect('build');
     },
+    // 打开某配方的「数量安排」面板
     makeWindow: function (name) {
         var require = this.props.attachData[name].require;
         this.context.AudioEngine.playEffect('open');
@@ -109,6 +116,7 @@ var StudioComponent = React.createClass({
             makeAmountMax: this.context.getMaxTimeOfRequire(require)
         });
     },
+    // 根据输入与剩余时间夹取可制作数量
     updateSchedule: function (sender) {
         // var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
         var value = parseInt($('.scheduleInput')[0].value);
@@ -121,6 +129,7 @@ var StudioComponent = React.createClass({
         if (value > maxAmount) value = maxAmount;
         this.setState({ makeAmount: value });
     },
+    // 依据烹饪锅内的材料匹配菜谱，返回可做的成品（无匹配返回 false）
     getCookResult: function () {
         var metList = this.context.boxSaveData.cooker.things;
         if (getLength(metList) < 2) return false;
@@ -147,6 +156,7 @@ var StudioComponent = React.createClass({
         };
         return false;
     },
+    // 计算当前材料与剩余时间下最多可烹调的数量
     checkMaxCookAmount: function () {
         var max = Math.floor(this.context.getTheMaxTimeToUse() * this.state.cookAmount / this.getCookTime());
         var met = this.context.boxSaveData.cooker.things;
@@ -155,6 +165,7 @@ var StudioComponent = React.createClass({
         }
         return max;
     },
+    // 夹取输入的烹调数量（1 ~ 上限）
     changeCookAmount: function (sender) {
         var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
         // var value =  parseInt($('.scheduleInput')[0].value) ;
@@ -168,12 +179,14 @@ var StudioComponent = React.createClass({
         }
         this.setState({ cookAmount: value });
     },
+    // 计算一次烹调耗时（受烹饪技能等级影响）
     getCookTime: function () {
         var amount = this.state.cookAmount;
         var level = this.context.getBuildingLevel('烹饪技能');
         var result = amount * COOK_TIME_NEED * (Math.pow(COOK_SPEED_MUL, level));
         return result;
     },
+    // 执行烹调：扣除锅内材料并把成品放入 cooked 箱
     handleCook: function () {
         var met = this.context.boxSaveData.cooker.things;
         var cookResult = this.getCookResult();
@@ -257,10 +270,12 @@ var StudioComponent = React.createClass({
                 </div>
             </div>
         }
+        // 剩余时间是否足够完成该配方
         function haveTimeToMake(item) {
             var item = item || this.state.itemToMake;
             return this.context.getTheMaxTimeToUse() >= (this.props.attachData || BUILDING_UPDATE_DATA[type])[item].timeNeed
         }
+        // 建筑升级列表：过滤已完成项与未满足的科技前置，校验材料/时间
         function getUpdateDesc() {
             var list = BUILDING_UPDATE_DATA[type];
             var result = [];
@@ -283,6 +298,7 @@ var StudioComponent = React.createClass({
             if (count == 0) return false;
             return result;
         }
+        // 配方列表：过滤科技/事件/建筑前置，先按可制作次数排序再按类型分组
         function getMakeDesc() {
             var list = attachData;
             var bag = together(this.context.boxSaveData.bag.things, this.context.boxSaveData.bigBox.things);
@@ -335,6 +351,7 @@ var StudioComponent = React.createClass({
                 </div>;
             }.bind(this));
         }
+        // 数量安排面板：列出清单/消耗/耗时并执行制作
         function schedule() {
             var name = this.state.itemToMake;
             var amount = this.state.makeAmount;
@@ -358,9 +375,8 @@ var StudioComponent = React.createClass({
         }
     }
 });
+// 家中建筑入口按钮：按建筑类型打开对应的功能窗口
 var BuildingComponent = React.createClass({
-    //display the building btn ,the entry to your buildings
-    //call window to get the building view
     getDefaultProps: function () {
         return {
             building: null,
@@ -407,6 +423,7 @@ var BuildingComponent = React.createClass({
         );
     }
 });
+// 通用耗时行动：按 canGet/require 与次数执行一次动作（拾荒/取水等），支持冷却
 var ActionComponent = React.createClass({
     contextTypes: {
         getTheMaxTimeToUse: React.PropTypes.func.isRequired,
@@ -437,6 +454,7 @@ var ActionComponent = React.createClass({
             timeNeed: 1
         }
     },
+    // 夹取行动次数（1 ~ 剩余可支配时间）
     updateSchedule: function (sender) {
         var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
         // var value =  parseInt($('.scheduleInput_'+this.props.type)[0].value);
@@ -449,6 +467,7 @@ var ActionComponent = React.createClass({
         this.setState({ timeNeed: value }, function () {
         });
     },
+    // 执行行动：按次数结算产出与消耗，必要时写入冷却
     act: function () {
         var timeNeed = this.state.timeNeed;
         var canGet = this.props.canGet;

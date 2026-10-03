@@ -4,8 +4,7 @@
  * 地点(PlaceComponent)、家(HomeComponent)、分支(BranchComponent)。
  */
 
-//all the building at home
-//家内建筑
+// 大箱子：家庭总仓库的管理界面
 var BigBoxComponent = React.createClass({
     contextTypes: {
         boxSaveData: React.PropTypes.object.isRequired,
@@ -92,6 +91,7 @@ var BigBoxComponent = React.createClass({
         </div>
     }
 });
+// 建造菜单：选择并建造新建筑
 var BuildComponent = React.createClass({
     contextTypes: {
         buildingSaveData: React.PropTypes.object.isRequired,
@@ -175,6 +175,7 @@ var BuildComponent = React.createClass({
         </div>
     }
 })
+// 农田/酿酒桶：按扩建等级提供槽位，种植/酿制并可收获或取消
 var WaitMakeComponent = React.createClass({
     contextTypes: {
         buildingSaveData: React.PropTypes.object.isRequired,
@@ -380,6 +381,7 @@ var WaitMakeComponent = React.createClass({
 
     }
 })
+// 陷阱：放入诱饵，按天自动捕获猎物
 var TrapComponent = React.createClass({
     desc: '诱饵',
     timeNeed: 1,
@@ -637,6 +639,7 @@ var CookRecipeComponent = React.createClass({
         </div>;
     }
 });
+// 炊具：烹调界面与烹饪技能升级入口
 var CookerComponent = React.createClass({
     render: function () {
         return <div>
@@ -653,6 +656,7 @@ var CookerComponent = React.createClass({
         </div>
     }
 })
+// 水井：打水（受季节与建筑等级影响）
 var WellComponent = React.createClass({
     contextTypes: {
         boxSaveData: React.PropTypes.object.isRequired,
@@ -678,6 +682,7 @@ var WellComponent = React.createClass({
         </div>
     }
 })
+// 卫生间：如厕并产出沼气（受季节与环境温度影响）
 var ToiletComponent = React.createClass({
     contextTypes: {
         placeSaveData: React.PropTypes.object.isRequired,
@@ -715,6 +720,7 @@ var ToiletComponent = React.createClass({
         </div>
     }
 })
+// 床铺：睡觉恢复体力/精神（受季节与建筑等级影响）
 var SleepPlaceComponent = React.createClass({
     contextTypes: {
         getBuildingLevel: React.PropTypes.func.isRequired,
@@ -772,11 +778,8 @@ var SleepPlaceComponent = React.createClass({
         </div>
     }
 })
-//scene components
-//场景
+// 外部地点面板：采集/狩猎/事件、进入地牢等
 var PlaceComponent = React.createClass({
-    //Adventure begins
-    //冒险的场景
     getDefaultProps: function () {
         return {
             reActionDisabled: false,
@@ -1135,6 +1138,7 @@ var PlaceComponent = React.createClass({
         </div>
     }
 });
+// 家中场景：各建筑入口与出门
 var HomeComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -1277,6 +1281,7 @@ var HomeComponent = React.createClass({
         </div>
     }
 });
+// 地图/分支：选择前往的地点，并展示集市入口
 var BranchComponent = React.createClass({
     contextTypes: {
         placeSaveData: React.PropTypes.object.isRequired,

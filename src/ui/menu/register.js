@@ -34,6 +34,7 @@ var RegisterComponent = React.createClass({
         //     this.props.willUnmount();
         // }
     },
+    // 全部拾取：把 register 内物品在容量允许下移入背包
     grabAll: function () {
         var saveData = this.context.boxSaveData;
         var itemList = saveData.register.things;
@@ -46,6 +47,7 @@ var RegisterComponent = React.createClass({
         this.context.setStateFromChildren({ boxSaveData: saveData });
         this.check();
     },
+    // 非「允许为空」时，拾取完自动关闭窗口
     check: function () {
         if (this.props.canBeEmpty == true) return;
         var saveData = this.context.boxSaveData;

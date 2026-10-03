@@ -28,12 +28,15 @@ var SettingsPanelComponent = React.createClass({
     componentDidMount: function () {
         this.refreshLocalSaves();
     },
+    // 读取全部本地存档槽信息（用于渲染列表）
     refreshLocalSaves: function () {
         this.setState({ localSaves: this.context.getLocalSaves() });
     },
+    // 槽位显示名（自动存档 / 第N号）
     slotName: function (slot) {
         return slot == LOCAL_SAVE_AUTO_SLOT ? '自动存档' : ('第' + slot + '号');
     },
+    // 本地存档：写入指定槽位并刷新列表、回显结果
     handleLocalSave: function (slot) {
         //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
         if (this.context.saveLocal(slot)) {
@@ -43,6 +46,7 @@ var SettingsPanelComponent = React.createClass({
             this.setState({ saveMsg: this.slotName(slot) + '保存失败' });
         }
     },
+    // 本地读档：槽位为空则提示
     handleLocalLoad: function (slot) {
         var saves = this.context.getLocalSaves();
         if (!saves[slot]) {
@@ -51,6 +55,7 @@ var SettingsPanelComponent = React.createClass({
         }
         this.context.loadLocal(slot);
     },
+    // 本地删档：二次确认后删除并刷新
     handleLocalDelete: function (slot) {
         if (confirm('确定删除' + this.slotName(slot) + '存档吗？')) {
             this.context.deleteLocal(slot);
@@ -64,6 +69,7 @@ var SettingsPanelComponent = React.createClass({
     download: function () {
         this.context.download();
     },
+    // 更新账号/密码等设置项
     handleChange: function (type, sender) {
         var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
         var value = (obj.value);
@@ -71,17 +77,20 @@ var SettingsPanelComponent = React.createClass({
         settings['save_' + type] = value;
         this.context.setStateFromChildren({ settings: settings });
     },
+    // 切换「出门时自动保存」
     handleAuto: function () {
         var settings = this.context.settings;
         settings['autoSave'] = !settings['autoSave'];
         this.context.setStateFromChildren({ settings: settings });
     },
+    // 保存到账号（服务端），并回显成功/失败结果
     willUpload: function () {
         //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
         this.context.upload(true, function (ok, reason) {
             this.setState({ saveMsg: ok ? '账号保存成功' : ('账号保存失败' + (reason ? '（' + reason + '）' : '')) });
         }.bind(this));
     },
+    // 切换背包自动整理
     setSort: function () {
         var settings = this.context.settings;
         settings.sort = !settings.sort;

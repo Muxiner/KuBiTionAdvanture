@@ -3,6 +3,7 @@
  */
 
 // 地牢：向下探索、随机房间/事件、遇敌进入战斗、绳索返回与深层奖励
+// 地牢：逐层推进的房间与事件（含宝箱、机关、Boss 等）
 var DungeonComponent = React.createClass({
     contextTypes: {
         callWindow: React.PropTypes.func.isRequired,

@@ -15,6 +15,7 @@ var UpgradePlaceComponent = React.createClass({
             teacher: false,
         }
     },
+    // 拜师成功：对应技能等级 +1
     handleDone: function (type) {
         var skillType = EVENT_DATA[type].skill;
         var skill = this.context.skill;
@@ -25,6 +26,7 @@ var UpgradePlaceComponent = React.createClass({
             this.setState({ rewarding: true });
         }.bind(this), 0.1);
     },
+    // 导师列表：学费随技能等级递增
     getTeathers: function () {
         var list = {
             meleeUpgrade: true,

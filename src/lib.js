@@ -58,6 +58,7 @@ function together(a, b) {
     }
     return result;
 }
+// 计算对象自身可枚举属性的数量
 function getLength(obj) {
     //计算对象中成员属性的数量
     var count = 0;
@@ -125,6 +126,7 @@ function getRandom(obj, props) {
     };
     return false;
 }
+// 深拷贝（支持 对象/数组/基本类型）
 function clone(obj) {
     //克隆一个对象
     var o;
@@ -155,6 +157,7 @@ function clone(obj) {
     }
     return o;
 }
+// 深拷贝一个「值→数量」映射并按 mul 倍乘，isRound 为真时取整
 function cloneMul(obj, mul, isRound) {
     //克隆一个容器内的物品，并倍乘一个数
     var o = {};

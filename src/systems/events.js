@@ -3,6 +3,7 @@
  * 流浪汉、任务、给予、城镇/盗贼事件、转生、Boss、事件组件、交易与集市、消息框。
  */
 
+// 流浪汉事件：把 register 中的食物折算成价值累计，超过 maxFood 后赠予[小镇]地图
 var TrampComponent = React.createClass({
     maxFood: 50,
     contextTypes: {
@@ -25,6 +26,7 @@ var TrampComponent = React.createClass({
     componentWillUnmount: function () {
         this.context.setDueling(false);
     },
+    // 计算 register 中食物的总价值（酒类按半价折算）
     checkFood: function () {
         var playerGive = this.context.boxSaveData.register.things;
         var value = 0;
@@ -38,6 +40,7 @@ var TrampComponent = React.createClass({
         }
         return value;
     },
+    // 施舍食物：累加 foodGot、按价值回复精神；达到 maxFood 后标记事件完成
     giveFood: function () {
         var eventSaveData = this.context.eventSaveData;
         var value = this.checkFood();
@@ -87,6 +90,7 @@ var TrampComponent = React.createClass({
         }
     }
 });
+// 通用任务组件：按 EVENT_DATA 渲染前后剧情，提交 want 后发放奖励并解锁制作/地点
 var QuestComponent = React.createClass({
     contextTypes: {
         eventSaveData: React.PropTypes.object.isRequired,
@@ -108,6 +112,7 @@ var QuestComponent = React.createClass({
             done: false,
         }
     },
+    // 一次性任务完成：标记已体验并执行回调（永久任务走 onForeverDone）
     onDone: function () {
         this.setState({ done: true });
         if (this.props.forever) return;
@@ -117,6 +122,7 @@ var QuestComponent = React.createClass({
 
         this.props.callBack && this.props.callBack();
     },
+    // 永久任务完成：仅按 chanceGet 概率额外发放奖励，不结束事件
     onForeverDone: function () {
         var data = EVENT_DATA[this.props.event];
         var itemList = clone(data.get) || null;
@@ -188,6 +194,7 @@ var QuestComponent = React.createClass({
         )
     }
 });
+// 提交物品按钮：物品足够才可点击，点击后扣除物品并回调 onDone
 var GiveComponent = React.createClass({
     contextTypes: {
         boxSaveData: React.PropTypes.object.isRequired,
@@ -219,6 +226,7 @@ var GiveComponent = React.createClass({
         )
     }
 });
+// 战争营地阵营事件（冰/火）：介绍阵营、加入并习得嗜血/吸收、发放战争给养
 var TownEvent = React.createClass({
     contextTypes: {
         campSaveData: React.PropTypes.object.isRequired,
@@ -239,6 +247,7 @@ var TownEvent = React.createClass({
             town: null,
         }
     },
+    // 加入阵营：记录阵营选择、习得对应技能、标记敌对阵营事件已完成
     handleJoin: function () {
         var town = this.props.town;
         this.context.useTime(function () {
@@ -319,6 +328,7 @@ var TownEvent = React.createClass({
         }
     }
 });
+// 覆面忍者事件：击败盗贼头目后二选一（分财宝得装备 / 独吞并决斗）
 var ThiefEvent = React.createClass({
     contextTypes: {
         campSaveData: React.PropTypes.object.isRequired,
@@ -387,6 +397,7 @@ var ThiefEvent = React.createClass({
         </div>
     }
 });
+// 转生：消耗魂晶石(blood)从天赋中选择一项转生，重置大部分技能与物品
 var Reincarnation = React.createClass({
     contextTypes: {
         skill: React.PropTypes.object.isRequired,
@@ -439,6 +450,7 @@ var Reincarnation = React.createClass({
         </div>
     }
 });
+// 魔王封印：提交魂晶石(reiPart)打破封印并战斗，胜利后轮回等级(maouLevel)+1
 var BossComponent = React.createClass({
     contextTypes: {
         eventSaveData: React.PropTypes.object.isRequired,
@@ -515,6 +527,7 @@ var EventComponent = React.createClass({
             type: null
         }
     },
+    // 将指定事件标记为「已体验」（供子组件经 childContext 调用）
     setEventExperienced: function (eventName) {
         var eventSaveData = this.context.eventSaveData;
         if (eventSaveData[eventName] == undefined) {
@@ -698,6 +711,7 @@ var TradeComponent = React.createClass({
             isOver: false,
         }
     },
+    // 计算当前交易状态：收购物、收购上限、玩家可换数量、是否为空/溢出
     getTradingState: function () {
         var skill = this.context.skill;
         var sellerLevel = (skill.seller || 0) * SKILL_DATA.seller.buff;
@@ -733,6 +747,7 @@ var TradeComponent = React.createClass({
             giveName: ITEM_DATA[give].name
         };
     },
+    // 根据交易状态拼装商队对话（催价/成交/兜售/上限提示）
     getDialog: function () {
         var result = [];
         var state = this.getTradingState();
@@ -775,6 +790,7 @@ var TradeComponent = React.createClass({
     componentWillUnmount: function () {
         this.context.setDueling(false);
     },
+    // 成交：把换算出的物品放入 register 并结束本次交易
     duel: function () {
         this.context.setDueling(false);
         //成交
@@ -791,6 +807,7 @@ var TradeComponent = React.createClass({
         }
         this.setState({ isOver: true });
     },
+    // 撤回：把 register 中玩家放入的物品退回背包
     refuse: function () {
         var boxSaveData = this.context.boxSaveData;
         // boxSaveData.bag.things = clone(this.preBagThings);
@@ -828,6 +845,7 @@ var TradeComponent = React.createClass({
         </div>
     }
 });
+// 集市列表：展示可交易的商队卡片，点击进入 TradeComponent
 var TradeListComponent = React.createClass({
     contextTypes: {
         tradeSaveData: React.PropTypes.array.isRequired,
@@ -865,6 +883,7 @@ var TradeListComponent = React.createClass({
         </div>
     }
 })
+// 消息提示容器：按 msgList 渲染带进/出场动画的浮动提示条
 var MsgBox = React.createClass({
     contextTypes: {
         msgList: React.PropTypes.array.isRequired,

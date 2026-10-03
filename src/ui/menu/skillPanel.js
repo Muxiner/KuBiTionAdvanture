@@ -14,6 +14,7 @@ var SkillPanelComponent = React.createClass({
     handleSkillTab: function (skill) {
         this.setState({ selectedSkill: skill });
     },
+    // 技能列表（名称 + 等级角标，单击选中）
     getSkillList: function () {
         var skill = this.context.skill;
         if (getLength(skill) == 0) {
@@ -26,6 +27,7 @@ var SkillPanelComponent = React.createClass({
         }
         return result;
     },
+    // 选中技能的描述与当前加成数值
     getSkillDesc: function () {
         var skill = this.context.skill;
         var selectedSkill = this.state.selectedSkill;

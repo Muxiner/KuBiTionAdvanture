@@ -414,6 +414,7 @@ var MainComponent = React.createClass({
             tar.pause();
         },
     },
+    // 推送一条浮动消息，MSG_TIME 后自动移除
     showMsg: function (msg) {
         var msgList = this.state.msgList;
         msgList.push(msg);
@@ -425,6 +426,7 @@ var MainComponent = React.createClass({
             this.setState({ msgList: msgList });
         }).bind(this), MSG_TIME)
     },
+    // 估算物品价值：优先取 value，否则按效果/配方材料折算（用于交易与施舍）
     getValue: function (give) {
         if (ITEM_DATA[give].value) return ITEM_DATA[give].value;
         var value = 0;
@@ -459,6 +461,7 @@ var MainComponent = React.createClass({
     setDueling: function (value) {
         this.setState({ isDueling: value });
     },
+    // 统计 scienceTable 中某科技类型的件数，即该科技的等级
     getScienceLevel: function (type) {
         var buildingSaveData = this.state.buildingSaveData;
         var boxSaveData = this.state.boxSaveData;
@@ -470,6 +473,7 @@ var MainComponent = React.createClass({
         }
         return count;
     },
+    // 统计某升级容器内的升级项数量，即该建筑的等级
     getBuildingLevel: function (update) {
         var updateBox = this.state.boxSaveData[update].things;
         var count = 0;
@@ -484,10 +488,12 @@ var MainComponent = React.createClass({
     setCurrentScene: function (value) {
         this.setState({ currentScene: value })
     },
+    // 读取某行动的冷却剩余时间
     getcoolDownSaveData: function (attr) {
         var coolDownSaveData = this.state.coolDownSaveData;
         return coolDownSaveData[attr];
     },
+    // 写入某行动的冷却剩余时间
     setcoolDownSaveData: function (attr, value) {
         var coolDownSaveData = this.state.coolDownSaveData;
         coolDownSaveData[attr] = value;
@@ -495,6 +501,7 @@ var MainComponent = React.createClass({
             coolDownSaveData: coolDownSaveData
         })
     },
+    // 增减战斗中怪物（mstState）的状态数值
     mstStateChange: function (list, isNegative) {
         var o = this.state.mstState;
         for (var attr in list) {
@@ -504,6 +511,7 @@ var MainComponent = React.createClass({
         }
         this.setState({ mstState: o });
     },
+    // 计算怪物数量向平衡值回复的每日增长量
     getMstCircle: function (amount, balancedAmount, speed) {
         var still = 0.1;//最少增长量
         var c = speed || 1;//曲线陡峭系数
@@ -519,6 +527,7 @@ var MainComponent = React.createClass({
         }
         this.setState(obj);
     },
+    // 现有材料在「背包+大箱子」下最多可制作的份数
     getMaxTimeOfRequire: function (require) {
         //仅用于家内物品最大制造个数的判断
         var req = {};
@@ -597,12 +606,14 @@ var MainComponent = React.createClass({
         //可以使用大箱子里的资源
     },
 
+    // 容器是否已满（已存在的物品仍可叠加，但放不下新物品）
     checkFull: function (box, itemName) {
         if (typeof box == 'string') {
             box = this.state.boxSaveData[box];
         }
         return (box.size <= getLength(box.things) && !box.things[itemName]);
     },
+    // 在不因饥饿/水分耗尽而死亡的前提下，最多可支配的时间
     getTheMaxTimeToUse: function () {
         //这个检查函数是为了防止出现使用时间导致饥饿和水分不足而死亡的情况。。
         var fullTime = Math.floor(this.state.playerState.full.amount / FULL_DESC_PER_HOUR - 0.0001);
@@ -649,6 +660,7 @@ var MainComponent = React.createClass({
         this.setState({ currentEquip: currentEquip });
         this.AudioEngine.playEffect('pick');
     },
+    // 从任意装备槽卸下指定物品并放回背包
     cancelEquip: function (itemName) {
         //卸下装备（在任意槽位中查找并放回背包）
         var currentEquip = this.state.currentEquip;
@@ -782,6 +794,7 @@ var MainComponent = React.createClass({
         };
         this.setState({ boxSaveData: boxSaveData, durableSaveData: durableSaveData, itemInstances: itemInstances });
     },
+    // 使用/消耗物品（对 changeItem 取负值）
     useItem: function (items, box) {
         var box = box || 'bag';
         var o = {};
@@ -1027,9 +1040,11 @@ var MainComponent = React.createClass({
         }
     },
     //TimeManager
+    // 判断某时刻是否属于夜晚（22:00~次日2:00）
     isInNight: function (time) {
         return (time < NIGHT_END || time > NIGHT_BEGIN);
     },
+    // 统计一段时间内处于夜晚的小时数
     getTimeInNight: function (from, to) {
         var timeInNight = 0;
         var i = from;
@@ -1262,6 +1277,7 @@ var MainComponent = React.createClass({
         this.checkDeath();
         return true;
     },
+    // 增减玩家状态（生命/体力/精神/满腹/水分/温度），按上限夹取并检查死亡
     playerStateChange: function (list, isNegative) {
         var o = this.state.playerState;
         for (var attr in list) {
@@ -1276,16 +1292,19 @@ var MainComponent = React.createClass({
         //检查死亡
         this.checkDeath();
     },
+    // 消耗玩家状态并同步扣减装备耐久
     playerStateUse: function (list, isNegative) {
         this.playerStateChange(list, !(isNegative || false));
         this.durableChange(list);
     },
+    // 计算物品最大耐久（受锻造类科技提升）
     getMaxDurable: function (item) {
         var durable = ITEM_DATA[item].durable;
         var weaponType = ITEM_DATA[item].weaponType;
         var level = weaponType == 'melee' ? this.getScienceLevel('锻造技术') : this.getScienceLevel('魔法锻造技术');
         return Math.round(durable * (1 + level * 0.25));
     },
+    // 结算耐久损耗（普通实例扣对应份；stackable 物品按耐久数组逐份处理）
     durableChange: function (list, isNegative) {
         var o = this.state.durableSaveData;
         var currentEquip = this.state.currentEquip;
@@ -1341,6 +1360,7 @@ var MainComponent = React.createClass({
         }
         this.setState({ durableSaveData: o, currentEquip: currentEquip, boxSaveData: boxSaveData, itemInstances: itemInstances });
     },
+    // 把体温数值映射为冷热档位（veryCold~veryHot）
     getTempDesc: function () {
         var playerState = this.state.playerState;
         var state = playerState.temp;
@@ -1379,6 +1399,7 @@ var MainComponent = React.createClass({
             setTimeout(doCallBack, delay);
         }
     },
+    // 播放顶部进度条动画，结束后回调
     setProgress: function (delay, callBack) {
         var progress = 0;
         var foo = bindAnimation(
@@ -1395,6 +1416,7 @@ var MainComponent = React.createClass({
         )()
         requestAnimationFrame(foo);
     },
+    // 渐显遮罩（misk）
     setMisk: function (delay) {
         var step = 100;
         var misk = 0;
@@ -1411,6 +1433,7 @@ var MainComponent = React.createClass({
         )()
         requestAnimationFrame(foo);
     },
+    // 渐隐遮罩（misk）
     clearMisk: function (delay) {
         var step = 100;
         var misk = 1;
@@ -1427,6 +1450,7 @@ var MainComponent = React.createClass({
         )()
         requestAnimationFrame(foo);
     },
+    // 检查某种资源是否足够（兼容 baseId 实例，并计入装备栏与玩家状态值）
     checkHaveResource: function (resName, resAmount, bag) {
         // check form bagData to stateData
         // 多用型的检查（按 baseId 统计，兼容实例化武器/工具，并计入装备栏）
@@ -1456,6 +1480,7 @@ var MainComponent = React.createClass({
         };
         return flag;
     },
+    // 设置右侧详情面板要显示的内容（物品/状态/描述）
     changeMsg: function (name, type) {
         if (type == 'desc') {
             this.setState({ detailedList: name, detailedType: type });
@@ -1479,6 +1504,7 @@ var MainComponent = React.createClass({
             this.init();
         }
     },
+    // 用初始状态重置全局状态
     init: function () {
         var initState = this.getInitialState();
         this.setState(initState);
@@ -1487,6 +1513,7 @@ var MainComponent = React.createClass({
         this.AudioEngine.on = !this.AudioEngine.on;
         render();
     },
+    // 读档：重置临时界面状态并对缺失字段做兼容处理
     loadState: function (data) {
         this.setState({ currentScene: 'home' });
         //对存档的预处理
@@ -1662,6 +1689,7 @@ var MainComponent = React.createClass({
         boxSaveData['bag'].size = BAG_BASE_SIZE + level;
         this.setState({ boxSaveData: boxSaveData });
     },
+    // 载入账号存档字符串（先切场景过渡，再解析并 loadState）
     loadData: function (str) {
         this.setState({ currentScene: 'branch' });
         setTimeout(function () {
@@ -1749,9 +1777,11 @@ var MainComponent = React.createClass({
             }
         });
     },
+    // 本地存档在 localStorage 中的键名
     getLocalSaveKey: function (slot) {
         return LOCAL_SAVE_PREFIX + slot;
     },
+    // 读取所有本地存档槽的元信息（自动存档槽 0 + 手动槽）
     getLocalSaves: function () {
         //读取所有本地存档槽的元信息（含自动存档槽 0）
         var result = {};
@@ -1774,6 +1804,7 @@ var MainComponent = React.createClass({
         }
         return result;
     },
+    // 保存到指定本地槽（剥离界面态字段后序列化）
     saveLocal: function (slot) {
         var saveData = clone(this.state);
         delete saveData.settings;
@@ -1799,6 +1830,7 @@ var MainComponent = React.createClass({
         }
         return true;
     },
+    // 从本地槽读取并载入
     loadLocal: function (slot) {
         var saves = this.getLocalSaves();
         var save = saves[slot];
@@ -1810,6 +1842,7 @@ var MainComponent = React.createClass({
         this.loadData(save.data);
         return true;
     },
+    // 删除指定本地槽
     deleteLocal: function (slot) {
         try {
             localStorage.removeItem(this.getLocalSaveKey(slot));

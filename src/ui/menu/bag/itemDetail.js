@@ -26,6 +26,7 @@ var ItemDetailComponent = React.createClass({
             discardConfirm: null,
         }
     },
+    // 判断被查看的物品所在容器（背包优先，其次当前容器），无则 false
     getItemBoxFromDetail: function () {
         var detailedItem = this.context.detailedItem;
         var boxSaveData = this.context.boxSaveData;
@@ -42,6 +43,7 @@ var ItemDetailComponent = React.createClass({
         }
         return box;
     },
+    // 使用/装备被查看的物品
     useItemFromDetail: function () {
         var detailedItem = this.context.detailedItem;
         this.context.handleItemClick(detailedItem, this.getItemBoxFromDetail());

@@ -53,6 +53,7 @@ $(function () {
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 
+// 依据 UA 是否包含移动设备关键字判断是否桌面端
 function IsPC() {
     var userAgentInfo = navigator.userAgent;
     var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
@@ -68,6 +69,7 @@ $(function () {
     FastClick.attach(document.body);
 });
 
+// 把字符串数组渲染成段落；传入字符串则原样返回
 function toParagraphs(arr) {
     if (typeof arr == 'string') return arr;
     var result = [];
@@ -77,6 +79,7 @@ function toParagraphs(arr) {
     return result;
 }
 
+// 挂载根组件到 #game
 function render() {
     ReactDOM.render(
         <MainComponent />,

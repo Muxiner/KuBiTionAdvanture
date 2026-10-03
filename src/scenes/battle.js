@@ -3,6 +3,7 @@
  * 战斗角色、选择、战斗选项与战斗主组件。
  */
 
+// 战斗角色：显示名字与血条
 var BattleCharactorComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -32,6 +33,7 @@ var BattleCharactorComponent = React.createClass({
         </div>
     }
 });
+// 下拉选择框（战斗中用于选择道具/技能等）
 var SelectComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -49,6 +51,7 @@ var SelectComponent = React.createClass({
         return <select className="selectpicker" value={ITEM_DATA[this.props.defaultV].name} onChange={this.handleChange}>{this.props.children}</select>
     }
 })
+// 战斗指令面板：攻击/技能/使用道具/逃跑等选择
 var BattleChoiceComponent = React.createClass({
     timer: null,
     contextTypes: {
@@ -218,6 +221,7 @@ var BattleChoiceComponent = React.createClass({
 });
 // ===== 3) 玩法模块 · 战斗 =====
 // 战斗：按射程分为近战/远程/魔法，处理选择、命中、追击、掉落与胜负
+// 战斗主组件：回合推进、伤害结算与胜负处理
 var BattleComponent = React.createClass({
     //战斗的整体场景
     step: 0,

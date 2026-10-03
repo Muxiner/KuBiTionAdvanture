@@ -10,6 +10,7 @@ var MenuBtnComponent = React.createClass({
         menuHint: React.PropTypes.number.isRequired,
         setStateFromChildren: React.PropTypes.func.isRequired,
     },
+    // 打开主菜单
     handleClick: function () {
         this.context.setStateFromChildren({ showMenu: 'menu' });
     },
