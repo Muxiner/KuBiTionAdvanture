@@ -45,7 +45,7 @@ var SAN_DESC_PER_HOUR = 3;      // 夜间在外每小时精神下降
 var PICK_TIME = 3;              // 拾荒耗时
 var NIGHT_BEGIN = 22;           // 夜晚开始（时）
 var NIGHT_END = 2;              // 夜晚结束（时）
-var SEASON_CIRCLE = 80;         // 每个季节的天数
+var SEASON_CIRCLE = 40;         // 每个季节的天数
 var TRADE_MUL = 0.75;           // 交易折价系数
 var COLOR = {
     BLACK: '#222',
@@ -368,10 +368,6 @@ var BUILDING_UPDATE_DATA = {
         },
     },
     toiletUpdate: {
-        卫浴功能: {
-            timeNeed: 4,
-            require: { "wood": 30 },
-        },
         marshGasTank: {
             timeNeed: 4,
             require: { "wood": 100 },

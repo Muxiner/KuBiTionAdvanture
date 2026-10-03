@@ -19,32 +19,6 @@
 
 
 'use strict';
-// var move=function(e){
-//     e.preventDefault && e.preventDefault();
-//     e.returnValue = false;
-//     e.stopPropagation && e.stopPropagation();
-//     return false;
-// }
-// var start=function(e){
-//     pos.y = e.targetTouches[0].pageY;
-//             pos.x = e.targetTouches[0].pageX;
-//     }
-//     var end=function(e){
-//     //stop the zoom in event be motivated ,for the handle equipment's dobule click event.
-//     move(e);
-//     y = e.targetTouches[0].pageY;
-//     x = e.targetTouches[0].pageX;
-//     if(Math.abs(pos.y-y)<3 ||Math.abs(pos.x-x)<3){
-//         setTimeout(function(){fireEvent(e.target,'click');},2);
-//     }
-//     pos=null;
-//     return false;
-// }
-// document.documentElement.style.overflow='hidden'; //低版本需要
-// document.body.style.overflow='hidden';//mobile 低版本不生效
-// eventUtil.addEvent(window,'touchmove',move);
-// eventUtil.addEvent(document.body,'touchstart',start);
-// eventUtil.addEvent(document.body,'touchend',end);
 
 var CTRL_PRESSED = false;
 var SHIFT_PRESSED = false;
@@ -89,39 +63,10 @@ function IsPC() {
     return flag;
 }
 var IS_IPAD = (IsPC()) ? false : true;
-// IS_IPAD = true;
-
 
 $(function () {
     FastClick.attach(document.body);
 });
-
-// function getEnveronmentTemperature(day){
-//     var seasonMap = {
-//         'spring':0,
-//         'summer':1,
-//         'autumn':2,
-//         'winter':3,
-//     };
-//     var base = seasonMap['spring']* SEASON_CIRCLE - SEASON_CIRCLE/2 ;
-//     var temperature = (Math.sin(Math.PI*(day+base)/(2*SEASON_CIRCLE)));
-//     temperature = 50 * (temperature > 0?1:-1) * Math.pow(temperature,4);
-//     return temperature;
-// }
-// for(var i = 0;i<100;i++){
-//     console.log('day' + i + ' ' +getEnveronmentTemperature(i));
-// }
-
-// var LocString = String(window.document.location.href);
-// function getQueryStr(str) {
-//     var rs = new RegExp("(^|)" + str + "=([^&]*)(&|$)", "gi").exec(LocString), tmp;
-//     if (tmp = rs) {
-//         return tmp[2];
-//     }
-//     // parameter cannot be found
-//     return "";
-// }
-
 
 function toParagraphs(arr) {
     if (typeof arr == 'string') return arr;
