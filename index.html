@@ -42,13 +42,54 @@
 
 
 <script type="text/javascript" src="./src/lib.js"></script>
-<script type="text/javascript" src="./src/data_item.js"></script>
-<script type="text/javascript" src="./src/data_studio.js"></script>
-<script type="text/javascript" src="./src/data_event.js"></script>
-<script type="text/javascript" src="./src/data_place.js"></script>
-<script type="text/javascript" src="./src/data_mst.js"></script>
-<script type="text/javascript" src="./src/data_dungeon.js"></script>
-<script type="text/javascript" src="./src/data.js"></script>
-<script type="text/babel" src="./src/main.js"></script>
+
+<!-- 数据层 -->
+<script type="text/javascript" src="./src/data/data_item.js"></script>
+<script type="text/javascript" src="./src/data/data_studio.js"></script>
+<script type="text/javascript" src="./src/data/data_event.js"></script>
+<script type="text/javascript" src="./src/data/data_place.js"></script>
+<script type="text/javascript" src="./src/data/data_mst.js"></script>
+<script type="text/javascript" src="./src/data/data_dungeon.js"></script>
+<script type="text/javascript" src="./src/data/data.js"></script>
+
+<!-- 游戏源码（JSX）按顺序加载、合并后一次性编译，保证依赖顺序 -->
+<script type="text/javascript">
+(function () {
+    var files = [
+        "./src/ui/common.js",
+        "./src/ui/menu.js",
+        "./src/systems/studio.js",
+        "./src/systems/events.js",
+        "./src/scenes/home.js",
+        "./src/scenes/battle.js",
+        "./src/scenes/dungeon.js",
+        "./src/scenes/advan.js",
+        "./src/core/MainComponent.js",
+        "./src/main.js"
+    ];
+    var acc = "";
+    function load(i) {
+        if (i >= files.length) {
+            try {
+                var B = window.babel || window.Babel;
+                var compiled = B.transform(acc, {}).code;
+                (0, eval)(compiled);
+            } catch (e) {
+                console.error("[game] 编译/执行失败：", e);
+            }
+            return;
+        }
+        fetch(files[i]).then(function (r) {
+            return r.text();
+        }).then(function (t) {
+            acc += "\n" + t + "\n";
+            load(i + 1);
+        }).catch(function (e) {
+            console.error("[game] 加载失败：", files[i], e);
+        });
+    }
+    load(0);
+})();
+</script>
 
 </html>
