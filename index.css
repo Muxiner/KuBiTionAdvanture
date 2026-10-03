@@ -1864,3 +1864,23 @@ body {
     color: #888;
     margin-left: 6px;
 }
+
+/* 制造台/炼金台/秘术台：分类分组 */
+.makeGroups {
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.makeGroup {
+    margin-bottom: 8px;
+}
+
+.makeGroupTitle {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b6b6b;
+    padding: 2px 6px;
+    text-align: left;
+    border-left: 3px solid #A1A693;
+    margin: 4px 4px 2px;
+}

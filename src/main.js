@@ -1671,7 +1671,7 @@ var StudioComponent = React.createClass({
             return <div style = {{width:'100%',height:'100%'}}>
                         <div className = 'viewOuter'>
                             <div className = "tableOuter studioTableOuter">
-                                <div className = "makeGrid">
+                                <div className = "makeGroups">
                                     {result}
                                 </div>
                             </div>
@@ -1725,19 +1725,41 @@ var StudioComponent = React.createClass({
                 if(tmp.building && !this.context.buildingSaveData[tmp.building].own)continue;
                 entries.push({attr:attr,tmp:tmp});
             };
-            // 按「现有材料可制作的次数」从多到少排序
+            // 先按「现有材料可制作的次数」从多到少排序，再按物品类型分组
             entries.sort(function(a,b){
                 return getCraftableCount(b.tmp.require,bag) - getCraftableCount(a.tmp.require,bag);
             });
-            var result = entries.map(function(entry,count){
-                var attr = entry.attr, tmp = entry.tmp;
-                return <div className = 'makeItem' onClick = {this.makeWindow.bind(this,attr)} key = {'make' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
-                                <span className = 'makeName'>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</span>
-                                <span className = 'makeRequire'><RequireComponent requireList = {tmp.require} haveBox = {true}/></span>
-                            </div>;
-            }.bind(this));
+            var MAKE_CATEGORY_ORDER = ['weapon','equip','tool','met','bullet','poizon','food','cooked','art','special','quest'];
+            var groups = {};
+            var catOrder = [];
+            entries.forEach(function(entry){
+                var t = (ITEM_DATA[entry.attr] && ITEM_DATA[entry.attr].type) || '?';
+                if(!groups[t]){
+                    groups[t] = [];
+                    catOrder.push(t);
+                }
+                groups[t].push(entry);
+            });
+            catOrder.sort(function(a,b){
+                var ia = MAKE_CATEGORY_ORDER.indexOf(a); if(ia < 0)ia = 99;
+                var ib = MAKE_CATEGORY_ORDER.indexOf(b); if(ib < 0)ib = 99;
+                return ia - ib;
+            });
             if(entries.length == 0)return false;
-            return result;
+            return catOrder.map(function(cat){
+                return <div className = 'makeGroup' key = {cat}>
+                            <div className = 'makeGroupTitle'>{TYPE_DATA[cat] ? TYPE_DATA[cat].name : cat}</div>
+                            <div className = 'makeGrid'>
+                                {groups[cat].map(function(entry,count){
+                                    var attr = entry.attr, tmp = entry.tmp;
+                                    return <div className = 'makeItem' onClick = {this.makeWindow.bind(this,attr)} key = {'make_' + cat + '_' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
+                                                <span className = 'makeName'>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</span>
+                                                <span className = 'makeRequire'><RequireComponent requireList = {tmp.require} haveBox = {true}/></span>
+                                            </div>;
+                                }.bind(this))}
+                            </div>
+                        </div>;
+            }.bind(this));
         }
         function schedule(){
             var name = this.state.itemToMake;
