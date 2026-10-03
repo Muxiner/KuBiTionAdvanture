@@ -1328,12 +1328,14 @@ var BranchComponent = React.createClass({
             return result;
         };
         return  <div>
-                    <div className = "branch">
-                        <div className = 'placeGrid'>
-                            {getPlaceDisplay.bind(this)()}
+                    <div className = "branchWrap">
+                        <div className = "branch">
+                            <div className = 'placeGrid'>
+                                {getPlaceDisplay.bind(this)()}
+                            </div>
                         </div>
+                        {this.context.eventSaveData.trade.experienced?<div className = 'marketPane'><TradeListComponent/></div>:null}
                     </div>
-                    {this.context.eventSaveData.trade.experienced?<TradeListComponent/>:null}
                     <BtnHome/>
                 </div>
 

@@ -727,3 +727,47 @@ body {
     color: #999;
     padding: 6px;
 }
+
+/* 地图 + 集市 两栏布局（集市在右侧，竖直排列） */
+.branchWrap {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.branchWrap .branch {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
+.marketPane {
+    flex: 0 0 210px;
+    width: 210px;
+    box-sizing: border-box;
+}
+
+/* 「出发」按钮置于网格卡片底部 */
+.placeGrid {
+    align-items: stretch;
+}
+
+.placeCard {
+    justify-content: flex-start;
+}
+
+.placeCard .btn {
+    margin-top: auto;
+}
+
+/* 集市：竖直排列 */
+.marketPane .tradeGrid {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.marketPane .tradeCard {
+    width: 100%;
+}
