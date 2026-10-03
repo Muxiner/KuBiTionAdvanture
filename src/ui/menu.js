@@ -599,7 +599,7 @@ var BagComponent = React.createClass({
     cancelDiscard:function(){
         this.setState({discardConfirm:null});
     },
-    // 汇总所有容器（背包/大箱子/各工作台等）内的物品，按数量降序生成列表
+    // 汇总所有容器（背包/大箱子/各工作台等）内的物品，按类别分组、组内按数量降序
     getOwnedList:function(){
         var boxSaveData = this.context.boxSaveData;
         var owned = {};
@@ -607,17 +607,36 @@ var BagComponent = React.createClass({
             var things = boxSaveData[box] && boxSaveData[box].things;
             if(!things)continue;
             for(var id in things){
-                owned[id] = (owned[id] || 0) + things[id];
+                var base = itemBaseId(id);
+                owned[base] = (owned[base] || 0) + things[id];
             }
         }
-        var list = [];
-        for(var id in owned)list.push({id:id,amount:owned[id]});
-        list.sort(function(a,b){return b.amount - a.amount;});
-        return list.map(function(entry){
-            var name = ITEM_DATA[entry.id] ? ITEM_DATA[entry.id].name : entry.id;
-            return <div className = 'ownedItem' key = {entry.id}>
-                        <span className = 'ownedName'>{name}</span>
-                        <span className = 'ownedAmount'>×{entry.amount}</span>
+        // 按物品类型分组
+        var order = ['weapon','equip','tool','bullet','met','food','cooked','poizon','art','special','quest','?'];
+        var groups = {};
+        var catOrder = [];
+        for(var id2 in owned){
+            var t = (ITEM_DATA[id2] && ITEM_DATA[id2].type) || '?';
+            if(!groups[t]){ groups[t] = []; catOrder.push(t); }
+            groups[t].push({id:id2,amount:owned[id2]});
+        }
+        catOrder.sort(function(a,b){
+            var ia = order.indexOf(a); if(ia < 0)ia = 99;
+            var ib = order.indexOf(b); if(ib < 0)ib = 99;
+            return ia - ib;
+        });
+        return catOrder.map(function(cat){
+            var items = groups[cat];
+            items.sort(function(a,b){ return b.amount - a.amount; });
+            return <div className = 'ownedGroup' key = {cat}>
+                        <div className = 'ownedGroupTitle'>{TYPE_DATA[cat] ? TYPE_DATA[cat].name : cat}</div>
+                        {items.map(function(entry){
+                            var name = ITEM_DATA[entry.id] ? ITEM_DATA[entry.id].name : entry.id;
+                            return <div className = 'ownedItem' key = {entry.id}>
+                                        <span className = 'ownedName'>{name}</span>
+                                        <span className = 'ownedAmount'>×{entry.amount}</span>
+                                    </div>;
+                        })}
                     </div>;
         });
     },

@@ -597,3 +597,18 @@ body {
     border-left: 3px solid #A1A693;
     margin: 4px 4px 2px;
 }
+
+/* “所有物品”按类别分组 */
+.ownedGroup {
+    margin-bottom: 6px;
+}
+
+.ownedGroupTitle {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b6b6b;
+    text-align: left;
+    padding: 2px 0;
+    border-bottom: 1px dashed #ddd;
+    margin-bottom: 2px;
+}
