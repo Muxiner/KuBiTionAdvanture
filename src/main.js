@@ -48,51 +48,51 @@
 
 var CTRL_PRESSED = false;
 var SHIFT_PRESSED = false;
- $(function(){
-      $(document).keypress(function (e) {
-        if (e.keyCode == 32){
-          //...........code.......
+$(function () {
+    $(document).keypress(function (e) {
+        if (e.keyCode == 32) {
+            //...........code.......
             event.preventDefault();
             return false;
         }
-        if (e.keyCode == 13){
-          //...........code.......
+        if (e.keyCode == 13) {
+            //...........code.......
             event.preventDefault();
             return false;
         }
-     })
-      $(document).keyup(function (e) {
-        if (e.keyCode == 32){
+    })
+    $(document).keyup(function (e) {
+        if (e.keyCode == 32) {
             event.preventDefault();
             return false;
-          //...........code.......
+            //...........code.......
         }
-        if (e.keyCode == 13){
-          //...........code.......
+        if (e.keyCode == 13) {
+            //...........code.......
             event.preventDefault();
             return false;
         }
-     })
- });
+    })
+});
 
 //引入React动画库
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 
-function IsPC(){
-   var userAgentInfo = navigator.userAgent;
-   var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
-   var flag = true;
-   for (var v = 0; v < Agents.length; v++) {
-       if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }
-   }
-   return flag;
+function IsPC() {
+    var userAgentInfo = navigator.userAgent;
+    var Agents = new Array("Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod");
+    var flag = true;
+    for (var v = 0; v < Agents.length; v++) {
+        if (userAgentInfo.indexOf(Agents[v]) > 0) { flag = false; break; }
+    }
+    return flag;
 }
-var IS_IPAD = (IsPC())?false:true;
+var IS_IPAD = (IsPC()) ? false : true;
 // IS_IPAD = true;
 
 
-$(function() {
+$(function () {
     FastClick.attach(document.body);
 });
 
@@ -123,16 +123,16 @@ $(function() {
 // }
 
 
-function toParagraphs(arr){
-    if(typeof arr == 'string')return arr;
+function toParagraphs(arr) {
+    if (typeof arr == 'string') return arr;
     var result = [];
-    for(var i = 0; i < arr.length; i++){
-        result.push(<p key = {i}>{arr[i]}</p>);
+    for (var i = 0; i < arr.length; i++) {
+        result.push(<p key={i}>{arr[i]}</p>);
     }
     return result;
 }
 
-function render(){
+function render() {
     ReactDOM.render(
         <MainComponent />,
         document.getElementById('game')
