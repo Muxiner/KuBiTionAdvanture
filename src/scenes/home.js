@@ -1318,23 +1318,20 @@ var BranchComponent = React.createClass({
                     //需要季节的情况
                     if(PLACE_DATA[attr].season &&  this.context.season != PLACE_DATA[attr].season)continue;
                 }
-                result.push(<tr key = {attr}>
-                                 <td>{PLACE_DATA[attr].name}{placeList[attr].visited?null:<span style = {{color:COLOR.GREEN}}> new</span>}</td>
-                                 <td><ResourceDisplayComponent resource = {placeList[attr].things}/></td>
-                                 <td>{this.context.getTimeNeed(attr).toFixed(1)}</td>
-                                 <td><BtnComponent desc = '出发' handleClick = {this.handleGo.bind(this,attr)} /></td>
-                            </tr>);
+                result.push(<div className = 'placeCard' key = {attr}>
+                                 <div className = 'placeName'>{PLACE_DATA[attr].name}{placeList[attr].visited?null:<span style = {{color:COLOR.GREEN}}> new</span>}</div>
+                                 <div className = 'placeRes'><ResourceDisplayComponent resource = {placeList[attr].things}/></div>
+                                 <div className = 'placeTime'>耗时 {this.context.getTimeNeed(attr).toFixed(1)}</div>
+                                 <BtnComponent desc = '出发' handleClick = {this.handleGo.bind(this,attr)} />
+                            </div>);
             };
             return result;
         };
         return  <div>
                     <div className = "branch">
-                        <table style = {{marginBottom:0,paddingBottom:0}} className="table table-condensed table-hover">
-                            <thead><tr><td>地点</td><td>资源</td><td>耗时</td><td></td></tr></thead>
-                            <tbody>
-                                {getPlaceDisplay.bind(this)()}
-                            </tbody>
-                        </table>
+                        <div className = 'placeGrid'>
+                            {getPlaceDisplay.bind(this)()}
+                        </div>
                     </div>
                     {this.context.eventSaveData.trade.experienced?<TradeListComponent/>:null}
                     <BtnHome/>

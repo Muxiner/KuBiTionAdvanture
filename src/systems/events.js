@@ -863,30 +863,31 @@ var TradeListComponent = React.createClass({
         var tradeName = this.context.tradeSaveData[index].trade;
         this.context.callWindow(<TradeComponent index = {index} trade = {tradeName}/>);
     },
-    getTradeRow:function(){
+    getTradeList:function(){
         var tradeSaveData = this.context.tradeSaveData;
         var result = [];
         for (var i = tradeSaveData.length - 1; i >= 0; i--) {
             var tmp = tradeSaveData[i];
-            if(!TRADE_DATA[tmp.trade])continue;
-            result.push(<tr key = {'trade_' + i}>
-                            <td>{TRADE_DATA[tmp.trade].name}</td>
-                            <td><BtnComponent handleClick = {this.handleClick.bind(this,i)} desc = '交易'/></td>
-                        </tr>)
+            var data = TRADE_DATA[tmp.trade];
+            if(!data)continue;
+            var giveName = ITEM_DATA[data.give] ? ITEM_DATA[data.give].name : data.give;
+            result.push(<div className = 'tradeCard' key = {'trade_' + i}>
+                            <div className = 'tradeName'>{data.name}</div>
+                            <div className = 'tradeGoods'>贩卖：<span style = {{color:COLOR.BLUE}}>{giveName}</span> × {data.max}</div>
+                            <BtnComponent handleClick = {this.handleClick.bind(this,i)} desc = '交易'/>
+                        </div>)
         };
-        if(tradeSaveData.length == 0){
-            return <tr><td colSpan = {2}>一个人也没有...</td></tr>
+        if(result.length == 0){
+            result.push(<div className = 'tradeEmpty' key = 'empty'>一个人也没有...</div>);
         }
         return result;
     },
     render:function(){
         return  <div className = "oppo">
-                    <table className="table table-condensed table-hover table-striped table-bordered">
-                    <thead><tr><td colSpan = "2">集市</td></tr></thead>
-                    <tbody>
-                    {this.getTradeRow()}
-                    </tbody>
-                    </table>
+                    <div className = 'tradeTitle'>集市</div>
+                    <div className = 'tradeGrid'>
+                        {this.getTradeList()}
+                    </div>
                 </div>
     }
 })
