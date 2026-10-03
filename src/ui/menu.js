@@ -540,6 +540,8 @@ var BagComponent = React.createClass({
         changeMsg      :React.PropTypes.func.isRequired,
         AudioEngine    :React.PropTypes.object.isRequired,
         discardItem    :React.PropTypes.func.isRequired,
+        skill          :React.PropTypes.object.isRequired,
+        getMaxState    :React.PropTypes.func.isRequired,
     },
     getInitialState:function(){
         return {
@@ -637,6 +639,46 @@ var BagComponent = React.createClass({
                                         <span className = 'ownedAmount'>×{entry.amount}</span>
                                     </div>;
                         })}
+                    </div>;
+        });
+    },
+    // 属性统计：由当前装备与技能推导出的关键属性
+    getStatPanel:function(){
+        var skill = this.context.skill || {};
+        var currentEquip = this.context.currentEquip;
+        var getMaxState = this.context.getMaxState;
+        function skillPct(id){
+            return Math.round(100 * (skill[id] || 0) * SKILL_DATA[id].buff);
+        }
+        var rows = [];
+        rows.push(['生命上限', getMaxState('hp')]);
+        rows.push(['体力上限', getMaxState('ps')]);
+        rows.push(['精神上限', getMaxState('san')]);
+        rows.push(['近战加成', '+' + skillPct('melee') + '%']);
+        rows.push(['远程加成', '+' + skillPct('shoot') + '%']);
+        rows.push(['魔法加成', '+' + skillPct('magic') + '%']);
+        rows.push(['伤害加成', '+' + skillPct('fighter') + '%']);
+        var dl = skill.def || 0;
+        var mul = Math.pow(SKILL_DATA.def.buff, dl) * 0.95 + 0.05 * (10 / (10 + dl));
+        rows.push(['伤害减免', Math.round(100 * (1 - mul)) + '%']);
+        var moveMul = 1, collect = 0, temp = 0;
+        for(var slot in currentEquip){
+            var eq = currentEquip[slot];
+            if(!eq)continue;
+            var d = ITEM_DATA[eq];
+            if(d.moveFaster)moveMul *= d.moveFaster;
+            if(d.collectSpeed)collect += d.collectSpeed;
+            if(d.tempBuff)temp += d.tempBuff;
+        }
+        rows.push(['移速加成', '+' + Math.round(100 * (1 - moveMul)) + '%']);
+        rows.push(['采集速度', '+' + Math.round(100 * collect) + '%']);
+        rows.push(['体温修正', (temp > 0 ? '+' : '') + Math.round(temp)]);
+        rows.push(['贪婪', '+' + skillPct('greedy') + '%']);
+        rows.push(['幸运', '+' + skillPct('lucky') + '%']);
+        return rows.map(function(r){
+            return <div className = 'statRow' key = {r[0]}>
+                        <span className = 'statName'>{r[0]}</span>
+                        <span className = 'statValue'>{r[1]}</span>
                     </div>;
         });
     },
@@ -770,6 +812,12 @@ var BagComponent = React.createClass({
                     <div className="panel-body  clearFix">
                         <div className = "equipBar">
                             {this.getEquipBar()}
+                        </div>
+                        <div className = "statPanel">
+                            <div className = "statTitle">属性统计</div>
+                            <div className = "statGrid">
+                                {this.getStatPanel()}
+                            </div>
                         </div>
                         <div className = "equip" id = "equip">
                             <BoxComponent box = 'bag'/>

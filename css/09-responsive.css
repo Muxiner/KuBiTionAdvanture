@@ -612,3 +612,39 @@ body {
     border-bottom: 1px dashed #ddd;
     margin-bottom: 2px;
 }
+
+/* 右侧属性统计 */
+.statPanel {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px 10px 6px;
+    border-top: 1px solid #ddd;
+    text-align: left;
+    font-size: 12px;
+}
+
+.statTitle {
+    font-weight: bold;
+    margin: 4px 0;
+}
+
+.statGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+}
+
+.statRow {
+    display: flex;
+    justify-content: space-between;
+    width: calc(50% - 5px);
+    line-height: 18px;
+}
+
+.statName {
+    color: #555;
+}
+
+.statValue {
+    color: #B25242;
+}
