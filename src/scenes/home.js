@@ -191,7 +191,9 @@ var WaitMakeComponent = React.createClass({
         AudioEngine         : React.PropTypes.object.isRequired,
     },
     componentWillMount:function(){
-        var level = this.context.getScienceLevel(this.props.building + 'SizeBonus');
+        // 农田/酒桶的扩建科技类型使用中文属性名（与「陷阱空间属性」一致）
+        var sizeBonusType = this.props.building === 'alco' ? '酒桶属性' : '农田属性';
+        var level = this.context.getScienceLevel(sizeBonusType);
         var buildingSaveData = this.context.buildingSaveData;
         buildingSaveData[this.props.building].size = 2 + level;
     },

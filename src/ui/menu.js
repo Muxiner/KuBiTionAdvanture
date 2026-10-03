@@ -699,6 +699,7 @@ var BagComponent = React.createClass({
         var detailedList = this.context.detailedList;
         function getItemDetail(){
             if(!detailedItem)return null;
+            if(!ITEM_DATA[detailedItem])return null; // 非物品条目（如某些升级项）不显示详情
             var type = ITEM_DATA[detailedItem].type;
             //装备的处理
             var currentEquip = this.context.currentEquip;

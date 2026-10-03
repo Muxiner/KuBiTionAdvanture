@@ -272,7 +272,7 @@ var StudioComponent = React.createClass({
                 if(BUILDING_UPDATE_DATA[type][attr].science  && !this.context.boxSaveData[type].things[BUILDING_UPDATE_DATA[type][attr].science])continue;
                 var disabled = !this.context.checkHaveResourceAll(tmp.require,true) || !haveTimeToMake.bind(this,attr)();
                 result.push(<tr key = {'update' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
-                                <td>{ITEM_DATA[attr].name}</td>
+                                <td>{ITEM_DATA[attr] ? ITEM_DATA[attr].name : attr}</td>
                                 <td><RequireComponent requireList = {tmp.require} haveBox = {true}/></td>
                                 <td>
                                     <BtnComponent disabled = {disabled} disabledReason = {'饱食或水分不足，撑不过升级耗时'} handleClick = {this.updateBuilding.bind(this,attr)} desc = "升级" />
@@ -327,7 +327,7 @@ var StudioComponent = React.createClass({
                                 {groups[cat].map(function(entry,count){
                                     var attr = entry.attr, tmp = entry.tmp;
                                     return <div className = 'makeItem' onClick = {this.makeWindow.bind(this,attr)} key = {'make_' + cat + '_' + count} title = {getItemInfoText(attr)} onMouseEnter = {this.context.changeMsg.bind(null,attr,'item')}>
-                                                <span className = 'makeName'>{ITEM_DATA[attr].name}{list[attr].amount?' * '+list[attr].amount:null}</span>
+                                                <span className = 'makeName'>{ITEM_DATA[attr] ? ITEM_DATA[attr].name : attr}{list[attr].amount?' * '+list[attr].amount:null}</span>
                                                 <span className = 'makeRequire'><RequireComponent requireList = {tmp.require} haveBox = {true}/></span>
                                             </div>;
                                 }.bind(this))}
