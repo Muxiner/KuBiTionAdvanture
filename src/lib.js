@@ -238,6 +238,13 @@ function getItemInfoText(id) {
     }
     return parts.join('\n');
 }
+/** 事件文本插值：将模板中的 {key} 替换为 vars[key]（找不到时原样保留）。 */
+function formatText(tpl, vars) {
+    if (tpl == null) return tpl;
+    return String(tpl).replace(/\{(\w+)\}/g, function (m, k) {
+        return (vars && vars[k] != null) ? vars[k] : m;
+    });
+}
 /** 取对象的第一个成员，返回 {attr,value}；空对象返回 undefined。 */
 function getFirst(obj) {
     for (var attr in obj) {

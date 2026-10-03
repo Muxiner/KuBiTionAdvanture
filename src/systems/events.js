@@ -59,7 +59,7 @@ var TrampComponent = React.createClass({
         if (!this.state.over) {
             return <div>
                 <p>{header}</p>
-                {value == 0 ? (getLength(playerGive) == 0 ? <p>求你了，能不能给我一点食物。。。</p> : <p>拜托..我要食物啊...</p>) : (foodGot + value > this.maxFood ? <p>太感谢了，上帝保佑你...</p> : <p>谢谢你...还有吗...</p>)}
+                {value == 0 ? (getLength(playerGive) == 0 ? <p>{EVENT_TEXT.tramp.askEmpty}</p> : <p>{EVENT_TEXT.tramp.askHaveFood}</p>) : (foodGot + value > this.maxFood ? <p>{EVENT_TEXT.tramp.thanksFull}</p> : <p>{EVENT_TEXT.tramp.thanksMore}</p>)}
                 <RegisterComponent itemList={{}} canBack={false} onlyOne={true} canBeEmpty={true} canPick={false} />
                 {value == 0 ? <BtnBack /> : <BtnComponent handleClick={this.giveFood} desc={'施舍'} />}
             </div>;
@@ -67,20 +67,20 @@ var TrampComponent = React.createClass({
             if (foodGot > this.maxFood) {
                 return <div>
                     <p>{header}</p>
-                    <p>我感觉好多了。</p>
+                    <p>{EVENT_TEXT.tramp.feelBetter}</p>
                     <p>--------</p>
-                    <p>流浪汉递给你一张<span style={{ color: COLOR.GREEN }}>[小镇]</span>的地图。</p>
-                    <p>流浪汉扬长而去....</p>
+                    <p>{EVENT_TEXT.tramp.mapGivePre}<span style={{ color: COLOR.GREEN }}>[{EVENT_TEXT.tramp.mapGivePlace}]</span>{EVENT_TEXT.tramp.mapGivePost}</p>
+                    <p>{EVENT_TEXT.tramp.leave}</p>
                     <BtnBack />
                 </div>;
             } else {
                 var sanGet = Math.ceil(value / 5);
                 return <div>
                     <p>{header}</p>
-                    <p>上帝保佑你...</p>
-                    <p>如果你有更多的食物，可以下次再带给我一点吗？</p>
+                    <p>{EVENT_TEXT.tramp.bless}</p>
+                    <p>{EVENT_TEXT.tramp.askMoreNext}</p>
                     {sanGet ? <p>--------</p> : null}
-                    {sanGet ? <p>你获得了{<RequireComponent isGreen={true} requireList={{ san: Math.ceil(value / 5) }} />}</p> : null}
+                    {sanGet ? <p>{EVENT_TEXT.tramp.gainPre}{<RequireComponent isGreen={true} requireList={{ san: Math.ceil(value / 5) }} />}</p> : null}
                     <BtnBack />
                 </div>;
             }
@@ -170,8 +170,8 @@ var QuestComponent = React.createClass({
                 <div>
                     {this.props.children && this.props.children[1] || data.d_2}
                     {itemList ? <RegisterComponent canBack={false} canBeEmpty={true} itemList={itemList} willUnmount={callBack.bind(this) || null} /> : null}
-                    {learn ? <div><p>--------</p><p>你学会了[<span style={{ color: COLOR.YELLOW }}>{learn}</span>]的制作。</p></div> : null}
-                    {place ? <div><p>--------</p><p>在地图上标出了[<span style={{ color: COLOR.YELLOW }}>{place}</span>]的位置。</p></div> : null}
+                    {learn ? <div><p>--------</p><p>{EVENT_TEXT.quest.learnPre}<span style={{ color: COLOR.YELLOW }}>{learn}</span>{EVENT_TEXT.quest.learnPost}</p></div> : null}
+                    {place ? <div><p>--------</p><p>{EVENT_TEXT.quest.placePre}<span style={{ color: COLOR.YELLOW }}>{place}</span>{EVENT_TEXT.quest.placePost}</p></div> : null}
                     <BtnBack callBack={callBack.bind(this) || null} />
                 </div>
             )
@@ -286,7 +286,7 @@ var TownEvent = React.createClass({
             }
             return (
                 <div>
-                    <p>你现在可以随时去挑战{oppoDesc}。</p>
+                    <p>{formatText(EVENT_TEXT.town.challenge, { oppoDesc: oppoDesc })}</p>
                     <RegisterComponent canBack={false} canBeEmpty={true} itemList={itemList[town]} />
                     <BtnBack callBack={this.setPicked} />
                 </div>
@@ -294,29 +294,15 @@ var TownEvent = React.createClass({
         }
 
         if (!choice) {
+            var vars = { townDesc: townDesc, oppoDesc: oppoDesc };
             return (
                 <div>
-                    {
-                        town == 'fire' ? (
-                            <div>
-                                <p>我们是由法师教徒组成的{townDesc}。</p>
-                                <p>自从我们踏上这片土地，就一直在努力清理各种恐怖生物。</p>
-                                <p>直到邪恶的{oppoDesc}进入我我们的视野。</p>
-                                <p>他们的力量十分强大，但是蠢得就像一袋子锤子！</p>
-                                <p>我们必须去消灭{oppoDesc}！我们不能让这些家伙的势力壮大起来。</p>
-                                <p>我们即将展开一场大战，你要加入我们吗？</p>
-                            </div>
-                        ) : (
-                            <div>
-                                <p>我们是蛮力的{townDesc}。</p>
-                                <p>最近一段时间，{oppoDesc}已经在南面占领了大片沙漠，并建立了一个营地。</p>
-                                <p>我怀疑他们是不是在谋划什么你想象不到的可怕事情。</p>
-                                <p>我们必须去消灭{oppoDesc}！我们不能让这些家伙的势力壮大起来。</p>
-                                <p>我们即将展开一场大战，你要加入我们吗？</p>
-                            </div>
-                        )
-                    }
-                    <p style={{ color: '#C2C788' }}>{townDesc}{town == 'ice' ? <span>擅长格斗攻击，你能够习得‘嗜血’能力</span> : <span>擅长魔法攻击，你能够习得‘吸收’能力</span>}</p>
+                    <div>
+                        {EVENT_TEXT.town[town].map(function (line, idx) {
+                            return <p key={idx}>{formatText(line, vars)}</p>;
+                        })}
+                    </div>
+                    <p style={{ color: '#C2C788' }}>{formatText(town == 'ice' ? EVENT_TEXT.town.abilityIce : EVENT_TEXT.town.abilityFire, vars)}</p>
                     <BtnComponent handleClick={this.handleJoin}>加入<span style={{ color: COLOR.BLUE }}>{townDesc}</span></BtnComponent>
                     <BtnBack />
                 </div>
@@ -324,8 +310,8 @@ var TownEvent = React.createClass({
         } else {
             return (
                 <div>
-                    <p>你获得了技能<span style={{ color: COLOR.BLUE }}>[{town == 'ice' ? '嗜血' : '吸收'}]</span>。</p>
-                    <p>现在我将授予你战争的给养。</p>
+                    <p>{EVENT_TEXT.town.gainSkillPre}<span style={{ color: COLOR.BLUE }}>{town == 'ice' ? EVENT_TEXT.town.skillBlood : EVENT_TEXT.town.skillAbsorb}</span>{EVENT_TEXT.town.gainSkillPost}</p>
+                    <p>{EVENT_TEXT.town.supplies}</p>
                     <div><BtnComponent handleClick={this.handleOK}>我准备好了</BtnComponent></div>
                     <div><BtnComponent handleClick={this.handleBack}>容我休整下</BtnComponent></div>
                 </div>
@@ -354,7 +340,7 @@ var ThiefEvent = React.createClass({
         this.context.setEventExperienced('thief_2');
         var wind = <div>
             <p>--覆面忍者--</p>
-            <p>感激不尽，兄弟！我给你一个我的最得意的装备作为谢礼..</p>
+            <p>{EVENT_TEXT.thief.gift}</p>
             <RegisterComponent itemList={{ ninjaJacket: 1 }} canBack={false} canBeEmpty={true} />
             <BtnBack />
         </div>
@@ -364,7 +350,7 @@ var ThiefEvent = React.createClass({
         this.context.setEventExperienced('thief_2');
         var wind = <div>
             <p>--覆面忍者--</p>
-            <p>这是你自找的...</p>
+            <p>{EVENT_TEXT.thief.selfAsk}</p>
             <BtnComponent handleClick={this.handleBattle}>决斗！</BtnComponent>
         </div>
         this.context.callWindow(wind);
@@ -385,8 +371,8 @@ var ThiefEvent = React.createClass({
                 <BattleComponent winScene={(
                     <div>
                         <p>--覆面忍者--</p>
-                        <p>嗨，多亏你的帮助，我拿到了这个宝物。</p>
-                        <p>它散发着金色的光辉，肯定是古董错不了！</p>
+                        <p>{EVENT_TEXT.thief.gotTreasure1}</p>
+                        <p>{EVENT_TEXT.thief.gotTreasure2}</p>
                         <BtnComponent handleClick={self.handleGive}>把财宝分给穷人吧....</BtnComponent>
                         <BtnComponent handleClick={self.handleKill}>这是我的！休想离开！</BtnComponent>
                     </div>
@@ -395,7 +381,7 @@ var ThiefEvent = React.createClass({
         }
         return <div>
             <p>--覆面忍者--</p>
-            <p>他也发现了我们！</p>
+            <p>{EVENT_TEXT.thief.spotted}</p>
             <BtnComponent handleClick={this.handleKillRobber} >战斗！</BtnComponent>
             <BtnBack />
         </div>
@@ -440,8 +426,8 @@ var Reincarnation = React.createClass({
     render: function () {
         return <div>
             <p>--转生--</p>
-            <p>选择转生，你将失去当前(90%)的(非天赋)技能以及物品。</p>
-            <p>从以下天赋中选择一项进行转生。</p>
+            <p>{EVENT_TEXT.reincarnation.warn}</p>
+            <p>{EVENT_TEXT.reincarnation.chooseHint}</p>
             <div style={{ margin: 'auto', fontSize: 10, maxHeight: 300, width: '80%', overflow: 'auto' }}>
                 <table className="table table-condensed table-hover table-striped table-bordered">
                     <tbody>
@@ -485,7 +471,7 @@ var BossComponent = React.createClass({
             return <BattleComponent mstState={mstState} mst='maou' onWin={this.setDone} winScene={(
                 <div>
                     <p>--邪恶大魔王--</p>
-                    <p>我会回来哒！！！</p>
+                    <p>{EVENT_TEXT.boss.return}</p>
                     <RegisterComponent itemList={{ blood: 1 }} canBeEmpty={true} canBack={false} />
                     <BtnBack callBack={this.onWin} />
                 </div>
@@ -495,14 +481,14 @@ var BossComponent = React.createClass({
             if (this.state.giving) {
                 return (
                     <div>
-                        <p>邪恶大魔王{showLevel}出现了！</p>
+                        <p>{EVENT_TEXT.boss.appearPre}{showLevel}{EVENT_TEXT.boss.appearPost}</p>
                         <BtnComponent desc='战斗！' handleClick={this.onBattle} />
                     </div>
                 )
             } else {
                 return <div>
                     <p>--邪恶的封印阵{showLevel}--</p>
-                    <p>你需要一些魂晶石才能打破魔王的封印。。。</p>
+                    <p>{EVENT_TEXT.boss.sealNeed}</p>
                     <GiveComponent itemList={{ reiPart: 10 + 2 * maouLevel }} onDone={this.onGive} />
                     <BtnBack />
                 </div>
@@ -546,10 +532,9 @@ var EventComponent = React.createClass({
         this.eventMap.miner = (
             <div>
                 <p>-采矿小分队-</p>
-                <p>我们的矿洞有大量的矿石资源。</p>
-                <p>你也要加入我们吗？</p>
+                {EVENT_TEXT.event.miner.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <p>--------</p>
-                <p>采矿小分队标出了<span style={{ color: COLOR.GREEN }}>[矿洞]</span>的位置。</p>
+                <p>{EVENT_TEXT.event.miner.placePre}<span style={{ color: COLOR.GREEN }}>[{EVENT_TEXT.event.miner.place}]</span>{EVENT_TEXT.event.miner.placePost}</p>
                 <RegisterComponent canBeEmpty={true} itemList={{ pickaxe: 1 }} canBack={false} />
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'miner')} />
             </div>
@@ -557,9 +542,8 @@ var EventComponent = React.createClass({
         this.eventMap.trade = (
             <div>
                 <p>-商队-</p>
-                <p>你好，我们正准备在这个偏僻的小镇设置集市。</p>
-                <p>希望能方便大家交换物品。</p>
-                <p>商队标出了<span style={{ color: COLOR.RED }}>[集市]</span>的位置。</p>
+                {EVENT_TEXT.event.trade.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
+                <p>{EVENT_TEXT.event.trade.placePre}<span style={{ color: COLOR.RED }}>[{EVENT_TEXT.event.trade.place}]</span>{EVENT_TEXT.event.trade.placePost}</p>
                 <RegisterComponent canBeEmpty={true} itemList={{ security: 2 }} canBack={false} />
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'trade')} />
             </div>
@@ -567,9 +551,7 @@ var EventComponent = React.createClass({
         this.eventMap.giveScroll = (
             <div>
                 <p>-神秘旅者-</p>
-                <p>你好勇士，前方就是地牢了。</p>
-                <p>地牢坑爹的设定是,你不能随时回去。</p>
-                <p>别担心，我送你一个回城卷轴，祝你玩的愉快...</p>
+                {EVENT_TEXT.event.giveScroll.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <RegisterComponent canBeEmpty={true} itemList={{ scroll: 1 }} canBack={false} />
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'giveScroll')} />
             </div>
@@ -577,8 +559,7 @@ var EventComponent = React.createClass({
         this.eventMap.santa = (
             <div>
                 <p>-麋鹿-</p>
-                <p>嗨，圣诞快乐！</p>
-                <p>拿好你的礼物不要掉了！</p>
+                {EVENT_TEXT.event.santa.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <RegisterComponent canBeEmpty={true} itemList={SANTA_GIFT} canBack={false} />
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'santa')} />
             </div>
@@ -587,9 +568,7 @@ var EventComponent = React.createClass({
         this.eventMap.huntIntro = (
             <div>
                 <p>-年迈的猎人-</p>
-                <p>这里一很多小兔子，但要小心那些老鹰。</p>
-                <p>对付它们最好带上一把猎枪。</p>
-                <p>这些是我今天的猎物，很乐意与你分享：</p>
+                {EVENT_TEXT.event.huntIntro.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <RegisterComponent canBeEmpty={true} itemList={{ meat: 1 }} canBack={false} />
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'huntIntro')} />
             </div>
@@ -597,12 +576,9 @@ var EventComponent = React.createClass({
         this.eventMap.robberQuestGet = (
             <div>
                 <p>-村长-</p>
-                <p>几个星期前，一个离开家去远处采草药，被盗贼袭击了</p>
-                <p>小镇因此被整得人心惶惶。</p>
-                <p>你能帮我去贼窝解决掉一些贼吗？</p>
-                <p>贼窝有很多赃物，如果你能整治盗贼，那些当然都归你了。</p>
+                {EVENT_TEXT.event.robberQuestGet.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <p>--------</p>
-                <p>村长标记出<span style={{ color: COLOR.GREEN }}>[贼窝]</span>的位置。</p>
+                <p>{EVENT_TEXT.event.robberQuestGet.placePre}<span style={{ color: COLOR.GREEN }}>[{EVENT_TEXT.event.robberQuestGet.place}]</span>{EVENT_TEXT.event.robberQuestGet.placePost}</p>
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'robberQuestGet')} />
             </div>
         );
@@ -610,10 +586,9 @@ var EventComponent = React.createClass({
         this.eventMap.spiderQuestGet = (
             <div>
                 <p>-村长-</p>
-                <p>村子的侦察兵报告说周边地区充斥着可怕的蜘蛛，并且已经建立了自己的巢穴。</p>
-                <p>你能帮我去蜘蛛巢穴解决掉蛛魔的首领吗？</p>
+                {EVENT_TEXT.event.spiderQuestGet.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <p>--------</p>
-                <p>村长标记出<span style={{ color: COLOR.GREEN }}>[蜘蛛巢穴]</span>的位置。</p>
+                <p>{EVENT_TEXT.event.spiderQuestGet.placePre}<span style={{ color: COLOR.GREEN }}>[{EVENT_TEXT.event.spiderQuestGet.place}]</span>{EVENT_TEXT.event.spiderQuestGet.placePost}</p>
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'spiderQuestGet')} />
             </div>
         );
@@ -621,10 +596,9 @@ var EventComponent = React.createClass({
         this.eventMap.dragonQuestGet = (
             <div>
                 <p>-村长-</p>
-                <p>我们接到越来越多的报告，邪恶的龙群正在滋扰附近的地区。</p>
-                <p>我给那些畜牲挂了悬赏。但我相信，只有你能阻止它们。</p>
+                {EVENT_TEXT.event.dragonQuestGet.paragraphs.map(function (line, idx) { return <p key={idx}>{line}</p>; })}
                 <p>--------</p>
-                <p>村长标记出<span style={{ color: COLOR.GREEN }}>[龙之峡谷]</span>的位置。</p>
+                <p>{EVENT_TEXT.event.dragonQuestGet.placePre}<span style={{ color: COLOR.GREEN }}>[{EVENT_TEXT.event.dragonQuestGet.place}]</span>{EVENT_TEXT.event.dragonQuestGet.placePost}</p>
                 <BtnBack callBack={this.setEventExperienced.bind(this, 'dragonQuestGet')} />
             </div>
         );
@@ -769,24 +743,24 @@ var TradeComponent = React.createClass({
         if (!state.isNothing) {
             if (state.amount == 0) {
                 result.push(state.max == 1 ? (
-                    <p key='1'>这不够，再多给点。</p>) : (
-                    <p key='1'>拜托...再多给一点...</p>)
+                    <p key='1'>{EVENT_TEXT.trade.notEnough1}</p>) : (
+                    <p key='1'>{EVENT_TEXT.trade.notEnough2}</p>)
                 );
             } else {
                 result.push(state.max == 1 ? (
-                    <p key='1'>好吧，那么。。成交？</p>) : (
-                    <p key='1'>我可以给你({(state.amount)})个{wrap(state.giveName)}...</p>)
+                    <p key='1'>{EVENT_TEXT.trade.deal1}</p>) : (
+                    <p key='1'>{formatText(EVENT_TEXT.trade.givePre, { amount: state.amount })}{wrap(state.giveName)}{EVENT_TEXT.trade.givePost}</p>)
                 );
             }
         } else {
             result.push(state.max == 1 ? (
-                <p key='0'>这本{wrap(state.giveName)}凝聚了我的真传，你得给我很多东西来换它。</p>) : (
-                <p key='0'>我给你带来了一些{wrap(state.giveName)}，感兴趣吗？</p>)
+                <p key='0'>{EVENT_TEXT.trade.exclusivePre}{wrap(state.giveName)}{EVENT_TEXT.trade.exclusivePost}</p>) : (
+                <p key='0'>{EVENT_TEXT.trade.bringPre}{wrap(state.giveName)}{EVENT_TEXT.trade.bringPost}</p>)
             );
             result.push(<p key='hint' style={{ 'color': '#ccc' }}>/按住ctrl(10倍) shift(100倍)进行批量交易/</p>)
         }
         if (state.overFlow) {
-            result.push(<p key='2'>我没有更多的{wrap(state.giveName)}了，伙计。</p>);
+            result.push(<p key='2'>{EVENT_TEXT.trade.noMorePre}{wrap(state.giveName)}{EVENT_TEXT.trade.noMorePost}</p>);
         }
         return result;
     },
@@ -840,7 +814,7 @@ var TradeComponent = React.createClass({
         if (this.state.isOver) {
             return (
                 <div>
-                    <p>{TRADE_DATA[this.props.trade].name}扬长而去...</p>
+                    <p>{formatText(EVENT_TEXT.trade.leave, { traderName: TRADE_DATA[this.props.trade].name })}</p>
                     <RegisterComponent canBack={this.props.canBack} itemList={o} />
                 </div>
             );
@@ -878,7 +852,7 @@ var TradeListComponent = React.createClass({
             </div>)
         };
         if (result.length == 0) {
-            result.push(<div className='tradeEmpty' key='empty'>一个人也没有...</div>);
+            result.push(<div className='tradeEmpty' key='empty'>{EVENT_TEXT.tradeList.empty}</div>);
         }
         return result;
     },
