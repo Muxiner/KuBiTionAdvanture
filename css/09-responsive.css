@@ -91,7 +91,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    justify-content: center;
+    /* 内容不超高时居中，超出时从顶部开始（避免居中导致顶部被裁切） */
+    justify-content: flex-start;
+    justify-content: safe center;
 }
 
 /* 窗口（callWindow）根部件直接渲染在 advanOuter 下，同样铺满 */
@@ -762,12 +764,23 @@ body {
     margin-top: auto;
 }
 
-/* 集市：竖直排列 */
+/* 集市：竖直排列（不换行，避免内容被折叠/裁切） */
+.marketPane {
+    align-self: flex-start;
+}
+
 .marketPane .tradeGrid {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
 }
 
 .marketPane .tradeCard {
     width: 100%;
+}
+
+/* 集市容器不限制高度（原 .oppo 有 max-height:300px 会把列表裁掉） */
+.marketPane .oppo {
+    max-height: none;
+    overflow: visible;
 }
