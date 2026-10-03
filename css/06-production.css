@@ -1,0 +1,92 @@
+/* css/06-production.css —— 农田/陷阱/餐馆/生产与资源显示 */
+
+.farm {
+    height: 116px;
+    width: 216px;
+    margin: 0px auto;
+}
+
+.farmPlaceHolder {}
+
+.progress {
+    width: 30px;
+    height: 10px;
+    margin: auto;
+    border: 0px solid #555;
+    -webkit-box-shadow: 2px 2px 7px #C5BFBF;
+    -moz-box-shadow: 2px 2px 7px #C5BFBF;
+    box-shadow: 2px 2px 2px #C5BFBF;
+    display: inline-block;
+}
+
+.battleCharactor {
+    font-size: 14px;
+    border: 0px solid #eee;
+    border-radius: 6px;
+    color: #fff;
+    /*    width:80px;*/
+    display: inline-block;
+    background: #8C8C8C;
+    padding: 5px;
+    font-weight: 900;
+    -webkit-box-shadow: 2px 2px 7px #C5BFBF;
+    -moz-box-shadow: 2px 2px 7px #C5BFBF;
+    box-shadow: 2px 2px 2px #C5BFBF;
+}
+
+.battleTable {
+    font-size: 12px;
+}
+
+.battleField {
+    margin: 10px;
+    padding: 5px;
+}
+
+.battleMsgBox {
+    font-size: 16px;
+    height: 40px;
+    line-height: 40px;
+    margin: 10px;
+    padding: 0px;
+}
+
+.tableOuter {
+    /*width:550px;*/
+    /*height:240px;*/
+    /*border: 1px solid #eee;*/
+
+    max-height: 360px;
+    overflow: auto;
+    margin: 10px;
+    font-size: 12px;
+    -webkit-box-shadow: 5px 5px 5px #DAE4BA;
+    -moz-box-shadow: 5px 5px 5px #DAE4BA;
+    box-shadow: 5px 5px 5px #DAE4BA;
+}
+
+.studio {
+    display: inline-block;
+    width: 100px;
+}
+
+.resourceName {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 10px;
+    vertical-align: center;
+}
+
+.resourceAmount {
+    font-size: 12px;
+    border-radius: 2px;
+    padding: 2px 3px;
+    line-height: 10px;
+    vertical-align: center;
+    margin-left: 1px;
+    margin-right: 2px;
+}
+
+.badge {
+    vertical-align: baseline;
+}

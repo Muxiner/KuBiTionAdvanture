@@ -1,0 +1,175 @@
+/* css/04-equip-state.css —— 装备 / 物品详情 / 状态栏 */
+
+.clearFix {
+    zoom: 1;
+}
+
+.equip {
+    margin: 0px auto 0px 26px;
+    padding: 10px 12px 0px 12px;
+    width: 216px;
+
+    float: left;
+    box-sizing: border-box;
+    width: 250px;
+    /*height:180px;*/
+    height: 286px;
+    /*border:solid green 1px;*/
+    /*border-radius: 5px;*/
+    /*background: rgba(223, 244, 201, 0.46);*/
+    /*-webkit-box-shadow:0 15px 15px rgba(0,0,0,.075);*/
+    background: #ffffff;
+    overflow: hidden;
+    display: block;
+    z-index: 10000;
+}
+
+.panel-body {
+    padding: 0;
+}
+
+.left {
+    width: 570px;
+    display: inline-block;
+    float: left;
+}
+
+.equipMain {
+    float: left;
+    margin: 10px;
+    width: 300px;
+    height: 510px;
+    position: relative;
+}
+
+.advanMain {
+    translate: 1s;
+    float: left;
+    margin: 10px;
+    width: 570px;
+    height: 450px;
+}
+
+.stateMain {
+    float: left;
+    margin: 10px;
+    width: 570px;
+    height: 70px;
+    background-color: #A1A693;
+}
+
+.detailVector {
+    z-index: 0;
+    font-size: 12px;
+    margin: 2px 2px;
+    padding: 0px 5px 0px;
+    line-height: 25px;
+    display: inline-block;
+    text-align: center;
+    border: solid green 0px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    /*position: relative;*/
+    color: #fff;
+    -webkit-box-shadow: 4px 4px 7px #ddd;
+    -moz-box-shadow: 4px 4px 7px #ddd;
+    box-shadow: 4px 4px 4px #ddd;
+    -webkit-text-shadow: 2px 2px 7px #ddd;
+    -moz-text-shadow: 2px 2px 7px #ddd;
+    text-shadow: 2px 2px 2px #ddd;
+}
+
+.vector {
+    z-index: 999;
+    font-size: 12px;
+    margin: 2px 2px;
+    padding: 0;
+    height: 50px;
+    line-height: 25px;
+    width: 50px;
+    display: inline-block;
+    text-align: center;
+    border: solid #eeeeee 1px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    position: relative;
+    vertical-align: middle;
+
+    -webkit-box-shadow: 4px 4px 7px #ddd;
+    -moz-box-shadow: 4px 4px 7px #ddd;
+    box-shadow: 4px 4px 4px #ddd;
+}
+
+.item {
+    z-index: 1000;
+    background-color: #FFFFFF;
+    font-size: 12px;
+    padding: 0;
+    height: 48px;
+    line-height: 25px;
+    width: 48px;
+    display: inline-block;
+    text-align: center;
+    border: solid black 0px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.item>p {
+    font-weight: 700;
+    height: 25px;
+    overflow: hidden;
+    /*    -webkit-text-shadow:0px 0px 1px #c2c2c2;
+    -moz-text-shadow:0px 0px 1px #c2c2c2;
+    text-shadow:0px 0px 1px #c2c2c2;
+    transition:0.05s;*/
+}
+
+.item:hover {
+    -webkit-box-shadow: 0px 0px 5px #000;
+    -moz-box-shadow: 0px 0px 5px #000;
+    box-shadow: 0px 0px 5px #000;
+    transform: scaleX(1.05) scaleY(1.05);
+    font-size: 14px;
+    z-index: 100000;
+}
+
+.state {
+    /*    height:100%;
+    width: 100%;*/
+    /*line-height: 40px;*/
+    /*border:solid;*/
+
+    /*color: #ffffff;*/
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.choice {
+    margin: 30px;
+}
+
+.resourceVector {
+    width: 90%;
+    margin: 5%;
+}
+
+.stateVector {
+    min-width: 71px;
+    line-height: 35px;
+    border: solid 0px;
+    margin-right: 8px;
+    background: #337ab7;
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 0px 5px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    -webkit-text-shadow: 1px 1px 30px #000;
+    -moz-text-shadow: 1px 1px 30px #000;
+    text-shadow: 1px 1px 30px #000;
+    -webkit-box-shadow: 1px 1px 3px #020202;
+    -moz-box-shadow: 1px 1px 3px #020202;
+    box-shadow: 1px 1px 3px #020202;
+}

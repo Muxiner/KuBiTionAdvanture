@@ -1,0 +1,115 @@
+/* css/02-bag.css —— 背包 / 物品格 / 容器 */
+
+.strip {
+    -webkit-background-size: 32px 32px;
+    -moz-background-size: 32px 32px;
+    background-size: 32px 32px;
+    /* 控制条纹的大小 */
+    background-image: -webkit-gradient(linear, 0 0, 100% 100%,
+            color-stop(.25, rgba(255, 255, 255, .2)), color-stop(.25, transparent),
+            color-stop(.5, transparent), color-stop(.5, rgba(255, 255, 255, .2)),
+            color-stop(.75, rgba(255, 255, 255, .2)), color-stop(.75, transparent),
+            to(transparent));
+    background-image: -moz-linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+            transparent 75%, transparent);
+    background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+            transparent 75%, transparent);
+    background-image: linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+            transparent 75%, transparent);
+    -webkit-animation: animatedBackground 3s linear infinite;
+    -moz-animation: animatedBackground 3s linear infinite;
+    -ms-animation: animatedBackground 3s linear infinite;
+    -o-animation: animatedBackground 3s linear infinite;
+    animation: animatedBackground 3s linear infinite;
+    -webkit-animation-play-state: running;
+    -moz-animation-play-state: running;
+    -ms-animation-play-state: running;
+    -o-animation-play-state: running;
+    animation-play-state: running;
+}
+
+.msgBox {
+    width: 200px;
+    display: inline-block;
+    text-align: center;
+    margin: 10px auto;
+    padding: 10px;
+    height: 80px;
+    line-height: 20px;
+}
+
+.vector {
+    z-index: 999;
+    font-size: 12px;
+    margin: 2px 2px;
+    padding: 0;
+    height: 50px;
+    line-height: 25px;
+    width: 50px;
+    display: inline-block;
+    text-align: center;
+    border: solid #eeeeee 1px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    position: relative;
+    vertical-align: middle;
+    -webkit-box-shadow: 4px 4px 7px rgba(116, 134, 78, 0.25);
+    -moz-box-shadow: 4px 4px 7px rgba(116, 134, 78, 0.25);
+    box-shadow: 4px 4px 7px rgba(116, 134, 78, 0.25);
+    background: #fff;
+}
+
+.boxList {
+    /*width: 216px;*/
+    box-sizing: border-box;
+    /*border:solid green 1px;*/
+    /*border-radius: 5px;*/
+    /*background: rgba(223, 244, 201, 0.46);*/
+    /*-webkit-box-shadow:0 15px 15px rgba(0,0,0,.075);*/
+    /*background:#ffffff;*/
+    overflow: hidden;
+    display: inline-block;
+    z-index: 10000;
+    vertical-align: middle;
+    margin: 5px;
+}
+
+.badge {
+    vertical-align: baseline;
+}
+
+.bagOuter {
+    float: left;
+    text-align: center;
+}
+
+.home {
+    margin: auto;
+    border-radius: 0;
+    width: 570px;
+    /*height: 182px;*/
+    /*overflow: hidden;*/
+}
+
+.advanOuter {
+    /*核心代码*/
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    width: 570px;
+    height: 350px;
+    font-size: 14px;
+    position: relative;
+    /*border: 1px solid #eee;*/
+}
+
+.advanMain {
+    translate: 1s;
+    float: left;
+    margin: 10px;
+    width: 570px;
+    height: 400px;
+}

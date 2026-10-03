@@ -1,0 +1,266 @@
+/* css/08-buildings.css —— 建筑/分支/地牢/大箱子/橱窗 */
+
+td {
+    /*font-family: '黑体';*/
+}
+
+td:nth-child(1) {
+    font-weight: 700;
+}
+
+.buildingOuter {
+    padding: 0px;
+    width: 300px;
+    margin: auto;
+    margin-bottom: 10px;
+}
+
+.building {
+    display: inline-block;
+    text-align: center;
+    line-height: 40px;
+    font-weight: 700;
+    font-size: 12px;
+    width: 60px;
+    height: 60px;
+    margin: 15px;
+    /*border: 1px solid #eee;*/
+    padding: 0;
+    position: relative;
+
+}
+
+.building:hover {
+    line-height: 45px;
+    z-index: 10000;
+    box-shadow: none;
+}
+
+.building>.btn {
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    border: 0px;
+}
+
+#account,
+#pass {
+    width: 100px;
+    margin: 0 auto;
+}
+
+.buildTable {
+    max-height: 240px;
+}
+
+.oppo,
+.branch {
+    display: inline-block;
+    font-size: 12px;
+    max-height: 300px;
+    overflow: auto;
+    vertical-align: middle;
+}
+
+.branch {
+    margin-right: 5%;
+    margin-left: 5%;
+    width: 60%;
+}
+
+.oppo {
+    width: 25%;
+    margin-right: 5%;
+}
+
+.hpProgress {
+    width: 150px;
+    height: 20px;
+    border-radius: 8px;
+    border-width: 0;
+    -webkit-box-shadow: 2px 2px 7px #4A3636;
+    -moz-box-shadow: 2px 2px 7px #4A3636;
+    box-shadow: 2px 2px 2px #4A3636;
+}
+
+.hpProgressIn {
+    background-color: #C8D0B1;
+    border-radius: inherit;
+}
+
+.vs {
+    font-size: 40px;
+    line-height: 40px;
+    font-weight: 700;
+    color: #D3D3D3;
+    transform: rotate(3deg);
+    -webkit-text-shadow: 1px 1px 5px #ddd;
+    -moz-text-shadow: 1px 1px 5px #ddd;
+    text-shadow: 1px 1px 5px #ddd;
+}
+
+.dungeonHeading {
+    display: inline-block;
+    /*position: absolute;*/
+    /*left:30px;*/
+    /*top:30px;*/
+    padding: 10px;
+    -webkit-box-shadow: 1px 1px 5px #ddd;
+    -moz-box-shadow: 1px 1px 5px #ddd;
+    box-shadow: 1px 1px 5px #ddd;
+
+    -webkit-text-shadow: 1px 1px 5px #ddd;
+    -moz-text-shadow: 1px 1px 5px #ddd;
+    text-shadow: 1px 1px 5px #ddd;
+}
+
+.num {
+    color: #333377;
+    font-weight: 700;
+    -webkit-text-shadow: 1px 1px 5px #ddd;
+    -moz-text-shadow: 1px 1px 5px #ddd;
+    text-shadow: 1px 1px 5px #ddd;
+}
+
+.dungeonChoice {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: inline-block;
+}
+
+.me {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 100000;
+    background: #fff;
+    border: 0px;
+    border-radius: 3px;
+    height: 20px;
+    width: 40px;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.studioTableOuter {
+    max-height: 200px;
+}
+
+.bigBox {
+    margin: auto;
+    box-sizing: border-box;
+    width: 472px;
+    max-height: 280px;
+    overflow: auto;
+    background: #ffffff;
+    display: block;
+}
+
+.vector .btn {
+    width: 38px;
+    height: 20px;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+.viewOuter {
+    margin: 20px;
+    border: solid 1px #eee;
+    border-radius: 6px;
+    position: relative;
+    background: #C8D0B1;
+    height: 346px;
+}
+
+.updateOuter {
+    margin: 5px;
+    border: solid 1px #eee;
+    border-radius: 6px;
+    position: relative;
+}
+
+.selectpicker {
+    line-height: 2em;
+    border: 1px #ddd solid;
+    border-radius: 2px;
+    padding: 2px;
+}
+
+
+.damage {
+    color: #FFF;
+    border-radius: 5px;
+    background: #9EA590;
+    font-size: 14px;
+    border-radius: 5px;
+    padding: 2px 4px 2px;
+    font-weight: 700;
+    transition: 0.1s;
+}
+
+.damage:hover {
+    transform: scaleX(1.5) scaleY(1.5);
+}
+
+.msgShow {
+    display: inline-block;
+    margin: 5px;
+    right: 100px;
+    bottom: 50px;
+    height: 80px;
+    z-index: 1000000;
+    overflow: hidden;
+    font-size: 12px;
+}
+
+.msg {
+    height: 20px;
+    line-height: 20px;
+}
+
+.msg-enter {
+    height: 0px;
+    line-height: 0px;
+    transition: 0.2s;
+}
+
+.msg-enter-active {
+    height: 18px;
+    line-height: 20px;
+}
+
+.msg-leave {
+    height: 20px;
+    opacity: 1;
+    line-height: 20px;
+    transition: opacity 1s;
+}
+
+.msg-leave-active {
+    height: 20px;
+    line-height: 20px;
+    opacity: 0;
+}
+
+.season {
+    background: #FFF;
+    padding: 3px;
+    margin: 3px;
+}
+
+.currentEquip>p:first-child {
+    text-decoration: underline;
+    text-shadow: 1px 1px 1px #ddd;
+}
+
+.dungeon {
+    width: 100%;
+    height: 100%;
+}

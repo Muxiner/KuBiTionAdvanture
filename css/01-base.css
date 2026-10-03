@@ -1,0 +1,140 @@
+/* css/01-base.css —— 全局基础 */
+
+.rope {
+    display: inline-block;
+    width: 100px;
+    margin: 10px;
+}
+
+.skill .panel-body {
+    margin: 10px;
+}
+
+.window {
+    position: absolute;
+    /*    left: -50%;
+    top: -50%;*/
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+}
+
+.cropTableOuter {
+    height: 240px;
+}
+
+html,
+.background {
+    background-color: #333333;
+}
+
+#game {
+    width: 960px;
+    height: 580px;
+    margin: auto;
+}
+
+* {
+    cursor: default;
+    padding: 0;
+    margin: 0;
+    font-family: "Microsoft Yahei" "宋体";
+    moz-user-select: -moz-none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    -khtml-user-select: none;
+    /* you could also put this in a class */
+    -webkit-user-select: none;
+    /* and add the CSS class here instead */
+    -ms-user-select: none;
+    user-select: none;
+    /**禁止选中文字*/
+    border-radius: 4px;
+}
+
+.bagOuter,
+.bitmap,
+.msgBox,
+.bit,
+.home {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    /* Firefox */
+    -webkit-box-sizing: border-box;
+    /* Safari */
+    border: 1px solid #C8D0B1;
+}
+
+.main {
+    width: 960px;
+    height: 580px;
+    margin: 10px auto;
+    position: relative;
+}
+
+.bagOuter {
+    margin-left: 10px;
+    margin-top: 10px;
+    height: 560px;
+    float: left;
+}
+
+.advan {
+    width: 570px;
+    position: relative;
+    max-height: 400px;
+    overflow: hidden;
+}
+
+.clearFix:after {
+    content: ".";
+    display: block;
+    clear: both;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.clearFix {
+    zoom: 1;
+}
+
+@keyframes animatedBackground {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 100% 0;
+    }
+}
+
+@-moz-keyframes animatedBackground {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 100% 0;
+    }
+}
+
+@-webkit-keyframes animatedBackground {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 100% 0;
+    }
+}
+
+@-o-keyframes animatedBackground {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 100% 0;
+    }
+}

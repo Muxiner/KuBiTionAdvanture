@@ -1,0 +1,185 @@
+/* css/03-menu.css —— 菜单 / 设置 / 技能 */
+
+.menuOuter {
+    /*核心代码*/
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 100000000000;
+}
+
+.menuInner {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 14px;
+    width: 960px;
+    height: 580px;
+    position: relative;
+    left: 0px;
+    top: 0px;
+    z-index: 100000000000;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.menu {
+    min-width: 69%;
+    min-height: 65%;
+    margin: auto;
+    padding: 10px;
+    background: #DBDBCB;
+}
+
+.menuMain {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 64%;
+    background: #FFF;
+    border: 1px solid #ddd;
+}
+
+.skillItem {
+    min-width: 140px;
+    margin: 5px;
+    border: 1px solid #ddd;
+    padding: 5px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.skillItem>span {
+    cursor: pointer;
+}
+
+.skillMenu {
+    display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;     /* 垂直居中 */
+}
+
+/* 设置界面：纵向均匀排布，整体水平、垂直居中 */
+.settingsMenu {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 14px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.settingsMenu .settingsRow {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.settingsMenu .settingsField {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.settingsMenu .settingsField > label {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.settingsMenu .settingsInput {
+    width: 150px;
+    height: 32px;
+    padding: 4px 8px;
+    display: inline-block;
+}
+
+.settingsMenu .settingsTitle {
+    font-weight: bold;
+}
+
+.settingsMenu .settingsWarn {
+    color: #B25242;
+}
+
+.settingsMenu .settingsWarn > span {
+    margin: 0 6px;
+}
+
+.settingsMenu .settingsStatus {
+    min-height: 18px;
+    font-size: 13px;
+    color: #4a7a3a;
+}
+
+.settingsMenu .localSaveRow > .localSaveDesc {
+    width: 150px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.settingsMenu .settingsCheckbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+.settingsMenu .settingsCheckbox > input {
+    margin-right: 6px;
+}
+
+.skill {
+    vertical-align: middle;
+    height: 280px;
+    font-size: 12px;
+    width: 200px;
+    border: 1px solid #ddd;
+    margin: 10px;
+    overflow: auto;
+    display: inline-block;
+    -webkit-box-shadow: 4px 4px 7px #ddd;
+    -moz-box-shadow: 4px 4px 7px #ddd;
+    box-shadow: 4px 4px 4px #ddd;
+}
+
+.nav {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.nav>div {
+    margin: 10px;
+    padding: 10px;
+    display: inline-block;
+    background: #fff;
+    color: black;
+    cursor: pointer;
+}
+
+p {
+    margin: 0;
+}
+
+.input {
+    float: left;
+    margin: 10px;
+    width: 200px;
+    border: solid green 1px;
+    border-radius: 5px;
+    padding: 20px;
+    -webkit-box-shadow: 0 15px 15px rgba(0, 0, 0, .075);
+    background: #ffffff;
+}
+
+.clearFix:after {
+    content: ".";
+    display: block;
+    clear: both;
+    height: 0;
+    overflow: hidden;
+    visibily: hidden;
+}

@@ -1,0 +1,100 @@
+/* css/05-scene.css —— 场景面板 / 时间 / 详情 */
+
+.outer {
+    background: #A1A693;
+    width: 910px;
+    margin: auto;
+}
+
+.advanOuter {
+    /*核心代码*/
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    width: 570px;
+    height: 400px;
+    font-size: 14px;
+    position: relative;
+    /*border: 1px solid #eee;*/
+}
+
+.panel-primary>.panel-heading {
+    background-color: #C8D0B1;
+}
+
+.label-default {
+    color: #000;
+    border: 0px solid black;
+}
+
+.time {
+    display: inline;
+    font-weight: 700;
+}
+
+/*.time:hover{
+    transform:scaleX(1.1) scaleY(1.1);
+}*/
+.detail {
+    float: left;
+    height: 150px;
+    width: 278px;
+    box-sizing: border-box;
+    background: #eee;
+    /*border:solid green 1px;*/
+    border-radius: 5px;
+    margin: 10px;
+    margin-bottom: 40px;
+}
+
+.detailHead {
+    margin: 8px 10px;
+    height: 30px;
+}
+
+.effectPlus {
+    background: #74AB6A;
+    -webkit-text-shadow: 2px 2px 7px #3B413D;
+    -moz-text-shadow: 2px 2px 7px #3B413D;
+    text-shadow: 2px 2px 2px #3B413D;
+}
+
+.effectMinus {
+    background: #B25242;
+    -webkit-text-shadow: 2px 2px 7px #413B3D;
+    -moz-text-shadow: 2px 2px 7px #413B3D;
+    text-shadow: 2px 2px 2px #413B3D;
+}
+
+.effectHeading {
+    background-color: #fff;
+    color: #000;
+}
+
+.detailDesc {
+    background-color: #fff;
+    color: #000;
+    display: block;
+    margin: 10px 0px;
+    min-height: 50px;
+}
+
+.buildButton {}
+
+.buildingDetail {
+    /*    border:solid #fff 1px;
+    border-radius: 5px;
+    display: inline-block;
+    background: #fff;*/
+}
+
+.buildRequire {
+    /*    border:solid #fff 1px;
+    border-radius: 5px;
+    display: inline-block;
+    background: #fff;*/
+}
+
+.table>tbody>tr>td {
+    vertical-align: middle;
+}

@@ -1,0 +1,225 @@
+/* css/07-widgets.css —— 按钮/表格/面板/进度与遮罩 */
+
+.weatherBox {
+    -webkit-box-shadow: 5px 5px 3px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: 5px 5px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 5px 5px 3px rgba(0, 0, 0, 0.3);
+    /*border: 1px solid #000; */
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    margin: 0px;
+    padding: 0px;
+    vertical-align: middle;
+    transition: 1s;
+}
+
+.weatherBox:hover {
+    transform: scaleX(1.1) scaleY(1.1);
+}
+
+.title {
+    display: inline-block;
+}
+
+.btn {
+    /*    -webkit-box-shadow:1px 1px 3px #c2c2c2;
+    -moz-box-shadow:1px 1px 3px #c2c2c2;
+    box-shadow:1px 1px 3px #c2c2c2;  */
+    transition: 0.2s;
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+    margin: 5px;
+}
+
+.btn:hover,
+.disabled.btn:hover {
+    transform: scaleX(1.1) scaleY(1.1);
+    color: #fff;
+    background-color: #B8C0A1;
+    /*
+    -webkit-box-shadow:1px 1px 7px #c2c2c2;
+    -moz-box-shadow:1px 1px 7px #c2c2c2;
+    box-shadow:1px 1px 7px #c2c2c2;  */
+}
+
+.table {
+    margin-bottom: 0;
+    background: #fff;
+    border: 1px solid #eee;
+}
+
+.date {
+    color: #000;
+    border-radius: 5px;
+    background: #fff;
+    padding: 2px 4px 2px;
+    -webkit-text-shadow: 1px 1px 3px #c2c2c2;
+    -moz-text-shadow: 1px 1px 3px #c2c2c2;
+    text-shadow: 1px 1px 3px #c2c2c2;
+    -webkit-box-shadow: 1px 1px 3px #c2c2c2;
+    -moz-box-shadow: 1px 1px 3px #c2c2c2;
+    box-shadow: 1px 1px 3px #c2c2c2;
+    transition: 0.1s;
+}
+
+.date:hover {
+    transform: scaleX(1.1) scaleY(1.1);
+}
+
+.panel {
+    border-width: 0;
+}
+
+.save {
+    margin-left: auto;
+    margin-right: 10px;
+    width: 100px;
+}
+
+.panel-body {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.schedule {
+    font-size: 12px;
+    overflow: hidden;
+    display: inline-block;
+    border: solid #eee 1px;
+    vertical-align: middle;
+    text-align: center;
+    margin: 5px;
+    -webkit-box-shadow: 1px 1px 3px #c2c2c2;
+    -moz-box-shadow: 1px 1px 3px #c2c2c2;
+    box-shadow: 1px 1px 3px #c2c2c2;
+}
+
+.schedule tbody tr {
+    height: 77px;
+}
+
+.studioBottom {}
+
+.scheduleInput {
+    font-size: 15px;
+    width: 5em;
+    text-align: center;
+}
+
+.mask {
+    width: 570px;
+    height: 398px;
+    position: absolute;
+    margin: 0px;
+    background: #fff;
+    z-index: 10000;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    /* 透明度 */
+    display: none;
+    top: 0px;
+    left: 0px;
+}
+
+.maskIn {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    margin: 0px;
+    z-index: 10000;
+    background: #fff;
+    display: none;
+    top: 0px;
+    left: 0px;
+}
+
+.waitBar {
+    width: 100px;
+    height: 30px;
+    /*margin:auto;*/
+    display: none;
+    margin: auto;
+    margin-top: 140px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    -webkit-box-shadow: 1px 1px 80px #eee;
+    -moz-box-shadow: 1px 1px 80px #eee;
+    box-shadow: 1px 1px 80px #eee;
+    transition: 0.5s;
+}
+
+.waitBar:hover {
+    transform: scaleX(1.1) scaleY(1.1);
+}
+
+.waitBarIn {
+    height: 28px;
+    display: inline-block;
+    border-right: 1px solid #ddd;
+    border-radius: 5px;
+    background: #ddd;
+    -webkit-box-shadow: 1px 1px 80px #ccc;
+    -moz-box-shadow: 1px 1px 80px #ccc;
+    box-shadow: 1px 1px 80px #ccc;
+    background-color: #C8D0B1;
+    background-image: -webkit-gradient(linear, 0 100%, 100% 0,
+            color-stop(.25, rgba(255, 255, 255, .2)), color-stop(.25, transparent),
+            color-stop(.5, transparent), color-stop(.5, rgba(255, 255, 255, .2)),
+            color-stop(.75, rgba(255, 255, 255, .2)), color-stop(.75, transparent),
+            to(transparent));
+    background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+            transparent 75%, transparent);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+            transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+            transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+            transparent 75%, transparent);
+    -webkit-background-size: 20px 20px;
+    -moz-background-size: 20px 20px;
+    background-size: 20px 20px;
+    /* 控制条纹的大小 */
+}
+
+.waitBarIn:hover {}
+
+.save {
+
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    z-index: 10000;
+    background: #fefefe;
+    filter: alpha(opacity=0);
+    top: 0px;
+    left: 0px;
+}
+
+.log {
+    width: 400px;
+    height: 300px;
+    /*margin:auto;*/
+    margin: auto;
+    margin-top: 140px;
+    border: 1px solid #000;
+    border-radius: 5px;
+    -webkit-box-shadow: 1px 1px 2px #515724;
+    -moz-box-shadow: 1px 1px 2px #515724;
+    box-shadow: 1px 1px 2px #515724;
+}
+
+.stateVector:hover {
+    z-index: 10000;
+    /*transform:scaleX(1.2) scaleY(1.2);*/
+
+    -webkit-box-shadow: 1px 1px 5px #515724;
+    -moz-box-shadow: 1px 1px 5px #515724;
+    box-shadow: 1px 1px 5px #515724;
+}
