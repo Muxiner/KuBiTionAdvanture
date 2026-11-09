@@ -2,14 +2,15 @@
  * src/ui/menu/normalMenu.js —— 常规主菜单外壳
  * 承载「技能 / 设置」两个标签页与返回按钮；具体面板见 skillPanel/settingsPanel。
  */
+// 记住上次打开的页签（默认技能页，而不是一打开就是账号/密码的存档设置）
+var LAST_MENU_TAB = 'skill';
 var NormalMenuComponent = React.createClass({
     contextTypes: {
         setStateFromChildren: React.PropTypes.func.isRequired,
         menuHint: React.PropTypes.number.isRequired,
     },
-    // 默认打开设置页；有菜单提示（menuHint）时直接打开技能页
     getInitialState: function () {
-        var menuType = 'settings';
+        var menuType = LAST_MENU_TAB || 'skill';
         if (this.context.menuHint) {
             menuType = 'skill';
         }
@@ -25,21 +26,26 @@ var NormalMenuComponent = React.createClass({
         this.context.setStateFromChildren({ showMenu: '' });
     },
     handleTab: function (menuType) {
+        LAST_MENU_TAB = menuType;
         this.setState({ menuType: menuType });
     },
     render: function () {
         var menuType = this.state.menuType;
-        return <div className='menuOuter'>
+        return <div className='menuOuter' role='dialog' aria-modal='true' aria-label='菜单'>
             <div className='menuInner'>
                 <div className='menu'>
                     <div className='menuMain'>
                         {menuType == 'skill' ? <SkillPanelComponent /> : <SettingsPanelComponent />}
                     </div>
-                    <ul className="nav">
-                        <div className='btn' onClick={this.handleTab.bind(this, 'skill')}>技能</div>
-                        <div className='btn' onClick={this.handleTab.bind(this, 'settings')}>设置</div>
-                    </ul>
-                    <BtnComponent desc='返回' handleClick={this.quitMenu} />
+                    <div className="nav menuTabs" role="tablist">
+                        <button type="button" role="tab" aria-selected={menuType == 'skill' ? 'true' : 'false'}
+                            className={'btn tabBtn' + (menuType == 'skill' ? ' is-active' : '')}
+                            onClick={this.handleTab.bind(this, 'skill')}>技能</button>
+                        <button type="button" role="tab" aria-selected={menuType == 'settings' ? 'true' : 'false'}
+                            className={'btn tabBtn' + (menuType == 'settings' ? ' is-active' : '')}
+                            onClick={this.handleTab.bind(this, 'settings')}>设置</button>
+                        <BtnComponent desc='返回' handleClick={this.quitMenu} />
+                    </div>
                 </div>
             </div>
         </div>

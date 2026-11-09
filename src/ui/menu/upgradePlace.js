@@ -9,24 +9,35 @@ var UpgradePlaceComponent = React.createClass({
         skill: React.PropTypes.object.isRequired,
         setStateFromChildren: React.PropTypes.func.isRequired,
         useTime: React.PropTypes.func.isRequired,
+        showMsg: React.PropTypes.func.isRequired,
     },
     getInitialState: function () {
         return {
-            teacher: false,
         }
     },
-    // 拜师成功：对应技能等级 +1
+    // 学费：随当前等级线性增长（常量见 data.js 的 TRAINER_COST_GROWTH/TRAINER_MAX_LEVEL）
+    getNextCost: function (type) {
+        var skillType = EVENT_DATA[type].skill;
+        var level = this.context.skill[skillType] || 0;
+        var base = EVENT_DATA[type].want || { gold: 10 };
+        return cloneMul(base, 1 + TRAINER_COST_GROWTH * level, true);
+    },
+    // 拜师成功：对应技能等级 +1（有等级上限）
     handleDone: function (type) {
         var skillType = EVENT_DATA[type].skill;
         var skill = this.context.skill;
-        skill[skillType] = (skill[skillType] || 0) + 1;
+        var level = skill[skillType] || 0;
+        if (level >= TRAINER_MAX_LEVEL) {
+            this.context.showMsg(<p key={Math.random()}>该技能已达等级上限（{TRAINER_MAX_LEVEL} 级）。</p>);
+            return;
+        }
+        skill[skillType] = level + 1;
         this.context.useTime(function () {
             this.context.setStateFromChildren({ skill: skill });
             this.context.setStateFromChildren({ menuHint: 1 }, true);
-            this.setState({ rewarding: true });
         }.bind(this), 0.1);
     },
-    // 导师列表：学费随技能等级递增
+    // 导师列表：显示当前等级、上限与下一级学费
     getTeathers: function () {
         var list = {
             meleeUpgrade: true,
@@ -40,35 +51,27 @@ var UpgradePlaceComponent = React.createClass({
         var skill = this.context.skill;
         var result = [];
         for (var attr in list) {
-            var itemList = EVENT_DATA[attr].want || { gold: 10 };
             var skillType = EVENT_DATA[attr].skill;
-            var level = skill[skillType];
-            itemList = cloneMul(itemList, ((1 + 1 * level) * (1 + 0.001 * level)), true);
-            if (EVENT_DATA[attr]) {
-                result.push(<tr key={attr}>
-                    <td>{EVENT_DATA[attr].name}</td>
-                    <td>{SKILL_DATA[skillType].name}</td>
-                    <td><GiveComponent itemList={itemList} onDone={this.handleDone.bind(null, attr)} /></td>
-                </tr>)
-            }
+            var level = skill[skillType] || 0;
+            var maxed = level >= TRAINER_MAX_LEVEL;
+            var itemList = this.getNextCost(attr);
+            result.push(<tr key={attr}>
+                <td>{EVENT_DATA[attr].name}</td>
+                <td>{SKILL_DATA[skillType].name}</td>
+                <td>{level} / {TRAINER_MAX_LEVEL}</td>
+                <td>{maxed ? '-' : <RequireComponent requireList={itemList} />}</td>
+                <td>{maxed ? <BtnComponent disabled={true} disabledReason={'已达等级上限(' + TRAINER_MAX_LEVEL + ')'} desc='已满级' /> : <GiveComponent itemList={itemList} onDone={this.handleDone.bind(null, attr)} />}</td>
+            </tr>)
         }
         return result;
     },
-    handleTeacherWindow: function (teacher) {
-        this.setState({ teacher: teacher })
-    },
     render: function () {
-        if (this.state.teacher) {
-            return <div>
-                <TeacherComponent type={this.state.teacher} />
-                <BtnComponent desc='返回' handleClick={this.handleTeacherWindow.bind(null, null)} />
-            </div>
-        }
         return <div>
+            <p style={{ color: '#ccc' }}>每次学习消耗金币，费用随技能等级上升；每项技能上限 {TRAINER_MAX_LEVEL} 级。</p>
             <div className="tableOuter">
                 <table className="table table-condensed table-hover">
                     <thead>
-                        <tr><td>教师</td><td>内容</td><td>学费</td></tr>
+                        <tr><td>教师</td><td>内容</td><td>等级</td><td>学费</td><td></td></tr>
                     </thead>
                     <tbody>
                         {this.getTeathers()}
@@ -76,6 +79,5 @@ var UpgradePlaceComponent = React.createClass({
                 </table>
             </div>
         </div>
-
     }
 })

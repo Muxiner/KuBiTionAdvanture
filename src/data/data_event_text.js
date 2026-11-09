@@ -31,6 +31,7 @@ var EVENT_TEXT = {
         learnPost: ']的制作。',
         placePre: '在地图上标出了[',
         placePost: ']的位置。',
+        cooldown: '这个交易刚刚做过，还需约 {hours} 小时才能再来一次。',
     },
     // 战争营地（冰/火阵营）对话
     town: {

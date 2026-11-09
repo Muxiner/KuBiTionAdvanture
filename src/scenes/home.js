@@ -190,6 +190,7 @@ var WaitMakeComponent = React.createClass({
         season: React.PropTypes.string.isRequired,
         skill: React.PropTypes.object.isRequired,
         AudioEngine: React.PropTypes.object.isRequired,
+        playerStateUse: React.PropTypes.func.isRequired,
     },
     componentWillMount: function () {
         // 农田/酒桶的扩建科技类型使用中文属性名（与「陷阱空间属性」一致）
@@ -213,8 +214,22 @@ var WaitMakeComponent = React.createClass({
         var building = this.props.building;
         var timeNeed = attachData[cropType].timeNeed;
         var require = attachData[cropType].require;
+        // G8：拆分「材料」与「工具」。锄头等带耐久的工具走耐久消耗（与采集一致），
+        // 不能像材料一样整件被 useItemThatPlayerHave 吞掉。
+        var itemRequire = {};
+        var toolRequire = {};
+        for (var reqAttr in require) {
+            if (ITEM_DATA[reqAttr] && ITEM_DATA[reqAttr].durable) {
+                toolRequire[reqAttr] = require[reqAttr];
+            } else {
+                itemRequire[reqAttr] = require[reqAttr];
+            }
+        }
         function callBack() {
-            this.context.useItemThatPlayerHave(require);
+            this.context.useItemThatPlayerHave(itemRequire);
+            for (var toolAttr in toolRequire) {
+                this.context.playerStateUse(o(toolAttr, toolRequire[toolAttr]));
+            }
             this.context.buildingSaveData[building].list.push({ type: cropType, timeMax: attachData[cropType].timeMax, timeNow: 0 });
         }
         this.context.useTime(callBack.bind(this), timeNeed);
@@ -1039,10 +1054,6 @@ var PlaceComponent = React.createClass({
                 if (!tmp) continue;
 
                 var ev = PLACE_DATA[name].resource[attr].event;
-                lll(PLACE_DATA[name].resource[attr])
-                lll(ev)
-                lll(eventSaveData)
-                lll(eventSaveData[ev])
                 if (ev && (!eventSaveData[ev] || !eventSaveData[ev].experienced)) {
                     continue;
                 }
@@ -1211,6 +1222,8 @@ var HomeComponent = React.createClass({
         var time = this.context.time;
         if (this.state.war) {
             var mst = robberSaveData.robber;
+            // 兼容：若上层只把 robber 置为 true/未知 id，仍能进入盗贼战斗
+            if (typeof mst != 'string' || !ROBBER_DATA[mst] || !MST_DATA[mst]) mst = '_robber';
             var mstState = {
                 maxHp: ROBBER_DATA[mst].hpInc * time.day + MST_DATA[mst].maxHp,
                 dmg: ROBBER_DATA[mst].dmgInc * time.day + MST_DATA[mst].damage,
@@ -1295,6 +1308,19 @@ var BranchComponent = React.createClass({
         getTimeNeed: React.PropTypes.func.isRequired,
         season: React.PropTypes.string.isRequired,
     },
+    getInitialState: function () {
+        return {
+            onlyUnvisited: false,//U2：只看未访问
+            sortBy: 'default',//U2：default / time / name
+        }
+    },
+    toggleOnlyUnvisited: function () {
+        this.setState({ onlyUnvisited: !this.state.onlyUnvisited });
+    },
+    handleSortChange: function (sender) {
+        var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
+        this.setState({ sortBy: obj.value });
+    },
     handleGo: function (placeName) {
         var placeSaveData = clone(this.context.placeSaveData);
         placeSaveData[placeName].visited = true;
@@ -1311,7 +1337,7 @@ var BranchComponent = React.createClass({
     render: function () {
         var placeList = this.context.placeSaveData;
         function getPlaceDisplay() {
-            var result = [];
+            var entries = [];
             for (var attr in PLACE_DATA) {
                 if (!placeList[attr]) {
                     return;
@@ -1324,6 +1350,19 @@ var BranchComponent = React.createClass({
                     //需要季节的情况
                     if (PLACE_DATA[attr].season && this.context.season != PLACE_DATA[attr].season) continue;
                 }
+                //U2：只看未访问
+                if (this.state.onlyUnvisited && placeList[attr].visited) continue;
+                entries.push({ attr: attr, name: PLACE_DATA[attr].name, timeNeed: this.context.getTimeNeed(attr) });
+            };
+            //U2：排序（默认保持数据表顺序）
+            if (this.state.sortBy == 'time') {
+                entries.sort(function (a, b) { return a.timeNeed - b.timeNeed; });
+            } else if (this.state.sortBy == 'name') {
+                entries.sort(function (a, b) { return a.name > b.name ? 1 : (a.name < b.name ? -1 : 0); });
+            }
+            var result = [];
+            for (var i = 0; i < entries.length; i++) {
+                var attr = entries[i].attr;
                 result.push(<div className='placeCard' key={attr}>
                     <div className='placeName'>{PLACE_DATA[attr].name}{placeList[attr].visited ? null : <span style={{ color: COLOR.GREEN }}> new</span>}</div>
                     <div className='placeRes'><ResourceDisplayComponent resource={placeList[attr].things} /></div>
@@ -1331,11 +1370,28 @@ var BranchComponent = React.createClass({
                     <BtnComponent desc='出发' handleClick={this.handleGo.bind(this, attr)} />
                 </div>);
             };
+            if (result.length == 0) {
+                result.push(<p key='empty' style={{ padding: '8px', color: '#666' }}>没有符合条件的地点。</p>);
+            }
             return result;
         };
         return <div>
             <div className="branchWrap">
                 <div className="branch">
+                    <div className='branchFilter' style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', padding: '4px 6px 8px', background: '#f6f7f2', borderBottom: '1px solid #ddd', marginBottom: '6px' }}>
+                        <label style={{ margin: 0, fontWeight: 'normal', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                            <input type='checkbox' checked={this.state.onlyUnvisited} onChange={this.toggleOnlyUnvisited} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                            只看未访问
+                        </label>
+                        <label style={{ margin: 0, fontWeight: 'normal', whiteSpace: 'nowrap' }}>
+                            排序：
+                            <select className='selectpicker' value={this.state.sortBy} onChange={this.handleSortChange} style={{ display: 'inline-block', width: 'auto', marginLeft: '4px' }}>
+                                <option value='default'>默认</option>
+                                <option value='time'>耗时（短→长）</option>
+                                <option value='name'>名称</option>
+                            </select>
+                        </label>
+                    </div>
                     <div className='placeGrid'>
                         {getPlaceDisplay.bind(this)()}
                     </div>

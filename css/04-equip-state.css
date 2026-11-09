@@ -173,3 +173,79 @@
     -moz-box-shadow: 1px 1px 3px #020202;
     box-shadow: 1px 1px 3px #020202;
 }
+
+/* =====================================================================
+   UX 修复覆盖块（U2/U4/U5/U7/U10）
+   - 状态药丸：加描边与最小高度，文字颜色由 JS 按底色亮度自动选择（≥4.5:1）
+   - 物品格：选中态可辨（outline，不只靠颜色）；hover 不再缩放抖动
+   - 需求：✓/✗ 符号 + 可读 title；低状态加 "!" 警示
+   ===================================================================== */
+
+.stateVector {
+    min-height: 36px;
+    min-width: 76px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+}
+
+.stateVector:hover,
+.stateVector:focus {
+    box-shadow: 0 0 0 2px #2f3b22;
+    outline: none;
+}
+
+.stateWarn {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 5px;
+    border-radius: 8px;
+    background: #7a1f14;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    vertical-align: middle;
+}
+
+.item {
+    cursor: pointer;
+    outline: none;
+}
+
+/* 选中态：外框 + 角标颜色，不再依赖细微底色差异 */
+.item.itemSelected {
+    outline: 2px solid #2f6b3a;
+    outline-offset: -1px;
+    box-shadow: 0 0 0 2px rgba(47, 107, 58, 0.25);
+}
+
+.item:focus-visible,
+.item:focus {
+    outline: 2px solid #1f4f8a;
+    outline-offset: -1px;
+}
+
+/* hover 不再改变字号/尺寸（原 scale(1.05)+font-size 14 会让相邻格抖动） */
+.item:hover {
+    transform: none;
+    font-size: 12px;
+    box-shadow: 0 0 0 2px rgba(47, 107, 58, 0.45);
+}
+
+/* 需求项：✓/✗ 非颜色线索 */
+.reqItem .reqMark {
+    display: inline-block;
+    margin-right: 2px;
+    font-weight: 700;
+}
+
+.reqItem.reqMissing {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.reqItem.reqMissing .badge {
+    text-decoration: none;
+}

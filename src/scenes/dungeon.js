@@ -34,16 +34,31 @@ var DungeonComponent = React.createClass({
     getInitialState: function () {
         var dungeonSaveData = this.context.dungeonSaveData;
         var deepest = dungeonSaveData.deepest;
+        var maxFloor = DUNGEON_MAX_FLOOR;
         return {
-            ropeGoTo: deepest,
+            ropeGoTo: deepest > maxFloor ? maxFloor : deepest,
         }
     },
     componentWillMount: function () {
+        var dungeonSaveData = this.context.dungeonSaveData;
+        var maxFloor = this.getMaxFloor();
+        if (dungeonSaveData.deepest > maxFloor) dungeonSaveData.deepest = maxFloor;
+        if (dungeonSaveData.stairCount > maxFloor) dungeonSaveData.stairCount = maxFloor;
         this.context.setTitle('地牢');
+    },
+    // G5：地牢层数上限（数据层可调）；第 max 层继续下楼即通关
+    getMaxFloor: function () {
+        return DUNGEON_MAX_FLOOR;
+    },
+    // G5：当前深度对应的奖励/怪物档位（受数据表层数限制）
+    getRewardLevel: function (stairCount) {
+        var maxLayer = getLength(DUNGEON_DATA);
+        var level = Math.ceil(stairCount / DUNGEON_REWARD_TIER);
+        return level > maxLayer ? maxLayer : level;
     },
     getReward: function (stairCount) {
         //获得宝箱奖励
-        var rewardLevel = Math.ceil(stairCount / 10);
+        var rewardLevel = this.getRewardLevel(stairCount);
         var list = [];
         for (var i = rewardLevel; i > 0; i--) {
             var arr = DUNGEON_DATA[i] && DUNGEON_DATA[i].reward;
@@ -214,8 +229,10 @@ var DungeonComponent = React.createClass({
     },
     getNewStair: function (stairNum) {
         var dungeonSaveData = this.context.dungeonSaveData;
-        //最深层
-        dungeonSaveData.stairCount = stairNum ? stairNum : dungeonSaveData.stairCount + 1;
+        //最深层（G5：不超过地牢层数上限）
+        var target = stairNum ? stairNum : dungeonSaveData.stairCount + 1;
+        if (target > this.getMaxFloor()) target = this.getMaxFloor();
+        dungeonSaveData.stairCount = target;
         dungeonSaveData.deepest = dungeonSaveData.stairCount > dungeonSaveData.deepest ? dungeonSaveData.stairCount : dungeonSaveData.deepest;
         dungeonSaveData.roomCount = 0;
         this.getNewRoom();
@@ -266,8 +283,11 @@ var DungeonComponent = React.createClass({
         var useTime = this.context.useTime;
         var timeNeed = this.stepTime;
         function getDungeonBattle() {
-            var step = 10;
+            var step = DUNGEON_MST_TIER;
+            var maxLayer = getLength(DUNGEON_DATA);
             var enermyLevel = Math.ceil(this.context.dungeonSaveData.stairCount / step);
+            if (enermyLevel > maxLayer) enermyLevel = maxLayer;
+            if (enermyLevel < 1) enermyLevel = 1;
 
             //作者还没更新的层
             var i = enermyLevel;
@@ -308,17 +328,18 @@ var DungeonComponent = React.createClass({
                 }.bind(this);
                 break;
             case 'downStair':
-                this.context.useItem({ 'dungeonKey': 1 }, 'bag');
-                var callBack = function () {
-                    this.getNewStair();
-                }.bind(this);
-                break;
-            case 'dungeonRope':
-                this.context.useItem({ 'dungeonRope': 1 }, 'bag');
-                var dungeonSaveData = this.context.dungeonSaveData;
-                var callBack = function () {
-                    this.getNewStair(dungeonSaveData.deepest - 1);
-                }.bind(this);
+                var maxFloor = this.getMaxFloor();
+                if (dungeonSaveData.stairCount >= maxFloor) {
+                    // G5：最后一层继续向下 = 通关，不再消耗钥匙
+                    var callBack = function () {
+                        this.onWin();
+                    }.bind(this);
+                } else {
+                    this.context.useItem({ 'dungeonKey': 1 }, 'bag');
+                    var callBack = function () {
+                        this.getNewStair();
+                    }.bind(this);
+                }
                 break;
         }
         useTime((function () {
@@ -342,7 +363,7 @@ var DungeonComponent = React.createClass({
                 var detailedList = [<span key='1'>进入下一层。</span>];
                 break;
             case 'dungeonRope':
-                var detailedList = [<span key='1'>你可以穿越到第({this.context.dungeonSaveData.deepest})层之前的任意层。</span>];
+                var detailedList = [<span key='1'>你可以下潜到第({this.context.dungeonSaveData.deepest})层（只能选择当前层与最深层之间）。</span>];
                 break;
         }
         var detailType = 'desc';
@@ -350,28 +371,41 @@ var DungeonComponent = React.createClass({
     },
     onWinGoHome: function () {
         this.context.useTime(function () {
+            this.context.callWindow(null);
             this.context.setStateFromChildren({ currentScene: 'home' });
         }.bind(this), 1)
     },
     onGameEndDisplay: function () {
-        var account = this.context.settings.account;
+        var account = this.context.settings.save_account;
         var time = this.context.time;
         var jsonStr = 'action=end&day=' + time.day + '&account=' + account;
-        console.log(jsonStr);
-        $('#upload')[0].onclick = null;
-        htmlobj = $.ajax({
-            contentType: "application/x-www-form-urlencoded", type: 'POST', url: SAVE_URL, async: true, data: jsonStr, success: function () {
-                console.log(htmlobj.responseText);
-                this.handleBoard(htmlobj.responseText);
+        var self = this;
+        try {
+            var upload = $('#upload')[0];
+            if (upload) upload.onclick = null;
+        } catch (e) { }
+        var xhr = $.ajax({
+            contentType: "application/x-www-form-urlencoded", type: 'POST', url: SAVE_URL, async: true, data: jsonStr,
+            success: function (res) {
+                self.handleBoard(res || (xhr && xhr.responseText) || '[]');
             }
         });
     },
     handleBoard: function (d) {
-        eval('var data = ' + d + ';');
+        var data = [];
+        try {
+            data = JSON.parse(d);
+        } catch (e) {
+            data = [];
+        }
+        if (!data || !data.length) {
+            this.context.callWindow(<div><p>排行榜暂时无法读取（本地服务器未提供该数据）。</p><BtnBack /></div>);
+            return;
+        }
         function getTds(dataRow) {
             var result = []
             for (var j = 1; j < dataRow.length; j++) {
-                result.push(<td key={j}>dataRow[j]</td>)
+                result.push(<td key={j}>{dataRow[j]}</td>)
             }
             return result;
         }
@@ -380,33 +414,43 @@ var DungeonComponent = React.createClass({
             for (var i = data.length - 1; i >= 0; i--) {
                 result.push(<tr key={i}>{getTds(data[i])}</tr>);
             };
+            return result;
         }
         var board = (
             <div>
                 <p>所有通关的英雄们：</p>
-                <div style="overflow:auto;" className="buildTable tableOuter">
-                    <table style="overflow:auto;" className="table table-condensed table-hover table-striped table-bordered">
+                <div style={{ overflow: 'auto' }} className="buildTable tableOuter">
+                    <table style={{ overflow: 'auto' }} className="table table-condensed table-hover table-striped table-bordered">
                         <thead>
-                            <td>英雄大名</td>
-                            <td>存活时间</td>
-                            <td>通关时间</td>
+                            <tr>
+                                <td>英雄大名</td>
+                                <td>存活时间</td>
+                                <td>通关时间</td>
+                            </tr>
                         </thead>
-                        {getRows.bind(this)()}
+                        <tbody>
+                            {getRows()}
+                        </tbody>
                     </table>
                 </div>
+                <BtnBack />
             </div>
         );
+        this.context.callWindow(board);
     },
     onWin: function () {
         var time = this.context.time;
         var day = time.day;
         var account = this.context.settings.save_account;
+        var maxFloor = this.getMaxFloor();
         var wind = <div>
-            <p>恭喜你到达了地牢的底端，你已经征服了这个游戏</p>
+            <p>恭喜你通关了地牢（第 {maxFloor} 层）！</p>
             <p>你存活了:<span className="num">{day}</span>天</p>
-            <p>现在你可以将你的大名写在石碑上：</p>
+            <p>可以带着战利品回家，也可以把名字刻在石碑上：</p>
             <div className="form-control">{account}</div>
             <div><BtnComponent className="btn btn-default" id="upload" handleClick={this.onGameEndDisplay}>铭刻</BtnComponent></div>
+            <div><BtnComponent desc='带着战利品回家' handleClick={this.onWinGoHome} /></div>
+            <div><BtnBack /></div>
         </div>
         this.context.callWindow(wind);
     },
@@ -457,14 +501,16 @@ var DungeonComponent = React.createClass({
             for (var attr in this.choices) {
                 var tmp = this.choices[attr];
                 //判断能否下楼
-                if (attr == 'downStair' && !boxSaveData.bag.things['dungeonKey']) continue;
+                if (attr == 'downStair' && !boxSaveData.bag.things['dungeonKey'] && dungeonSaveData.stairCount < this.getMaxFloor()) continue;
+                var label = tmp.name;
+                if (attr == 'downStair' && dungeonSaveData.stairCount >= this.getMaxFloor()) label = '通关';
                 result.push(
                     <div key={attr}>
-                        <BtnComponent handleMouseEnter={this.showChoiceMsg.bind(this, attr)} handleClick={this.handleChoice.bind(this, attr)}>{tmp.name}</BtnComponent>
+                        <BtnComponent handleMouseEnter={this.showChoiceMsg.bind(this, attr)} handleClick={this.handleChoice.bind(this, attr)}>{label}</BtnComponent>
                     </div>
                 )
             }
-            if (boxSaveData.bag.things['dungeonRope'] && dungeonSaveData.stairCount < dungeonSaveData.deepest - 1) {
+            if (boxSaveData.bag.things['dungeonRope'] && dungeonSaveData.stairCount < dungeonSaveData.deepest) {
                 result.push(
                     <div key='dungeonRope'>
                         <BtnComponent handleMouseEnter={this.showChoiceMsg.bind(this, 'dungeonRope')} handleClick={this.handleRope}>穿洞</BtnComponent>
@@ -495,7 +541,7 @@ var DungeonComponent = React.createClass({
         return (
             <div style={{ margin: 'auto', width: 400, height: 300 }}>
                 <div className="dungeonHeading">
-                    <p>第 <span className="num">{dungeonSaveData.stairCount}</span> 层</p>
+                    <p>第 <span className="num">{dungeonSaveData.stairCount}</span> / {this.getMaxFloor()} 层</p>
                     <p>房间 <span className="num">{dungeonSaveData.roomCount}</span> </p>
                     <p>最深记录: <span className="num">{dungeonSaveData.deepest}</span> </p>
                     <div><ProgressComponent key='view' current={dungeonSaveData.stairData[dungeonSaveData.stairCount] || 0} max={MAX_DISCOVER} /></div>

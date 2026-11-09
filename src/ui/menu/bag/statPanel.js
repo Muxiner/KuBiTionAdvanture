@@ -45,18 +45,29 @@ var StatPanelComponent = React.createClass({
         rows.push(['幸运', '+' + skillPct('lucky') + '%']);
         return rows;
     },
+    getInitialState: function () {
+        // 属性统计默认展开，可折叠（后期信息过载时让玩家自己决定看不看）
+        return { open: true };
+    },
+    toggle: function () {
+        this.setState({ open: !this.state.open });
+    },
     render: function () {
         var rows = this.getStatRows();
-        return <div className="statPanel">
-            <div className="statTitle">属性统计</div>
-            <div className="statGrid">
+        var open = this.state.open;
+        return <div className={"statPanel" + (open ? '' : ' isCollapsed')}>
+            <button type="button" className="sectionToggle" aria-expanded={open ? 'true' : 'false'} onClick={this.toggle}>
+                <span className="sectionToggleTitle">属性统计</span>
+                <span className="sectionToggleMark" aria-hidden="true">{open ? '▾' : '▸'}</span>
+            </button>
+            {open ? <div className="statGrid">
                 {rows.map(function (r) {
                     return <div className='statRow' key={r[0]}>
                         <span className='statName'>{r[0]}</span>
                         <span className='statValue'>{r[1]}</span>
                     </div>;
                 })}
-            </div>
+            </div> : null}
         </div>;
     }
 });

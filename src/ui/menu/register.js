@@ -63,7 +63,7 @@ var RegisterComponent = React.createClass({
         return <div>
             {this.props.canBack ? <BtnBack callBack={this.props.willUnmount || null} /> : null}
             <BoxComponent isRegister={true} box='register' itemList={things} handleClick={this.check} />
-            {this.props.canPick ? <BtnComponent sound='pickall' disabled={disabled} handleClick={this.grabAll} desc='全部拾取' /> : null}
+            {this.props.canPick ? <BtnComponent sound='pickall' disabled={disabled} disabledReason='没有可拾取的物品' handleClick={this.grabAll} desc='全部拾取' /> : null}
         </div>
     }
 });

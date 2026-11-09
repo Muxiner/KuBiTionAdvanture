@@ -793,3 +793,681 @@ body {
     z-index: 200;
     pointer-events: auto;
 }
+
+/* =====================================================================
+   UX 修复覆盖块（U3/U7/U8/U9/U10）
+   ===================================================================== */
+
+/* 1) 场景内容：顶部对齐 + 最大宽度（原来 justify-content:safe center 会把内容
+      垂直居中，在 1440 下场景中间只浮着 2 个按钮，四周全是空白） */
+.advan > div {
+    justify-content: flex-start;
+    max-width: 1180px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.advanOuter > div {
+    justify-content: flex-start;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.viewOuter,
+.updateOuter {
+    justify-content: flex-start;
+}
+
+.home {
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.branchWrap {
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 2) 回家按钮：改为场景下方的常规操作条，不再绝对定位压住“出发” */
+.homeBtnBar {
+    position: static;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    pointer-events: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 0;
+    background: transparent;
+}
+
+.homeBtnBar .btn {
+    margin: 0;
+}
+
+/* 3) 桌面端：收起右侧背包栏（状态栏“背包”按钮切换 body.bag-collapsed） */
+body.bag-collapsed .main > .equipMain {
+    display: none;
+}
+
+/* 4) 内部滚动区：可见滚动条 + 滚动提示（原来桌面 Chrome 隐藏滚动条，
+      后期“所有物品”被裁掉时用户不知道还能滚） */
+.advan,
+.tableOuter,
+.panel-body,
+.bigBox,
+.equipMain > .panel-body,
+.ownedList {
+    scrollbar-width: thin;
+    scrollbar-color: #8a917c #e6e8dd;
+}
+
+.advan::-webkit-scrollbar,
+.tableOuter::-webkit-scrollbar,
+.panel-body::-webkit-scrollbar,
+.bigBox::-webkit-scrollbar,
+.equipMain > .panel-body::-webkit-scrollbar,
+.ownedList::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.advan::-webkit-scrollbar-track,
+.tableOuter::-webkit-scrollbar-track,
+.panel-body::-webkit-scrollbar-track,
+.bigBox::-webkit-scrollbar-track,
+.equipMain > .panel-body::-webkit-scrollbar-track,
+.ownedList::-webkit-scrollbar-track {
+    background: #e6e8dd;
+}
+
+.advan::-webkit-scrollbar-thumb,
+.tableOuter::-webkit-scrollbar-thumb,
+.panel-body::-webkit-scrollbar-thumb,
+.bigBox::-webkit-scrollbar-thumb,
+.equipMain > .panel-body::-webkit-scrollbar-thumb,
+.ownedList::-webkit-scrollbar-thumb {
+    background: #8a917c;
+    border-radius: 5px;
+}
+
+/* 5) 可折叠区块（属性统计 / 所有物品） */
+.sectionToggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 8px;
+    margin: 2px 0;
+    border: 0;
+    border-bottom: 1px solid #d8dcc9;
+    background: #f1f3e9;
+    color: #26301d;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sectionToggle:hover {
+    background: #e3e7d6;
+    color: #26301d;
+}
+
+.sectionToggleTitle {
+    flex: 0 0 auto;
+}
+
+.sectionToggleHint {
+    margin-left: 8px;
+    color: #555a50;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.sectionToggleMark {
+    margin-left: auto;
+}
+
+/* 6) 所有物品：来源容器按钮 */
+.ownedItem {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    line-height: 20px;
+    white-space: normal;
+    padding: 2px 0;
+}
+
+.ownedName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ownedAmount {
+    margin-left: auto;
+}
+
+.ownedSources {
+    flex: 0 0 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-left: 8px;
+}
+
+.ownedSrcBtn {
+    padding: 0 7px;
+    border: 1px solid #b9bfae;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #26301d;
+    font-size: 12px;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+.ownedSrcBtn:hover {
+    background: #3f5a32;
+    border-color: #3f5a32;
+    color: #ffffff;
+}
+
+.ownedEmpty {
+    padding: 6px 8px;
+    color: #555a50;
+    font-size: 12px;
+}
+
+/* 7) 大箱子容量提示 */
+.boxWithCapacity {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.boxCapacity {
+    padding: 4px 10px 8px;
+    color: #3d4534;
+    font-size: 12px;
+    text-align: left;
+}
+
+.boxCapacityFull {
+    color: #8a2f22;
+    font-weight: 700;
+}
+
+/* 8) 背包标题栏：收起按钮 + 移动端滚动提示 */
+.bagHeading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bagHeadingTitle {
+    font-weight: 700;
+}
+
+.bagScrollHint {
+    display: none;
+    color: #3d4534;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.bagCloseBtn {
+    margin-left: auto;
+    min-height: 30px;
+    padding: 2px 10px;
+    border: 1px solid #b9bfae;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #26301d;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.bagCloseBtn:hover {
+    background: #3f5a32;
+    border-color: #3f5a32;
+    color: #ffffff;
+}
+
+/* 9) 按钮在容器内水平居中（原有规则之外补充折叠区按钮） */
+.ownedToggle,
+.sectionToggle {
+    box-sizing: border-box;
+}
+
+/* 10) 移动端：场景/背包互斥；按钮 ≥44px；状态栏单行横向滚动 */
+@media (max-width: 900px) {
+    .main {
+        flex-direction: column;
+        padding: 6px;
+        gap: 6px;
+    }
+
+    .advanMain {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    /* 默认只看场景；点状态栏“背包”切到背包，背包标题栏“收起”返回场景 */
+    .main > .equipMain {
+        display: none;
+    }
+
+    body.mobile-bag-open .main > .advanMain {
+        display: none;
+    }
+
+    body.mobile-bag-open .main > .equipMain {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    .equipMain > .panel-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .panel-heading {
+        font-size: 15px;
+    }
+
+    /* 状态栏：一条横向滚动，不再折成 2-3 行吃掉场景高度 */
+    .stateMain {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 4px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 6px 8px 4px;
+        margin: 6px 0 0;
+        scrollbar-width: thin;
+    }
+
+    .stateVector {
+        flex: 0 0 auto;
+        margin-right: 0;
+        min-width: 66px;
+        min-height: 40px;
+        line-height: 40px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .btn {
+        min-height: 44px;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .vector .btn {
+        min-height: 40px;
+        height: auto;
+        font-size: 12px;
+    }
+
+    .me {
+        width: 48px;
+        height: 40px;
+        line-height: 40px;
+    }
+
+    .table,
+    .table > tbody > tr > td,
+    .table > thead > tr > th {
+        font-size: 14px;
+    }
+
+    .time {
+        font-size: 13px;
+    }
+
+    .title {
+        font-size: 15px;
+    }
+
+    .dayPhase {
+        margin-left: 4px;
+        padding: 0 6px;
+    }
+
+    /* 菜单：铺满可用宽度并允许内部滚动，避免小屏内容被裁 */
+    .menu {
+        min-width: 94vw;
+        width: 94vw;
+        max-width: 94vw;
+        min-height: 0;
+        max-height: 92vh;
+        overflow: auto;
+        box-sizing: border-box;
+    }
+
+    .menuMain {
+        min-height: 0;
+    }
+
+    .menuTabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .skillMenu {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .skill {
+        width: 100%;
+        height: auto;
+        max-height: 44vh;
+        margin: 6px 0;
+    }
+
+    .settingsInput {
+        width: 128px;
+    }
+
+    .settingsMenu {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .bagScrollHint {
+        display: inline;
+    }
+
+    .bagCloseBtn {
+        min-height: 40px;
+        font-size: 13px;
+    }
+
+    .advan > div,
+    .advanOuter > div {
+        max-width: 100%;
+    }
+
+    .equipMain .detail {
+        min-height: 96px;
+    }
+
+    /* 卡片类内容改为更紧凑的两列，避免横向裁切 */
+    .branchWrap {
+        flex-direction: column;
+    }
+
+    .marketPane {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .placeGrid,
+    .tradeGrid {
+        gap: 6px;
+        padding: 4px;
+    }
+
+    .placeCard {
+        width: calc(50% - 6px);
+        min-width: 0;
+    }
+
+    .tradeCard {
+        width: 100%;
+    }
+
+    .bigBox .boxList {
+        justify-content: flex-start;
+    }
+
+    .detailActions .btn {
+        min-height: 40px;
+    }
+
+    .sectionToggle {
+        min-height: 44px;
+        font-size: 14px;
+    }
+}
+
+/* =====================================================================
+   UX 修复补充（U4/U7/U10）
+   ===================================================================== */
+
+/* 背包开关按钮（状态栏内，桌面/移动端都可见） */
+.bagToggleBtn {
+    background: #4a5a3a;
+    border-color: #32482a;
+    color: #ffffff;
+    font-weight: 700;
+    min-width: 76px;
+}
+
+.bagToggleBtn:hover {
+    background: #32482a;
+    border-color: #32482a;
+    color: #ffffff;
+}
+
+/* 装备槽标签：10px -> 12px；空槽不再用 1.6:1 的 #ccc */
+.equipSlot {
+    font-size: 12px;
+}
+
+.equipSlotLabel {
+    font-size: 12px;
+    color: #4a4f45;
+}
+
+.equipSlotItem {
+    font-size: 12px;
+}
+
+.equipSlotItem.empty {
+    color: #6b6b6b;
+}
+
+.equipSlot:focus,
+.equipSlot:focus-visible {
+    outline: 2px solid #1f4f8a;
+    outline-offset: 1px;
+}
+
+/* 丢弃提示/次要说明：11px #888(3.54:1) -> 12px #555a50 */
+.discardHint {
+    color: #555a50;
+    font-size: 12px;
+}
+
+/* 属性统计/所有物品正文：12px -> 13px */
+.statPanel,
+.ownedList {
+    font-size: 13px;
+}
+
+/* 加载条 hover 不再缩放（与居中 transform 叠加会抖） */
+.waitBar:hover {
+    transform: translate(-50%, -50%);
+}
+
+/* 菜单/技能页标题按钮化后的间距 */
+.menu .nav {
+    margin-top: 12px;
+}
+
+/* =====================================================================
+   UX 修复补充 2：对比度与移动端 44px 触控目标
+   ===================================================================== */
+.makeName {
+    color: #1c6e70;
+}
+
+.settingsMenu .settingsWarn {
+    color: #8a2f22;
+}
+
+.settingsMenu .settingsStatus {
+    color: #2f5a24;
+}
+
+.skill {
+    font-size: 14px;
+}
+
+.ownedGroupTitle,
+.makeGroupTitle,
+.buildingGroupTitle {
+    color: #4a4f45;
+}
+
+@media (max-width: 900px) {
+    .vector .btn {
+        min-height: 44px;
+    }
+
+    .me {
+        height: 44px;
+        line-height: 44px;
+    }
+
+    .detailActions .btn {
+        min-height: 44px;
+    }
+}
+
+/* =====================================================================
+   UX 修复补充 3：移动端表格与状态栏的滚动可读性
+   ===================================================================== */
+
+/* 状态栏横向滚动条（移动端），提示还有更多状态/按钮 */
+.stateMain {
+    scrollbar-width: thin;
+}
+
+.stateMain::-webkit-scrollbar {
+    height: 6px;
+}
+
+.stateMain::-webkit-scrollbar-track {
+    background: #b9bfae;
+}
+
+.stateMain::-webkit-scrollbar-thumb {
+    background: #4a5a3a;
+    border-radius: 3px;
+}
+
+@media (max-width: 900px) {
+    /* 窄屏表格不逐字换行（此前 14px 下“总量/生长/停止”被拆成两行）；
+       改为整表横向滚动，更易扫读 */
+    .advan .table > tbody > tr > td,
+    .advan .table > thead > tr > th,
+    .advanOuter .table > tbody > tr > td,
+    .advanOuter .table > thead > tr > th {
+        white-space: nowrap;
+    }
+
+    .advan .table,
+    .advanOuter .table {
+        min-width: 560px;
+    }
+
+    .advan .tableOuter,
+    .advanOuter .tableOuter {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 状态栏药丸/按钮 44px 触控目标 */
+    .stateVector {
+        min-height: 44px;
+        line-height: 44px;
+    }
+}
+
+/* 装备槽内的物品名最多两行，避免“勇者之印/力量手套”被截成“勇者…” */
+.equipSlotItem {
+    white-space: normal;
+    line-height: 13px;
+    max-height: 27px;
+    max-width: 100%;
+    overflow: hidden;
+    text-align: center;
+}
+
+/* 移动端表格：末列（操作按钮）吸附在右侧，横向滚动时仍可点，
+   避免“建造/砍/设置”按钮被滚出屏幕 */
+@media (max-width: 900px) {
+    .advan .table tr > td:last-child,
+    .advan .table tr > th:last-child,
+    .advanOuter .table tr > td:last-child,
+    .advanOuter .table tr > th:last-child {
+        position: -webkit-sticky;
+        position: sticky;
+        right: 0;
+        z-index: 2;
+        background: #ffffff;
+        box-shadow: -4px 0 6px rgba(0, 0, 0, 0.10);
+    }
+
+    /* 操作列按钮在窄屏也不挤压，保持可点尺寸 */
+    .advan .table tr > td:last-child .btn,
+    .advanOuter .table tr > td:last-child .btn {
+        margin: 2px 0;
+        min-width: 64px;
+    }
+}
+
+/* 滚动提示：可横向/纵向滚动的容器加内阴影，提示“还有内容” */
+.advan .tableOuter,
+.advanOuter .tableOuter,
+.bigBox,
+.equipMain > .panel-body {
+    box-shadow: inset -10px 0 10px -12px rgba(0, 0, 0, 0.45);
+}
+
+@media (max-width: 900px) {
+    .stateMain {
+        box-shadow: inset -10px 0 10px -14px rgba(0, 0, 0, 0.6);
+    }
+}
+
+/* =====================================================================
+   UX 修复补充 4：移动端状态栏把「背包 / 菜单」固定在最前
+   （此前窄屏时这两个入口被状态药丸挤到屏外，只能横向滑动才找得到）
+   ===================================================================== */
+@media (max-width: 900px) {
+    .stateMain .bagToggleBtn {
+        order: -2;
+        margin-right: 6px;
+        border-right: 1px solid #6b755f;
+        padding-right: 12px;
+    }
+
+    .stateMain .menuToggleBtn {
+        order: -1;
+        margin-right: 6px;
+        border-right: 1px solid #6b755f;
+        padding-right: 12px;
+    }
+}

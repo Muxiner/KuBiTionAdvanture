@@ -620,9 +620,9 @@ var PLACE_DATA = {
                 name: '烹饪锅',
                 things: { humanCook: 1 },
                 circle: 0.2,
-                timeNeed: 0.2,
+                timeNeed: 0.5,
                 action: '拿取',
-                require: {},
+                require: { ps: 5 },
                 initAmount: 10
             },
         },
@@ -663,9 +663,9 @@ var PLACE_DATA = {
                 name: '烤架',
                 things: { magicBread: 1 },
                 circle: 0.2,
-                timeNeed: 0.2,
+                timeNeed: 0.5,
                 action: '拿取',
-                require: {},
+                require: { ps: 5 },
                 initAmount: 10
             },
         },
@@ -886,5 +886,5 @@ if ((myDate.getDate() == 24 || myDate.getDate() == 25) && (myDate.getMonth() == 
             hotFlowerTea: 5,
             hotCoffee: 5,
         },
-    })[Math.ceil(Math.random() * 7)];
+    })[Math.ceil(Math.random() * 11)];
 }

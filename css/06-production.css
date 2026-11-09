@@ -90,3 +90,30 @@
 .badge {
     vertical-align: baseline;
 }
+
+/* UX 修复覆盖块（U4/U7）：战斗角色名对比度、表格字号 */
+.battleCharactor {
+    background: #4d5347;
+    font-size: 14px;
+}
+
+.tableOuter {
+    font-size: 13px;
+}
+
+.resourceName {
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.resourceAmount {
+    font-size: 12px;
+}
+
+.battleTable {
+    font-size: 13px;
+}
+
+.battleMsgBox {
+    font-size: 15px;
+}

@@ -83,6 +83,20 @@ var SettingsPanelComponent = React.createClass({
         settings['autoSave'] = !settings['autoSave'];
         this.context.setStateFromChildren({ settings: settings });
     },
+    // “保存”按钮被禁用的原因（避免点了没反应）
+    getRemoteSaveReason: function () {
+        if (this.context.currentScene != 'home') return '只能在家保存';
+        if (getLength(this.context.mstState) != 0) return '战斗中不能保存';
+        if (this.context.robberSaveData.robber) return '盗贼入侵中，暂时无法保存';
+        return '条件不满足，暂时无法保存';
+    },
+    // 本地存档按钮被禁用的原因
+    getLocalSaveReason: function () {
+        if (this.context.currentScene != 'home') return '只能在家保存';
+        if (getLength(this.context.mstState) != 0) return '战斗中不能保存';
+        if (this.context.robberSaveData.robber) return '盗贼入侵中，暂时无法保存';
+        return '条件不满足，暂时无法保存';
+    },
     // 保存到账号（服务端），并回显成功/失败结果
     willUpload: function () {
         //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
@@ -113,17 +127,17 @@ var SettingsPanelComponent = React.createClass({
                 </div>
                 {function () {
                     var warns = [];
-                    if (this.context.currentScene != 'home') warns.push('在家才能保存哦。。。');
-                    if (getLength(this.context.mstState) != 0) warns.push('战斗中不能保存哦。。。');
-                    if (this.context.robberSaveData.robber) warns.push('你正处于危险之中。。。');
+                    if (this.context.currentScene != 'home') warns.push('当前不在家：回家后才能保存/读档');
+                    if (getLength(this.context.mstState) != 0) warns.push('战斗中不能保存');
+                    if (this.context.robberSaveData.robber) warns.push('盗贼入侵中：暂时无法保存');
                     if (warns.length == 0) return null;
                     return <div className='settingsRow settingsWarn'>
                         {warns.map(function (w, i) { return <span key={i}>{w}</span> })}
                     </div>;
                 }.bind(this)()}
                 <div className='settingsRow'>
-                    <BtnComponent disabled={!canSaveRemote} handleClick={this.willUpload}>保存</BtnComponent>
-                    <BtnComponent handleClick={this.download}>读取</BtnComponent>
+                    <BtnComponent disabled={!canSaveRemote} disabledReason={this.getRemoteSaveReason()} handleClick={this.willUpload}>保存</BtnComponent>
+                    <BtnComponent handleClick={this.download} disabledReason='账号或密码为空'>读取</BtnComponent>
                 </div>
                 <div className='settingsRow settingsStatus'>{this.state.saveMsg}</div>
                 <div className='settingsRow settingsTitle'>自动存档</div>
@@ -140,9 +154,9 @@ var SettingsPanelComponent = React.createClass({
                         return (
                             <div key={'localSave' + slot} className='settingsRow localSaveRow'>
                                 <span className='localSaveDesc'>{label + ' ' + desc}</span>
-                                <BtnComponent disabled={!canSave} handleClick={self.handleLocalSave.bind(self, slot)}>保存</BtnComponent>
-                                <BtnComponent disabled={!save} handleClick={self.handleLocalLoad.bind(self, slot)}>读取</BtnComponent>
-                                <BtnComponent disabled={!save} handleClick={self.handleLocalDelete.bind(self, slot)}>删除</BtnComponent>
+                                <BtnComponent disabled={!canSave} disabledReason={self.getLocalSaveReason()} handleClick={self.handleLocalSave.bind(self, slot)}>保存</BtnComponent>
+                                <BtnComponent disabled={!save} disabledReason='该存档位是空的' handleClick={self.handleLocalLoad.bind(self, slot)}>读取</BtnComponent>
+                                <BtnComponent disabled={!save} disabledReason='该存档位是空的' handleClick={self.handleLocalDelete.bind(self, slot)}>删除</BtnComponent>
                             </div>
                         );
                     }

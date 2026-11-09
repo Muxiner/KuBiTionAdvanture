@@ -16,7 +16,7 @@ var MenuBtnComponent = React.createClass({
     },
     render: function () {
         var menuHint = this.context.menuHint;
-        return <BtnComponent style={{ backgroundColor: '#9FAA83' }} className='stateVector' handleClick={this.handleClick}><span>菜单</span>{(menuHint > 0 ? <span className='badge'>{menuHint}</span> : '')}</BtnComponent>
+        return <BtnComponent style={{ backgroundColor: '#9FAA83' }} className='stateVector menuToggleBtn' handleClick={this.handleClick}><span>菜单</span>{(menuHint > 0 ? <span className='badge'>{menuHint}</span> : '')}</BtnComponent>
     }
 });
 var CustomMenuComponent = React.createClass({
@@ -36,18 +36,16 @@ var MenuComponent = React.createClass({
     render: function () {
         var type = this.context.showMenu;
         if (!type || type == '') return null
-        switch (type) {
-            case 'menu':
-                var inner = <NormalMenuComponent />
-                break;
-            case 'custom':
-                var inner = <CustomMenuComponent />
+        // NormalMenuComponent 自带 menuOuter/menuInner/menu 结构；这里不能再包一层，
+        // 否则会出现“两层遮罩 + 外层高度塌陷”的双重嵌套（实测移动端菜单高度只剩 22px）。
+        if (type == 'menu') {
+            return <NormalMenuComponent />;
         }
         return <div className='menuOuter'>
             <div className='menuInner'>
                 <div className='menu'>
                     <div className='menuMain'>
-                        {inner}
+                        <CustomMenuComponent />
                     </div>
                 </div>
             </div>

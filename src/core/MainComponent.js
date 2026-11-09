@@ -8,6 +8,25 @@
 // MainComponent：持有全部游戏状态（背包/建筑/地牢/事件/玩家六维/时间/技能等），
 // 通过 context 向约 50 个子组件下发；负责时间推进、每日结算、物品操作、死亡与转生、
 // 天气季节、以及（账号/本地）存档等核心逻辑。
+
+// 存档格式版本。仅用于前端读档兼容判断，不参与服务端协议。
+var SAVE_SCHEMA_VERSION = 2;
+// 允许写入存档的游戏字段白名单：UI/临时状态（msgList/menuDesc/misk/progress/
+// wind/detailed*/showMenu/currentBox/currentScene 等）一律不落盘，避免把 React
+// 元素写进 JSON，也避免读档时把界面状态带回来。
+var SAVE_FIELDS = [
+    'boxSaveData', 'buildingSaveData', 'campSaveData', 'coolDownSaveData',
+    'currentEquip', 'defaultWeapon', 'durableSaveData', 'durableRefreshed',
+    'dungeonSaveData', 'eventSaveData', 'generation', 'itemInstances',
+    'maouLevel', 'placeSaveData', 'playerState', 'robberSaveData', 'season',
+    'skill', 'startSeason', 'time', 'tradeSaveData'
+];
+// 存档中保留的非敏感设置（账号/密码只在内存里，不写本地也不上传）
+var SAVE_SETTING_FIELDS = ['sort', 'autoSave'];
+// 只存放普通物品的容器：读档时清理已从数据表删除的物品 id，避免渲染崩溃。
+// 升级/科技容器（toiletUpdate 等）里是"升级标记键"，不能按 ITEM_DATA 清理。
+var ITEM_ONLY_BOXES = ['bag', 'bigBox', 'cooker', 'cooked', 'well', 'marshGasTank', 'shit', 'register', 'trade'];
+
 var MainComponent = React.createClass({
     startSeason: '',//游戏开始时的季节
     instanceSeq: 1,//耐久类物品实例化时的自增序号
@@ -232,9 +251,14 @@ var MainComponent = React.createClass({
         }
         skillNow[skill] = (skillNow[skill] || 0) + 1;
         var generation = this.state.generation + 1;
+        // 转生只重置世界数据，保留设置（含账号/密码）与魔王等级
+        var settingsNow = this.state.settings;
+        var maouLevelNow = this.state.maouLevel;
         var state = this.getInitialState();
         state.skill = skillNow;
         state.generation = generation;
+        state.settings = settingsNow;
+        state.maouLevel = maouLevelNow;
         this.setState(state);
         setTimeout(function () {
             for (var attr in this.state.playerState) {
@@ -292,6 +316,12 @@ var MainComponent = React.createClass({
     },
     // 处理物品点击：食用/饮用、回城卷轴、武器充能、装备穿戴、能力提升道具等
     handleItemClick: function (item, box) {
+        // 战斗中禁止玩家主动使用/装备物品（战斗内的弹药/状态消耗走 context.useItem，
+        // 不经过这里，因此不会误伤）
+        if (getLength(this.state.mstState) != 0 || this.state.isDueling) {
+            this.showMsg(<p key='noItemInBattle'>战斗中不能使用物品</p>);
+            return;
+        }
         //食物、药剂效果
         if (ITEM_DATA[item].effect) {
             this.playerStateChange(ITEM_DATA[item].effect);
@@ -805,6 +835,11 @@ var MainComponent = React.createClass({
     },
     // 丢弃物品（用于详情面板“丢弃”按钮）：耐久实例一并清理注册
     discardItem: function (item, box, amount) {
+        // 与使用/装备同一规则：战斗中禁止主动丢弃
+        if (getLength(this.state.mstState) != 0 || this.state.isDueling) {
+            this.showMsg(<p key='noDiscardInBattle'>战斗中不能丢弃物品</p>);
+            return;
+        }
         amount = amount || 1;
         this.useItem(o(item, amount), box);
         if (item.indexOf('#') >= 0) {
@@ -889,7 +924,7 @@ var MainComponent = React.createClass({
                 var speed = this.getMstCircle(resource.amount, PLACE_DATA[place].resource[resourceAttr].initAmount, spd);
                 if (season == 'spring') speed *= 5;
                 if (season == 'autumn') speed *= 0.5;
-                if (season == 'winter') speed *= 0;
+                if (season == 'winter') speed *= WINTER_REGEN_MUL;
 
                 setInc(resource, speed);
             }
@@ -942,7 +977,7 @@ var MainComponent = React.createClass({
             for (var i = 0; i < timeMul; i++) {
                 do {
                     var trade = getRandom(TRADE_DATA, { noAttr: 'type' }).attr;
-                } while ((TRADE_DATA[trade].season && TRADE_DATA[trade].season != season) || (TRADE_DATA[trade].day && this.state.time.day < TRADE_DATA[trade].day));
+                } while ((TRADE_DATA[trade].season && TRADE_DATA[trade].season != season) || (TRADE_DATA[trade].day && day < TRADE_DATA[trade].day));
                 var time = TRADE_DATA[trade].time;
                 tradeSaveData.push({ trade: trade, time: time })
             }
@@ -974,6 +1009,11 @@ var MainComponent = React.createClass({
         var deadLine = ROBBER_DAY + (MODE == 'DEBUG' ? 0 : level) + Math.random() * 3 - Math.random() * 3;
         if (day - robberSaveData.lastDate > deadLine) {
             robberSaveData.lastDate = day;
+            // 盗贼夜袭：只有玩家在家时才会被围攻，HomeComponent 据此进入战斗（胜利后置 null）。
+            // 若不在家，不置 robber 标记，只执行下面原有的偷窃结算。
+            if (this.state.currentScene == 'home') {
+                robberSaveData.robber = '_robber';
+            }
             //防盗
             var buildingSaveData = this.state.buildingSaveData;
             var trapList = buildingSaveData.trap.list;
@@ -1005,37 +1045,22 @@ var MainComponent = React.createClass({
                 }
             }
         }
-        this.setState({ robberSaveData: robberSaveData });
+        // 用 setStateFromChildren 落盘，保证 HomeComponent 能及时看到 robber 标记
+        this.setStateFromChildren({ robberSaveData: robberSaveData });
 
         function stole(box) {
             var get = {};
-            var length = getLength(boxSaveData[box].things);
-            length = Math.ceil(length * STOLE_CHANCE);
-            var stoleList = {};
-            while (length > 0) {
-                do {
-                    var random = getRandom(boxSaveData[box].things).attr;
-                }
-                while (stoleList[attr]);
-                stoleList[attr] = boxSaveData[box].things[attr];
-                length--;
+            var things = boxSaveData[box].things;
+            for (var attr in things) {
+                var itemData = ITEM_DATA[attr];
+                // 跳过已从数据表删除的旧物品，避免读取 .type 时崩溃
+                if (!itemData) continue;
+                if (itemData.type != 'food' && itemData.type != 'cooked' && itemData.type != 'met') continue;
+                var amount = things[attr];
+                var stoleAmount = Math.round(stoledPersont * Math.sqrt(amount) * (0.5 + Math.random()));
+                if (stoleAmount) get[attr] = stoleAmount;
             }
-            for (var attr in boxSaveData[box].things) {
-                if (
-                    (ITEM_DATA[attr].type == 'food') || (ITEM_DATA[attr].type == 'cooked') || (ITEM_DATA[attr].type == 'met')
-                ) {
-                    var amount = boxSaveData[box].things[attr];
-
-                    var stoleAmount = Math.round(stoledPersont * Math.sqrt(amount) * (0.5 + Math.random()));
-
-                    var o = {};
-                    o[attr] = stoleAmount;
-                    if (stoleAmount) {
-                        addTo(get, o);
-                    }
-                }
-            }
-            this.changeItem(get, box, true);
+            if (getLength(get) > 0) this.changeItem(get, box, true);
             return get;
         }
     },
@@ -1044,15 +1069,19 @@ var MainComponent = React.createClass({
     isInNight: function (time) {
         return (time < NIGHT_END || time > NIGHT_BEGIN);
     },
-    // 统计一段时间内处于夜晚的小时数
+    // 统计一段时间内处于夜晚的小时数（有界循环：最多 1000 个 0.1 小时步进，
+    // 并容忍旧存档里 time.hour 为空/非数字的情况，避免 while(1) 挂起）
     getTimeInNight: function (from, to) {
         var timeInNight = 0;
-        var i = from;
-        while (1) {
-            if (this.isInNight(i % 24)) timeInNight += 0.1;
-            if (i > to) break;
-            i += 0.1;
-        };
+        if (typeof from !== 'number' || typeof to !== 'number' || !isFinite(from) || !isFinite(to) || to <= from) {
+            return 0;
+        }
+        var duration = to - from;
+        var steps = Math.ceil(duration / 0.1);
+        if (steps > 1000) steps = 1000;
+        for (var i = 0; i < steps; i++) {
+            if (this.isInNight((from + i * 0.1) % 24)) timeInNight += 0.1;
+        }
         return timeInNight;
     },
     // 死亡处理：显示死因，并提供读档 / 重新开始
@@ -1076,7 +1105,8 @@ var MainComponent = React.createClass({
             <div style={{ margin: 100 }}>
                 <p>你死了！</p>
                 <p>死因：{reason}</p>
-                <BtnComponent handleClick={this.download.bind(null)}>读档</BtnComponent>
+                <p>读档会载入最近一次自动存档（出门时自动保存），并损失 10% 金币；战斗中/地牢中无法读档。</p>
+                <BtnComponent handleClick={this.reviveFromAutoSave.bind(this)}>读档</BtnComponent>
                 <BtnComponent handleClick={this.init}>重新开始</BtnComponent>
             </div>
         )
@@ -1085,22 +1115,67 @@ var MainComponent = React.createClass({
             showMenu: 'custom',
         });
     },
-    // 检查六维状态是否归零并触发相应死亡（RELEASE 模式才生效）
+    // 读档限制：战斗中/地牢中禁止读档（返回空字符串表示允许）
+    canLoadSave: function () {
+        if (getLength(this.state.mstState) != 0) return '战斗中不能读档';
+        if (this.state.currentScene == 'dungeon') return '地牢中不能读档';
+        return '';
+    },
+    // 死亡惩罚：从背包+大箱子扣除 10% 金币，返回实际损失数量
+    applyDeathPenalty: function () {
+        var boxSaveData = this.state.boxSaveData;
+        var bagGold = boxSaveData.bag.things.gold || 0;
+        var bigBoxGold = boxSaveData.bigBox.things.gold || 0;
+        var loss = Math.ceil((bagGold + bigBoxGold) * 0.1);
+        if (loss <= 0) return 0;
+        var fromBag = Math.min(loss, bagGold);
+        if (fromBag > 0) this.useItem(o('gold', fromBag), 'bag');
+        var fromBigBox = loss - fromBag;
+        if (fromBigBox > 0) this.useItem(o('gold', fromBigBox), 'bigBox');
+        return loss;
+    },
+    // 死亡后读档：载入最近一次自动存档（local slot 0），并施以金币惩罚
+    reviveFromAutoSave: function () {
+        var reason = this.canLoadSave();
+        if (reason) {
+            alert(reason);
+            return;
+        }
+        var saves = this.getLocalSaves();
+        var save = saves[LOCAL_SAVE_AUTO_SLOT];
+        if (!save || !save.data) {
+            alert('没有可用的自动存档，只能重新开始');
+            return;
+        }
+        this.setState({ saveData: save.data });
+        var self = this;
+        this.loadData(save.data, function () {
+            var lost = self.applyDeathPenalty();
+            self.setState({ showMenu: '', menuDesc: {} });
+            self.showMsg(<p key='revived'>你从自动存档中醒来，损失了 {lost} 枚金币。</p>);
+        });
+    },
+    // 检查六维状态是否归零并触发相应死亡（RELEASE 模式才生效；一次只报一种死因）
     checkDeath: function () {
-        if (MODE == 'DEBUG') return;
+        if (MODE == 'DEBUG') return false;
         var playerState = (this.state.playerState);
         if (playerState.hp.amount <= 0) {
             if (playerState.ps.amount == 0 && (this.getTempDesc() == 'cold' || this.getTempDesc() == 'veryCold')) {
                 this.handleDeath('frozen');
+            } else {
+                this.handleDeath('health');
             }
-            this.handleDeath('health');
+            return true;
         }
         if (playerState.full.amount <= 0) {
             this.handleDeath('hunger');
+            return true;
         }
         if (playerState.moist.amount <= 0) {
             this.handleDeath('thirsty');
+            return true;
         }
+        return false;
     },
     // 推进游戏时间：处理昼夜、体温变化、饥饿/口渴、精神、冷却、生产、死亡判定等
     addTime: function (timeNeed, props) {
@@ -1118,9 +1193,12 @@ var MainComponent = React.createClass({
         var day = this.state.time.day;
         while (now >= 24) {
             now = now - 24;
-            this.handleDayOver(day);
             day += 1;
+            // 用"新的一天"做跨日结算：季节/商队/盗贼都按新 day 计算
+            this.handleDayOver(day);
         }
+        // 跨日后季节可能已变化，后续生产逻辑使用最新季节
+        season = this.state.season;
         var playerState = clone(this.state.playerState);
 
         //装备
@@ -1153,6 +1231,8 @@ var MainComponent = React.createClass({
 
         temp += tempBuff;
         if (PLACE_DATA[this.state.currentScene] && PLACE_DATA[this.state.currentScene].temp) temp += PLACE_DATA[this.state.currentScene].temp;
+        // P7：在家里时室内温度向 0（舒适）方向收敛，冬季不再完全没有可做的室内活动
+        if (this.state.currentScene == 'home') temp = temp * INDOOR_TEMP_FACTOR;
         var playerTemp = this.state.playerState['temp'].amount;
         var tempChange = (temp > playerTemp) ? timeNeed : -timeNeed;
         tempChange = tempChange * tempMul;
@@ -1175,7 +1255,8 @@ var MainComponent = React.createClass({
         }
 
 
-        playerState.temp.amount += tempChange / 2;
+        // 体温向环境靠拢（原代码把同一段修正复制了两遍，现合并为一次完整变化）
+        playerState.temp.amount += tempChange;
 
         //防止矫枉过正
         if ((tempChange > 0) == (playerState.temp.amount > temp)) playerState.temp.amount = temp;
@@ -1191,11 +1272,6 @@ var MainComponent = React.createClass({
         if (playerState.temp.amount > 20) {
             playerState.moist.amount -= Math.ceil(timeNeed * (playerState.temp.amount - 20) / 10);
         }
-
-        playerState.temp.amount += tempChange / 2;
-
-        //防止矫枉过正
-        if ((tempChange > 0) == (playerState.temp.amount > temp)) playerState.temp.amount = temp;
 
         //set full and moist
         playerState.full.amount -= FULL_DESC_PER_HOUR * timeNeed;
@@ -1217,9 +1293,12 @@ var MainComponent = React.createClass({
         }
 
         var totalState = stateCurrentSum / stateSum;
-        playerState.san.amount += (totalState - 0.7) * this.getMaxState('san') / MAX_STATE;
-
         var sanMax = this.getMaxState('san');
+        // 精神恢复/下降按实际经过的时间缩放（原实现每次 addTime 都按固定量变化）
+        var sanDelta = (totalState - 0.7) * sanMax / MAX_STATE * timeNeed;
+        if (sanDelta > sanMax) sanDelta = sanMax;
+        if (sanDelta < -sanMax) sanDelta = -sanMax;
+        playerState.san.amount += sanDelta;
         playerState.san.amount = playerState.san.amount > sanMax ? sanMax : playerState.san.amount;
         playerState.san.amount = playerState.san.amount < 0 ? 0 : playerState.san.amount;
         //set cool down
@@ -1304,6 +1383,22 @@ var MainComponent = React.createClass({
         var level = weaponType == 'melee' ? this.getScienceLevel('锻造技术') : this.getScienceLevel('魔法锻造技术');
         return Math.round(durable * (1 + level * 0.25));
     },
+    // 消耗耐久时解析实际要磨损的键：优先"已装备的同 base 实例"，其次任意同 base 实例，
+    // 最后退回基础记录（旧非实例化 / stackable 物品）。返回 null 表示不是耐久物品。
+    resolveDurableItem: function (baseId) {
+        var o = this.state.durableSaveData;
+        var currentEquip = this.state.currentEquip;
+        var itemInstances = this.state.itemInstances;
+        for (var slot in currentEquip) {
+            var equipped = currentEquip[slot];
+            if (equipped && itemInstances[equipped] == baseId && o[equipped] !== undefined) return equipped;
+        }
+        for (var instanceKey in itemInstances) {
+            if (itemInstances[instanceKey] == baseId && o[instanceKey] !== undefined) return instanceKey;
+        }
+        if (o[baseId] !== undefined) return baseId;
+        return null;
+    },
     // 结算耐久损耗（普通实例扣对应份；stackable 物品按耐久数组逐份处理）
     durableChange: function (list, isNegative) {
         var o = this.state.durableSaveData;
@@ -1311,8 +1406,9 @@ var MainComponent = React.createClass({
         var boxSaveData = this.state.boxSaveData;
         var itemInstances = this.state.itemInstances;
         for (var attr in list) {
-            var itemName = attr, amount = list[attr];
-            if (o[itemName] == undefined) continue;
+            var itemName = this.resolveDurableItem(attr), amount = list[attr];
+            // 没有实例也没有基础记录：该 requirement 不是耐久物品，跳过
+            if (itemName == null || o[itemName] == undefined) continue;
             // stackable 耐久物品：耐久为数组（每份一份），只占一个格子
             if (Array.isArray(o[itemName])) {
                 var arr = o[itemName];
@@ -1381,7 +1477,9 @@ var MainComponent = React.createClass({
         }
         var delay = timeNeed * DELAY_MUL;
         if (delay > 5000) {
-            delay = 5000 + Math.log(2, (delay - 5000));
+            // 超长动作的进度动画用 log2 压缩，并限制上限，避免玩家长时间空等
+            delay = 5000 + Math.log(delay - 5000) / Math.LN2;
+            if (delay > 10000) delay = 10000;
         }
         var min = MIX_DELAY;
         delay = delay > min ? delay : min;
@@ -1513,10 +1611,79 @@ var MainComponent = React.createClass({
         this.AudioEngine.on = !this.AudioEngine.on;
         render();
     },
+    // 把存档对象规整成当前版本可用的结构：缺失字段用初始值兜底，
+    // 非法数值回退到安全值，避免旧档/损坏档把游戏卡死。
+    normalizeSaveData: function (data) {
+        if (!data || typeof data !== 'object' || getLength(data) === 0) {
+            throw new Error('empty save data');
+        }
+        var d = clone(data);
+        var defaults = this.getInitialState();
+        // 时间：旧档/坏档里 hour 可能是 null 或字符串，getTimeInNight 等逻辑依赖数字
+        if (!d.time || typeof d.time !== 'object') d.time = clone(defaults.time);
+        var day = Number(d.time.day);
+        var hour = Number(d.time.hour);
+        if (d.time.day === null || d.time.day === undefined || d.time.day === '') day = 1;
+        if (d.time.hour === null || d.time.hour === undefined || d.time.hour === '') hour = 6;
+        if (!isFinite(day) || day < 1) day = 1;
+        if (!isFinite(hour) || hour < 0 || hour >= 24) hour = 6;
+        d.time = { day: Math.floor(day), hour: hour };
+        // 地牢
+        if (!d.dungeonSaveData || typeof d.dungeonSaveData !== 'object') d.dungeonSaveData = clone(defaults.dungeonSaveData);
+        if (!d.dungeonSaveData.stairData || typeof d.dungeonSaveData.stairData !== 'object') d.dungeonSaveData.stairData = {};
+        d.dungeonSaveData.stairCount = Math.max(1, parseInt(d.dungeonSaveData.stairCount, 10) || 1);
+        d.dungeonSaveData.roomCount = Math.max(1, parseInt(d.dungeonSaveData.roomCount, 10) || 1);
+        d.dungeonSaveData.deepest = Math.max(1, parseInt(d.dungeonSaveData.deepest, 10) || 1);
+        // 对象型字段：缺失或类型不对时用初始值
+        var objectFields = ['boxSaveData', 'buildingSaveData', 'campSaveData', 'coolDownSaveData', 'currentEquip', 'durableSaveData', 'eventSaveData', 'itemInstances', 'placeSaveData', 'playerState', 'robberSaveData', 'skill'];
+        for (var i = 0; i < objectFields.length; i++) {
+            var objKey = objectFields[i];
+            if (!d[objKey] || typeof d[objKey] !== 'object' || d[objKey] instanceof Array) d[objKey] = clone(defaults[objKey]);
+        }
+        if (!d.tradeSaveData || !(d.tradeSaveData instanceof Array)) d.tradeSaveData = [];
+        // 玩家六维逐项兜底
+        for (var stateName in defaults.playerState) {
+            if (!d.playerState[stateName] || typeof d.playerState[stateName] !== 'object') d.playerState[stateName] = clone(defaults.playerState[stateName]);
+            var amount = Number(d.playerState[stateName].amount);
+            if (!isFinite(amount)) amount = defaults.playerState[stateName].amount;
+            d.playerState[stateName].amount = amount;
+        }
+        // 容器：补齐缺失容器 / things / size
+        for (var boxName in BOX_INIT) {
+            if (!d.boxSaveData[boxName] || typeof d.boxSaveData[boxName] !== 'object') {
+                d.boxSaveData[boxName] = clone(BOX_INIT[boxName]);
+                continue;
+            }
+            if (!d.boxSaveData[boxName].things || typeof d.boxSaveData[boxName].things !== 'object') d.boxSaveData[boxName].things = {};
+            if (typeof d.boxSaveData[boxName].size !== 'number') d.boxSaveData[boxName].size = BOX_INIT[boxName].size || 1;
+        }
+        for (var buildingName in BUILDING_INIT) {
+            if (!d.buildingSaveData[buildingName] || typeof d.buildingSaveData[buildingName] !== 'object') {
+                d.buildingSaveData[buildingName] = clone(BUILDING_INIT[buildingName]);
+            }
+        }
+        if (typeof d.generation !== 'number' || !isFinite(d.generation)) d.generation = 0;
+        if (typeof d.maouLevel !== 'number' || !isFinite(d.maouLevel)) d.maouLevel = 0;
+        if (d.season !== 'spring' && d.season !== 'summer' && d.season !== 'autumn' && d.season !== 'winter') d.season = defaults.season;
+        if (d.startSeason !== 'spring' && d.startSeason !== 'autumn') d.startSeason = defaults.startSeason;
+        if (!d.settings || typeof d.settings !== 'object') d.settings = {};
+        d.schemaVersion = (typeof d.schemaVersion === 'number' && isFinite(d.schemaVersion)) ? d.schemaVersion : 1;
+        return d;
+    },
     // 读档：重置临时界面状态并对缺失字段做兼容处理
     loadState: function (data) {
+        try {
+            data = this.normalizeSaveData(data);
+        } catch (e) {
+            console.error('[game] 读档失败：', e);
+            this.setState({ currentScene: 'home', showMenu: '' });
+            this.showMsg(<p key='loadFail'>读档失败：存档格式不兼容</p>);
+            return false;
+        }
+        var currentSettings = this.state.settings || {};
+        try {
         this.setState({ currentScene: 'home' });
-        //对存档的预处理
+        //对存档的预处理（UI-only 字段不落盘，旧档里若有也在这里丢弃）
         data.misk = 0;
         data.progress = 0;
         data.wind = null;
@@ -1524,6 +1691,20 @@ var MainComponent = React.createClass({
         data.detailedType = '';
         data.detailedList = [];
         data.currentBox = '';
+        data.msgList = [];
+        data.menuDesc = {};
+
+        // 旧档技能迁移：训练师可提升的普通技能 clamp 到 data.js 的 TRAINER_MAX_LEVEL，
+        // 天赋（isTalent）保持原等级不作上限处理。
+        var skillMaxLevel = (typeof TRAINER_MAX_LEVEL === 'number') ? TRAINER_MAX_LEVEL : 30;
+        for (var skillKey in data.skill) {
+            var skillInfo = SKILL_DATA[skillKey];
+            if (!skillInfo || skillInfo.isTalent) continue;
+            var skillLevel = Number(data.skill[skillKey]);
+            if (!isFinite(skillLevel) || skillLevel < 0) skillLevel = 0;
+            if (skillLevel > skillMaxLevel) skillLevel = skillMaxLevel;
+            data.skill[skillKey] = Math.floor(skillLevel);
+        }
 
         if (!data.generation) {
             data.generation = 0;
@@ -1681,6 +1862,32 @@ var MainComponent = React.createClass({
                 data.eventSaveData[attr] = EVENT_INIT[attr];
             }
         }
+        // 设置合并：读档不覆盖当前账号/密码，只取回非敏感设置
+        var mergedSettings = { sort: false, autoSave: true };
+        for (var loadedSetting in (data.settings || {})) {
+            if (loadedSetting != 'save_account' && loadedSetting != 'save_pass') mergedSettings[loadedSetting] = data.settings[loadedSetting];
+        }
+        if (currentSettings.save_account !== undefined) mergedSettings.save_account = currentSettings.save_account;
+        if (currentSettings.save_pass !== undefined) mergedSettings.save_pass = currentSettings.save_pass;
+        data.settings = mergedSettings;
+        // 清理历史存档里已从数据表删除的物品 id：只清普通物品容器，
+        // 升级/科技容器里的标记键（bed_1、showerPlace 等）保持不动。
+        for (var boxName3 in data.boxSaveData) {
+            if (ITEM_ONLY_BOXES.indexOf(boxName3) < 0) continue;
+            var things3 = data.boxSaveData[boxName3].things;
+            for (var itemKey in things3) {
+                if (!ITEM_DATA[itemKey]) delete things3[itemKey];
+            }
+        }
+        for (var eqSlot2 in data.currentEquip) {
+            if (data.currentEquip[eqSlot2] && !ITEM_DATA[data.currentEquip[eqSlot2]]) data.currentEquip[eqSlot2] = null;
+        }
+        for (var dKey in data.durableSaveData) {
+            if (!ITEM_DATA[dKey]) delete data.durableSaveData[dKey];
+        }
+        for (var iKey in data.itemInstances) {
+            if (!ITEM_DATA[iKey]) delete data.itemInstances[iKey];
+        }
         this.setState(data);
         this.setState({ showMenu: '' });
         this.setState({ currentScene: 'home' });
@@ -1688,23 +1895,49 @@ var MainComponent = React.createClass({
         var boxSaveData = this.state.boxSaveData;
         boxSaveData['bag'].size = BAG_BASE_SIZE + level;
         this.setState({ boxSaveData: boxSaveData });
+        return true;
+        } catch (e) {
+            console.error('[game] 读档失败：', e);
+            this.setState({ currentScene: 'home', showMenu: '' });
+            this.showMsg(<p key='loadFail2'>读档失败：存档数据异常，已保留当前进度</p>);
+            return false;
+        }
     },
-    // 载入账号存档字符串（先切场景过渡，再解析并 loadState）
-    loadData: function (str) {
+    // 载入存档（先切场景过渡，再解析并 loadState）。input 可以是 JSON 字符串或对象；
+    // callback 在 loadState 成功后执行（用于死亡读档后的惩罚/收尾）。
+    loadData: function (input, callback) {
+        var data;
+        try {
+            data = (typeof input === 'string') ? JSON.parse(input) : clone(input);
+        } catch (e) {
+            console.error('[game] 存档解析失败：', e);
+            this.setState({ currentScene: 'home', showMenu: '' });
+            this.showMsg(<p key='loadParseFail'>存档解析失败，文件可能已损坏</p>);
+            return false;
+        }
         this.setState({ currentScene: 'branch' });
         setTimeout(function () {
             this.setState({ currentScene: 'home' });
-            var data = eval('(' + str + ')');
-            //对存档的预处理
-            this.loadState(data);
-        }.bind(this), 100)
+            var ok = this.loadState(data);
+            if (ok && callback) callback();
+        }.bind(this), 100);
+        return true;
     },
     // 读取账号存档：向后端查询并载入数据
     download: function () {
-        var saveData = (this.state);
-        var save_account = saveData.settings.save_account;
-        var save_pass = saveData.settings.save_pass;
-        var jsonStr = 'action=load&account=' + save_account + '&pass=' + save_pass + '&data=nope';
+        var reason = this.canLoadSave();
+        if (reason) {
+            alert(reason);
+            return;
+        }
+        var settings = this.state.settings || {};
+        var save_account = settings.save_account;
+        var save_pass = settings.save_pass;
+        if (save_account == null || save_account == '' || save_pass == null || save_pass == '') {
+            alert('请先在设置中填写账号和密码');
+            return;
+        }
+        var jsonStr = 'action=load&account=' + encodeURIComponent(save_account) + '&pass=' + encodeURIComponent(save_pass) + '&data=nope';
         var self = this;
         var htmlobj = $.ajax({
             contentType: "application/x-www-form-urlencoded",
@@ -1713,47 +1946,85 @@ var MainComponent = React.createClass({
             async: true,
             data: jsonStr,
             success: function () {
-                if (htmlobj.responseText == 'no account') {
+                var resp = htmlobj.responseText;
+                if (resp == 'no account') {
                     alert("没有这个账号...");
                     return;
                 }
-                if (htmlobj.responseText == 'incorrect pass') {
+                if (resp == 'incorrect pass') {
                     alert("密码错误...");
                     return;
                 }
-                if (htmlobj.responseText == 'invalid') {
-                    alert("账号、密码必须是3-12位的数字以及字母的组合...");
+                if (resp == 'invalid') {
+                    alert("账号 3-12 位、密码至少 3 位，仅限数字和字母...");
                     return;
                 }
-                lll(htmlobj.responseText);
+                if (resp == 'save corrupted') {
+                    alert("存档文件已损坏，无法读取");
+                    return;
+                }
+                var data;
+                try {
+                    data = JSON.parse(resp);
+                } catch (e) {
+                    console.error('[game] 读档失败，服务器返回内容不是 JSON：', resp);
+                    alert("读取失败：存档数据损坏");
+                    return;
+                }
                 alert("读取成功！");
-                self.setState({ saveData: htmlobj.responseText });
-                self.loadData(htmlobj.responseText);
+                self.setState({ saveData: resp });
+                self.loadData(data);
+            },
+            error: function (xhr, status) {
+                var msg = (status == 'timeout') ? '请求超时' : '网络错误：无法连接存档服务器';
+                alert('读取失败：' + msg);
             }
         });
     },
+    // 构造落盘存档对象：只包含白名单内的游戏字段 + 非敏感设置
+    getSaveData: function () {
+        var state = this.state;
+        var data = { schemaVersion: SAVE_SCHEMA_VERSION };
+        for (var i = 0; i < SAVE_FIELDS.length; i++) {
+            var fieldKey = SAVE_FIELDS[i];
+            if (state[fieldKey] !== undefined) data[fieldKey] = clone(state[fieldKey]);
+        }
+        var settings = {};
+        for (var j = 0; j < SAVE_SETTING_FIELDS.length; j++) {
+            var settingKey = SAVE_SETTING_FIELDS[j];
+            if (state.settings && state.settings[settingKey] !== undefined) settings[settingKey] = state.settings[settingKey];
+        }
+        data.settings = settings;
+        return data;
+    },
     // 保存账号存档到后端（需填写账号/密码）；callback(ok, reason) 用于回显结果
     upload: function (doNotShow, callback) {
-        var saveData = clone(this.state);
-        var save_account = saveData.settings.save_account;
-        var save_pass = saveData.settings.save_pass;
-        var day = saveData.time.day;
-        var g = saveData.generation;
+        var settings = this.state.settings || {};
+        var save_account = settings.save_account;
+        var save_pass = settings.save_pass;
         if (save_account == null || save_account == '') {
-            alert('不输入账号怎么保存啊。。。');
+            callback && callback(false, '未填写账号');
             return;
         }
         if (save_pass == null || save_pass == '') {
-            alert('不输入密码怎么保存啊。。。');
+            callback && callback(false, '未填写密码');
             return;
         }
-        delete saveData.settings;
-        delete saveData.saveData;
-        delete saveData.wind;
-        delete saveData.detailedItem;
-        delete saveData.detailedList;
-        delete saveData.detailedType;
-        var jsonStr = 'action=save&account=' + save_account + '&pass=' + save_pass + '&data=' + encodeURI(JSON.stringify(saveData)) + '&day=' + day + '&g=' + g;
+        var saveData;
+        try {
+            saveData = this.getSaveData();
+        } catch (e) {
+            console.error('[game] 构造存档失败：', e);
+            callback && callback(false, '存档数据异常');
+            return;
+        }
+        var day = saveData.time.day;
+        var g = saveData.generation;
+        var jsonStr = 'action=save&account=' + encodeURIComponent(save_account) +
+            '&pass=' + encodeURIComponent(save_pass) +
+            '&data=' + encodeURIComponent(JSON.stringify(saveData)) +
+            '&day=' + encodeURIComponent(String(day)) +
+            '&g=' + encodeURIComponent(String(g));
         var htmlobj = $.ajax({
             contentType: "application/x-www-form-urlencoded",
             type: 'POST',
@@ -1761,19 +2032,31 @@ var MainComponent = React.createClass({
             async: true,
             data: jsonStr,
             success: function () {
-                if (htmlobj.responseText == 'incorrect pass') {
-                    alert("密码错误...");
+                var resp = htmlobj.responseText;
+                if (resp == 'success') {
+                    if (!doNotShow) alert("保存成功！");
+                    callback && callback(true);
+                    return;
+                }
+                if (resp == 'incorrect pass') {
+                    if (!doNotShow) alert("密码错误...");
                     callback && callback(false, '密码错误');
                     return;
                 }
-                if (htmlobj.responseText == 'invalid') {
-                    alert("账号、密码必须是3-12位的数字以及字母的组合...");
+                if (resp == 'invalid') {
+                    var invalidMsg = "账号 3-12 位、密码至少 3 位，仅限数字和字母...";
+                    if (!doNotShow) alert(invalidMsg);
                     callback && callback(false, '账号或密码格式错误');
                     return;
                 }
-                if (!doNotShow) alert("保存成功！");
-                callback && callback(true);
-                // self.setState({saveData:decodeURI(encodeURI(JSON.stringify(saveData)))});
+                var reason = (resp && resp.indexOf('save failed') == 0) ? resp : ('服务器返回异常：' + resp);
+                if (!doNotShow) alert('保存失败：' + reason);
+                callback && callback(false, reason);
+            },
+            error: function (xhr, status) {
+                var netMsg = (status == 'timeout') ? '请求超时' : '网络错误：无法连接存档服务器';
+                if (!doNotShow) alert('保存失败：' + netMsg);
+                callback && callback(false, netMsg);
             }
         });
     },
@@ -1804,17 +2087,19 @@ var MainComponent = React.createClass({
         }
         return result;
     },
-    // 保存到指定本地槽（剥离界面态字段后序列化）
+    // 保存到指定本地槽（只写白名单字段 + 非敏感设置）
     saveLocal: function (slot) {
-        var saveData = clone(this.state);
-        delete saveData.settings;
-        delete saveData.saveData;
-        delete saveData.wind;
-        delete saveData.detailedItem;
-        delete saveData.detailedList;
-        delete saveData.detailedType;
+        var saveData;
+        try {
+            saveData = this.getSaveData();
+        } catch (e) {
+            console.error('[game] 构造存档失败：', e);
+            alert('本地保存失败：存档数据异常');
+            return false;
+        }
         var save = {
-            version: 1,
+            version: SAVE_SCHEMA_VERSION,
+            schemaVersion: SAVE_SCHEMA_VERSION,
             savedAt: Date.now(),
             day: saveData.time.day,
             hour: saveData.time.hour,
@@ -1830,8 +2115,13 @@ var MainComponent = React.createClass({
         }
         return true;
     },
-    // 从本地槽读取并载入
+    // 从本地槽读取并载入（战斗中/地牢中禁止读档）
     loadLocal: function (slot) {
+        var reason = this.canLoadSave();
+        if (reason) {
+            alert(reason);
+            return false;
+        }
         var saves = this.getLocalSaves();
         var save = saves[slot];
         if (!save || !save.data) {

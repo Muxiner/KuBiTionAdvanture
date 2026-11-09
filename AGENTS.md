@@ -10,5 +10,5 @@
 - 纯前端 HTML5 沙盒生存文字游戏（React `createClass` + 浏览器内 Babel），无构建工具。
 - 本地开发运行：`python3 dev_server.py`（实时重载 + 本地存档后端 + 服务器自身热重载）。
 - 存档：账号/密码存档写入 `saves/<账号>.json`；另有浏览器 `localStorage` 多槽本地存档。
-- 界面为铺满窗口的响应式流式布局；响应式/覆盖样式集中写在 `index.css` 末尾。
+- 界面为铺满窗口的响应式流式布局；样式按 `css/01…09` 分类加载，响应式/覆盖样式集中在 `css/09-responsive.css`（必须最后加载）。
 - `saves/` 下的实际存档文件与 `__pycache__/` 已由 `.gitignore` 忽略。

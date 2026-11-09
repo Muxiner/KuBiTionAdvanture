@@ -5,8 +5,8 @@
  * 以及各系统的初始化模板（BUILDING_INIT / BOX_INIT / PLACE_INIT ...）。
  * main.js 的所有玩法逻辑都从这里取值。
  */
-// 调试模式：后一行会覆盖前一行，最终生效的是 RELEASE（DELAY_MUL 随之改变）
-var MODE = 'DEBUG';
+// 调试模式开关：默认 RELEASE；本地调试时手动改为 'DEBUG'
+// （DEBUG 会解锁调试面板与调试初始物资，见文件末尾）
 var MODE = 'RELEASE';
 
 // ===== 全局平衡常量 =====
@@ -47,9 +47,23 @@ var NIGHT_BEGIN = 22;           // 夜晚开始（时）
 var NIGHT_END = 2;              // 夜晚结束（时）
 var SEASON_CIRCLE = 40;         // 每个季节的天数
 var TRADE_MUL = 0.75;           // 交易折价系数
+
+// ===== 平衡修复常量（对应 gameplay 评估报告 G2/G3/G4/G5/G6）=====
+var COMBAT_TURN_TIME = 0.5;        // G3：战斗每回合耗时（游戏小时）
+var DAMAGE_REDUCTION_CAP = 0.85;   // G4：总减伤上限（85%，即单次伤害不低于原始 15%）
+var FOREVER_QUEST_COOLDOWN = 24;   // G2：永久兑换任务的冷却（游戏小时）
+var TRAINER_MAX_LEVEL = 30;        // G6：训练师技能等级上限
+var TRAINER_COST_GROWTH = 0.5;     // G6：训练师费用随当前等级线性增长系数
+var WEAPON_RANGE_CAP = 20;         // G6：武器射程上限（修复射程数值断层）
+var DUNGEON_MAX_FLOOR = 32;        // G5：地牢层数上限（第 32 层尝试继续向下即通关）
+var DUNGEON_REWARD_TIER = 1;       // G5：每 N 层提升一档宝箱奖励表（每层累加，避免深层奖励表不可达）
+var DUNGEON_MST_TIER = 2;          // G5：每 N 层提升一档怪物表
+var WINTER_REGEN_MUL = 0.25;        // P7：冬季资源再生不为 0（原 0 让 40 天完全空转）
+var INDOOR_TEMP_FACTOR = 0.35;     // P7：室内（家）环境温度向 0 靠拢的系数，模拟保暖/避暑
 var COLOR = {
     BLACK: '#222',
-    GREEN: '#74AB6A',
+    // U8：白底对比度由 2.7:1 提升到 5.5:1（与 UI 侧 UX_GREEN 一致）
+    GREEN: '#3F6B32',
     BLUE: '#62BBBE',
     RED: '#B25242',
     WHITE: '#eee',
@@ -254,6 +268,11 @@ var BUILDING_UPDATE_DATA = {
             timeNeed: 4,
             require: { "pickaxe": 10, 'wood': 10 },
             science: 'wellDig_5'
+        },
+        wellDig_7: {
+            timeNeed: 4,
+            require: { "pickaxe": 14, 'wood': 12 },
+            science: 'wellDig_6'
         },
     },
     bigBoxUpdate: {
@@ -553,9 +572,9 @@ var CROP_DATA = {
         desc: '[榕树]',
         timeMax: 178,
         timeNeed: 1,
-        require: { 'wood': 5, 'water': 20 },
+        require: { 'water': 25, 'fertilizer': 5 },
         itemGet: 'wood',
-        itemAmount: 80,
+        itemAmount: 25,
     },
 }
 // ALCO_DATA：酿酒桶配方表（材料、耗时、产出酒类）
@@ -629,7 +648,6 @@ var COOK_DATA = [
     { name: "hotWater", require: ["water", "wood"] },
     { name: "hotCoffee", require: ["coffee", "wood"] },
     { name: "salad", require: ["flower", "seed"] },
-    { name: "salad", require: ["veg", "seed"] },
     { name: "salad", require: ["veg", "flower"] },
     { name: "salad", require: ["veg", "jam"] },
     { name: "salad", require: ["veg", "seed"] },
@@ -663,7 +681,6 @@ var COOK_DATA = [
 
     { name: "flowerTea", require: ["water", "flower"] },
     { name: "hotFlowerTea", require: ["flowerTea", "wood"] },
-    { name: "jamBread", require: ["jam", "flour"] },
     { name: "jamBread", require: ["jam", "bread"] },
 
     { name: "fruitAlco", require: ["juice", "alco"] },
@@ -677,7 +694,6 @@ var COOK_DATA = [
     { name: "woodBread", require: ["wood", "bread"] },
     { name: "fruitBread", require: ["fruit", "bread"] },
     { name: "seedBread", require: ["seed", "bread"] },
-    { name: "seedBread", require: ["seed", "flour"] },
     { name: "sandwich", require: ["bread", "veg"] },
     { name: "flowerBread", require: ["bread", "flower"] },
     { name: "hamburger", require: ["bread", "meat"] },
@@ -689,7 +705,6 @@ var COOK_DATA = [
     { name: "beanJelly", require: ["herb", "water"] },
     { name: "bakeWing", require: ["wing", "wood"] },
     { name: "boilEgg", require: ["spiderEgg", "water"] },
-    { name: "hotWater", require: ["wood", "water"] },
 
     { name: "fishMeat", require: ["fish", "meat"] },
     { name: "woodFish", require: ["fish", "wood"] },
@@ -1132,7 +1147,7 @@ var BOX_INIT = {
     makeTable: {
         things: {
         },
-        size: 1,
+        size: 12,
         isDone: true,
     },
     scienceTable: {
@@ -1144,31 +1159,31 @@ var BOX_INIT = {
     alchemyTable: {
         things: {
         },
-        size: 1,
+        size: 12,
         isDone: true,
     },
     magicTable: {
         things: {
         },
-        size: 1,
+        size: 12,
         isDone: true,
     },
     cooker: {
         things: {
         },
-        size: 2
+        size: 6
     },
     cooked: {
         things: {
         },
-        size: 1,
+        size: 8,
         isDone: true,
     },
     well: {
         things: {
             water: 10,
         },
-        size: 1,
+        size: 4,
         isDone: true,
     },
     bigBox: {
@@ -1240,7 +1255,6 @@ if (MODE == 'DEBUG') {
     BOX_INIT.bag.things.gold = 1001;
     BOX_INIT.bag.things.rope = 1001;
     BOX_INIT.bag.things.hoe = 1001;
-    BOX_INIT.bag.things.testWeapon = 1001;
     BOX_INIT.bag.things.mithril = 1001;
     BOX_INIT.bag.things.reiPart = 1001;
     BOX_INIT.bag.things.blood = 1001;
@@ -1367,4 +1381,13 @@ var DEBUG_SKILL = {
     def: 0,
     melee: 0,
     magic: 0,
+}
+
+// ===== G6：武器射程断层修复 =====
+// 原数据里有射程 120/200/800 的武器，配合 agile 技能会让命中率计算彻底失真；
+// 这里统一把武器射程上限压到 WEAPON_RANGE_CAP（数值调节都留在数据层）。
+for (var wpnAttr in ITEM_DATA) {
+    if (ITEM_DATA[wpnAttr].type == 'weapon' && ITEM_DATA[wpnAttr].range > WEAPON_RANGE_CAP) {
+        ITEM_DATA[wpnAttr].range = WEAPON_RANGE_CAP;
+    }
 }

@@ -74,15 +74,9 @@ var ItemDetailComponent = React.createClass({
         if (!ITEM_DATA[detailedItem]) return null; // 非物品条目（如某些升级项）不显示详情
         //装备的处理
         var currentEquip = this.context.currentEquip;
-        var equipShow = null;
         var equipType = ITEM_DATA[detailedItem].equipType;
-        if (equipType) {
-            if (currentEquip[equipType] != detailedItem) {
-                equipShow = <span style={{ color: COLOR.RED }}>右键装备</span>;
-            } else {
-                equipShow = <span style={{ color: COLOR.GREEN }}>已装备</span>;
-            }
-        }
+        var isEquipped = !!(equipType && currentEquip[equipType] == detailedItem);
+        var itemBox = this.getItemBoxFromDetail();
         function getDetailDesc() {
             if (ITEM_DATA[detailedItem].effect) {
                 var res = [];
@@ -111,26 +105,30 @@ var ItemDetailComponent = React.createClass({
             </p>
             {equipType ? <p className="detailVector effectHeading clearFix">{EQUIP_TYPE_DATA[equipType]}</p> : null}
             <p className="detailVector effectHeading clearFix">
-                {equipShow || (TYPE_DATA[ITEM_DATA[detailedItem].type] ? TYPE_DATA[ITEM_DATA[detailedItem].type].name : ITEM_DATA[detailedItem].type)}
+                {isEquipped ? <span style={{ color: UX_GREEN }}>✓ 已装备</span> : (TYPE_DATA[ITEM_DATA[detailedItem].type] ? TYPE_DATA[ITEM_DATA[detailedItem].type].name : ITEM_DATA[detailedItem].type)}
             </p>
-            {(!IS_IPAD && ITEM_DATA[detailedItem].canUse) ? <p className="detailVector effectHeading clearFix" >右键使用</p> : null}
             {maxDurable != undefined ? <div className="detailVector effectHeading clearFix" >耐久度：{maxDurable - durable}/{maxDurable}</div> : null}
+            {/* 操作区：桌面与触屏始终可见（不再只在 IS_IPAD 时出现） */}
+            <div className="detailActions">
+                {ITEM_DATA[detailedItem].canUse ? <BtnComponent disabled={!itemBox} handleClick={this.useItemFromDetail}>使用</BtnComponent> : null}
+                {(equipType && !isEquipped) ? <BtnComponent disabled={itemBox != 'bag'} handleClick={this.useItemFromDetail}>装备</BtnComponent> : null}
+                {isEquipped ? <BtnComponent handleClick={this.context.cancelEquip.bind(this, detailedItem)}>卸下</BtnComponent> : null}
+                {!IS_IPAD && ITEM_DATA[detailedItem].canUse ? <span className="detailHint">（右键可快速使用）</span> : null}
+            </div>
             <div className="detailVector detailDesc">
                 {ITEM_DATA[detailedItem].desc}
-                {(IS_IPAD && ITEM_DATA[detailedItem].canUse) ? <BtnComponent disabled={!this.getItemBoxFromDetail()} handleClick={this.useItemFromDetail}>使用</BtnComponent> : null}
-                {(IS_IPAD && ITEM_DATA[detailedItem].equipType) ? <BtnComponent disabled={this.getItemBoxFromDetail() != 'bag'} handleClick={this.useItemFromDetail}>装备</BtnComponent> : null}
             </div>
             {(ITEM_DATA[detailedItem].type != 'quest' && ITEM_DATA[detailedItem].type != 'special') ?
                 <div className="detailVector detailDiscard">
                     {this.state.discardConfirm == detailedItem ?
                         <span>
-                            <BtnComponent disabled={!this.getItemBoxFromDetail()} handleClick={this.handleDiscard.bind(this, detailedItem)}>确认丢弃</BtnComponent>
+                            <BtnComponent disabled={!itemBox} handleClick={this.handleDiscard.bind(this, detailedItem)}>确认丢弃</BtnComponent>
                             <BtnComponent handleClick={this.cancelDiscard}>取消</BtnComponent>
                             <span className="discardHint">Shift=丢全部</span>
                         </span>
                         :
                         <span>
-                            <BtnComponent disabled={!this.getItemBoxFromDetail()} handleClick={this.handleDiscard.bind(this, detailedItem)}>丢弃</BtnComponent>
+                            <BtnComponent disabled={!itemBox} handleClick={this.handleDiscard.bind(this, detailedItem)}>丢弃</BtnComponent>
                             <span className="discardHint">点两次·Shift=丢全部</span>
                         </span>
                     }
@@ -172,10 +170,17 @@ var ItemDetailComponent = React.createClass({
     },
     render: function () {
         switch (this.context.detailedType) {
-            case 'item': return this.getItemDetail();
+            case 'item':
+                var detail = this.getItemDetail();
+                if (detail) return detail;
+                break;
             case 'state': return this.getStateDetail();
             case 'desc': return this.getDescDetail();
         }
-        return null;
+        // 详情面板常驻提示（原先是 110px 的空白灰块，玩家不知道这里能做什么）
+        return <div className="detailHead detailEmpty">
+            <p>点击物品查看详情</p>
+            <p className="detailEmptyHint">点按/左键选中；右键可快速使用 / 装备</p>
+        </div>;
     }
 });

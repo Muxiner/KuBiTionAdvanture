@@ -28,8 +28,10 @@ var BagComponent = React.createClass({
     },
     render: function () {
         return <div className="panel panel-primary equipMain">
-            <div className="panel-heading">
-                背包
+            <div className="panel-heading bagHeading">
+                <span className="bagHeadingTitle">背包</span>
+                <span className="bagScrollHint">可上下滑动查看更多</span>
+                <button type="button" className="bagCloseBtn" onClick={uxCloseBagPanel} aria-label="收起背包，返回场景" title="收起背包，返回场景">收起</button>
             </div>
             <div className="panel-body  clearFix">
                 <EquipBarComponent currentEquip={this.context.currentEquip} onUnequip={this.context.unequipSlot} />
@@ -37,7 +39,7 @@ var BagComponent = React.createClass({
                 <div className="equip" id="equip">
                     <BoxComponent box='bag' />
                 </div>
-                <div className="detail" id="detail">
+                <div className="detail" id="detail" role="region" aria-label="物品详情" aria-live="polite">
                     <ItemDetailComponent />
                 </div>
                 <OwnedListComponent boxSaveData={this.context.boxSaveData} />

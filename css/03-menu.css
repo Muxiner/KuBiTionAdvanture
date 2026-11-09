@@ -183,3 +183,77 @@ p {
     overflow: hidden;
     visibily: hidden;
 }
+
+/* =====================================================================
+   UX 修复覆盖块（U4/U9）
+   - 菜单遮罩由 10% 加深到 55%，弹窗与背景不再抢注意力
+   - 页签改为真按钮 + 选中态（is-active），默认打开技能页（normalMenu.js）
+   - 空态/警告文字改为可读深色
+   ===================================================================== */
+
+.menuInner {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.menu {
+    background: #DBDBCB;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    box-sizing: border-box;
+}
+
+.menuMain {
+    background: #ffffff;
+}
+
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 0;
+}
+
+.nav .btn {
+    margin: 0;
+}
+
+.tabBtn {
+    min-width: 88px;
+}
+
+.tabBtn.is-active {
+    background-color: #3f5a32;
+    border-color: #3f5a32;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.tabBtn.is-active:hover {
+    background-color: #32482a;
+    border-color: #32482a;
+    color: #ffffff;
+}
+
+/* 技能空态：原 COLOR.YELLOW(#CBCB7D) 对白仅 1.70:1 */
+.skillEmpty {
+    padding: 12px 14px;
+    border-left: 4px solid #8a5a00;
+    background: #fff8d6;
+    color: #4a3f00;
+    font-size: 14px;
+    line-height: 22px;
+    text-align: left;
+}
+
+/* 存档警告：深红，白/浅灰底上 ≥5:1 */
+.settingsWarn {
+    color: #8a2f22;
+    font-size: 13px;
+    line-height: 20px;
+}
+
+/* 存档面板输入框：与放大后的按钮对齐（32 -> 36） */
+.settingsMenu .settingsInput {
+    height: 36px;
+}

@@ -97,6 +97,8 @@ var QuestComponent = React.createClass({
         setStateFromChildren: React.PropTypes.func.isRequired,
         callWindow: React.PropTypes.func.isRequired,
         changeItem: React.PropTypes.func.isRequired,
+        getcoolDownSaveData: React.PropTypes.func.isRequired,
+        setcoolDownSaveData: React.PropTypes.func.isRequired,
     },
     getDefaultProps: function () {
         return {
@@ -122,8 +124,18 @@ var QuestComponent = React.createClass({
 
         this.props.callBack && this.props.callBack();
     },
-    // 永久任务完成：仅按 chanceGet 概率额外发放奖励，不结束事件
+    // 永久任务：冷却键（每个事件独立，存入 coolDownSaveData，随游戏时间衰减）
+    foreverKey: function () {
+        return 'forever_' + this.props.event;
+    },
+    // 剩余冷却小时数（0 表示可用）
+    getForeverCd: function () {
+        var cd = this.context.getcoolDownSaveData(this.foreverKey());
+        return (cd && cd > 0) ? cd : 0;
+    },
+    // 永久任务完成：按 chanceGet 额外发放奖励，并写入冷却；不结束事件
     onForeverDone: function () {
+        if (this.getForeverCd() > 0) return;
         var data = EVENT_DATA[this.props.event];
         var itemList = clone(data.get) || null;
         var chanceGet = data.chanceGet;
@@ -135,18 +147,23 @@ var QuestComponent = React.createClass({
             }
         }
         this.context.changeItem(itemList, 'register');
+        var cd = data.foreverCd || FOREVER_QUEST_COOLDOWN;
+        this.context.setcoolDownSaveData(this.foreverKey(), cd);
     },
     render: function () {
         var data = EVENT_DATA[this.props.event];
 
         if (this.props.forever) {
+            var cdLeft = this.getForeverCd();
+            var cdReason = cdLeft > 0 ? formatText(EVENT_TEXT.quest.cooldown, { hours: Math.ceil(cdLeft) }) : null;
             return (
                 <div>
                     <p>-{this.props.name || data.name}-</p>
                     {this.props.children && this.props.children[0] || toParagraphs(data.d_1)}
                     <div>
-                        <GiveComponent giveDesc={data.giveDesc || null} onDone={this.onForeverDone} itemList={this.props.requireList || EVENT_DATA[this.props.event].want} />
+                        <GiveComponent disabled={cdLeft > 0} disabledReason={cdReason} giveDesc={data.giveDesc || null} onDone={this.onForeverDone} itemList={this.props.requireList || EVENT_DATA[this.props.event].want} />
                     </div>
+                    {cdLeft > 0 ? <p style={{ color: COLOR.RED }}>{cdReason}</p> : null}
                     <RegisterComponent itemList={{}} />
                 </div>
             )
@@ -207,9 +224,12 @@ var GiveComponent = React.createClass({
             onDone: null,
             itemList: null,
             giveDesc: null,
+            disabled: false,
+            disabledReason: null,
         }
     },
     onDone: function () {
+        if (this.props.disabled) return;
         this.context.useItem(this.props.itemList);
         this.props.onDone();
     },
@@ -219,7 +239,7 @@ var GiveComponent = React.createClass({
         var bag = boxSaveData.bag.things;
         var haveItem = (this.context.checkHaveResourceAll(itemList));
         return (
-            <BtnComponent disabled={!haveItem} handleClick={this.onDone}>
+            <BtnComponent disabled={!haveItem || this.props.disabled} disabledReason={this.props.disabledReason} handleClick={this.onDone}>
                 <span>{this.props.giveDesc || '给'}&nbsp;</span>
                 <RequireComponent requireList={itemList} />
             </BtnComponent>
@@ -475,10 +495,12 @@ var BossComponent = React.createClass({
     render: function () {
         var maouLevel = this.context.maouLevel;
         if (this.state.battling) {
+            // 首战：血量 10000、伤害 120（配合 85% 减伤上限仍然危险但可打）；
+            // 轮回等级每 +1：伤害 +80、玩家伤害除数 +0.4（hpMul）
             var mstState = {
                 maxHp: 10000,
-                hpMul: 500 * (0.2 * maouLevel + 1) * maouLevel,
-                dmg: 5000 * (0.2 * maouLevel + 1) * maouLevel + 10000,
+                hpMul: 1 + 0.4 * maouLevel,
+                dmg: 120 + 80 * maouLevel,
             }
             return <BattleComponent mstState={mstState} mst='maou' onWin={this.setDone} winScene={(
                 <div>
@@ -537,9 +559,8 @@ var EventComponent = React.createClass({
         this.context.setStateFromChildren({ eventSaveData: eventSaveData });
     },
     componentWillMount: function () {
-        this.eventMap = {
-            tramp: <TrampComponent />,
-        }
+        this.eventMap = {};
+        this.eventMap.tramp = <TrampComponent />;
         this.eventMap.boss = <BossComponent />;
         this.eventMap.reincarnation = <Reincarnation />;
         this.eventMap.miner = (
@@ -709,6 +730,7 @@ var TradeComponent = React.createClass({
     getInitialState: function () {
         return {
             isOver: false,
+            got: null,//成交后应交给玩家的货物（修复：原先 render 误用了全局函数 o）
         }
     },
     // 计算当前交易状态：收购物、收购上限、玩家可换数量、是否为空/溢出
@@ -805,7 +827,7 @@ var TradeComponent = React.createClass({
         if (TRADE_DATA[this.props.trade].type != 'dungeon') {
             this.context.tradeSaveData.splice(this.props.index, 1);
         }
-        this.setState({ isOver: true });
+        this.setState({ isOver: true, got: o });
     },
     // 撤回：把 register 中玩家放入的物品退回背包
     refuse: function () {
@@ -832,7 +854,7 @@ var TradeComponent = React.createClass({
             return (
                 <div>
                     <p>{formatText(EVENT_TEXT.trade.leave, { traderName: TRADE_DATA[this.props.trade].name })}</p>
-                    <RegisterComponent canBack={this.props.canBack} itemList={o} />
+                    <RegisterComponent canBack={this.props.canBack} itemList={this.state.got} />
                 </div>
             );
         }

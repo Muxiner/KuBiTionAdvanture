@@ -28,6 +28,15 @@ html,
     background-color: #333333;
 }
 
+html {
+    font-size: 14px;
+}
+
+body {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 #game {
     width: 960px;
     height: 580px;
@@ -38,7 +47,7 @@ html,
     cursor: default;
     padding: 0;
     margin: 0;
-    font-family: "Microsoft Yahei" "宋体";
+    font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", sans-serif;
     moz-user-select: -moz-none;
     -moz-user-select: none;
     -o-user-select: none;
@@ -50,6 +59,38 @@ html,
     user-select: none;
     /**禁止选中文字*/
     border-radius: 4px;
+}
+
+/* 可点击元素必须有手型光标（原 *{cursor:default} 让所有按钮看起来不可点） */
+button,
+.btn,
+.item,
+.equipSlot,
+.makeItem,
+.skillItem,
+.building,
+.placeCard .btn,
+[role="button"],
+[tabindex] {
+    cursor: pointer;
+}
+
+button:disabled,
+.btn.disabled,
+[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+/* 输入框/错误提示允许选中与复制（存档账号、报错信息需要能复制） */
+input,
+textarea,
+select,
+.toast,
+.detailDesc {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 .bagOuter,

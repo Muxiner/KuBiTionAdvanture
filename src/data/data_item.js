@@ -62,7 +62,7 @@ var ITEM_DATA = {
     dungeonRope: {
         name: '穿洞绳',
         type: 'tool',
-        desc: "能够向下移动到地牢之前到过的任何深度。",
+        desc: "能够下潜到地牢里已探索过的最深层（当前层与最深层之间）。",
     },
     dungeonKey: {
         name: '钥匙',
@@ -917,17 +917,6 @@ var ITEM_DATA = {
     },
 
 
-    testWeapon: {
-        name: '邪恶短刀',
-        type: 'weapon',
-        weaponType: 'melee',
-        desc: "捅屁股。",
-        range: 11111111,
-        damage: 11111111,
-        durable: 1111,
-        value: 1,
-        require: { ps: 1 },
-    },
     breakSword: {
         name: '平衡战斧',
         type: 'weapon',
@@ -1146,7 +1135,7 @@ var ITEM_DATA = {
         weaponType: 'melee',
         desc: '具有必杀之力的近战武器，破坏力强。',
         range: 3,
-        damage: 2000,
+        damage: 340,
         durable: 1,
         require: { ps: 4 },
         value: 45,

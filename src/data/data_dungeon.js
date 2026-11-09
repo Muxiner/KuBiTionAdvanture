@@ -460,6 +460,10 @@ var DUNGEON_DATA = {
             mandara: 8,
         },
         reward: [
+            { things: { reiPart: 2 }, chance: 0.08 },
+            { things: { darkGold: 4 }, chance: 0.05 },
+            { things: { crystal: 10 }, chance: 0.05 },
+            { things: { gold: 80 }, chance: 0.05 },
         ]
     },
     14: {
@@ -469,6 +473,10 @@ var DUNGEON_DATA = {
             hellGladiator: 4
         },
         reward: [
+            { things: { reiPart: 3 }, chance: 0.08 },
+            { things: { soul: 20 }, chance: 0.05 },
+            { things: { dragonBone: 10 }, chance: 0.03 },
+            { things: { gold: 100 }, chance: 0.05 },
         ]
     },
     15: {
@@ -478,6 +486,10 @@ var DUNGEON_DATA = {
             nightmare: 4,
         },
         reward: [
+            { things: { reiPart: 4 }, chance: 0.08 },
+            { things: { blood: 1 }, chance: 0.05 },
+            { things: { darkDust: 10 }, chance: 0.05 },
+            { things: { gold: 150 }, chance: 0.05 },
         ]
     },
     16: {
@@ -487,6 +499,11 @@ var DUNGEON_DATA = {
             stardustFish: 4,
         },
         reward: [
+            { things: { reiPart: 5 }, chance: 0.1 },
+            { things: { blood: 1 }, chance: 0.06 },
+            { things: { dragonScale: 3 }, chance: 0.03 },
+            { things: { crystal: 20 }, chance: 0.05 },
+            { things: { gold: 200 }, chance: 0.05 },
         ]
     },
 }

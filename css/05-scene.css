@@ -98,3 +98,117 @@
 .table>tbody>tr>td {
     vertical-align: middle;
 }
+
+/* =====================================================================
+   UX 修复覆盖块（U4/U6）
+   - 顶部标题栏：白字 #C8D0B1 仅 1.60:1 -> 深色字（约 8:1）
+   - 时间/昼夜：原纯色方块改为语义文字（advan.js 渲染 .dayPhase）
+   - 物品效果标签、区域标题等对比度修正
+   ===================================================================== */
+
+.panel-primary > .panel-heading {
+    color: #26301d;
+    background-color: #C8D0B1;
+    border-color: #C8D0B1;
+}
+
+.time {
+    font-size: 14px;
+}
+
+.headingSep {
+    margin: 0 6px;
+    color: #26301d;
+}
+
+.title {
+    color: #26301d;
+    font-weight: 700;
+}
+
+/* 昼夜文字（替代原来的 30×30 颜色方块） */
+.dayPhase {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 18px;
+    vertical-align: middle;
+    letter-spacing: 1px;
+}
+
+.dayPhaseDay {
+    background: #8a5a00;
+    color: #ffffff;
+}
+
+.dayPhaseNight {
+    background: #1f2a44;
+    color: #ffffff;
+}
+
+.season {
+    display: inline-block;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-weight: 700;
+}
+
+/* 效果标签：原 #74AB6A/#B25242 配白字对比不足；加深底色后白字 ≥4.5:1 */
+.effectPlus {
+    background: #3f6b32;
+}
+
+.effectMinus {
+    background: #a23b2c;
+}
+
+/* 详情面板：常驻提示（原先不悬停就是一块 110px 灰块） */
+.detail {
+    background: #f4f5f0;
+    border: 1px solid #d8dcc9;
+    height: auto;
+    min-height: 110px;
+    overflow: auto;
+}
+
+.detailEmpty {
+    padding: 10px;
+    color: #3d4534;
+    font-size: 13px;
+}
+
+.detailEmptyHint {
+    margin-top: 6px;
+    color: #5a5a5a;
+    font-size: 12px;
+}
+
+.detailActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0;
+}
+
+.detailActions .btn {
+    margin: 0;
+}
+
+.detailHint {
+    color: #5a5a5a;
+    font-size: 12px;
+}
+
+/* 地点“耗时”等次要文字：原 #888 对白 3.54:1 */
+.placeTime {
+    color: #555a50;
+}
+
+/* 表格正文放大到 13px，移动端在 09 中再放大到 14px */
+.table {
+    font-size: 13px;
+}

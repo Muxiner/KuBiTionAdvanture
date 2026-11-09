@@ -14,16 +14,23 @@ var SkillPanelComponent = React.createClass({
     handleSkillTab: function (skill) {
         this.setState({ selectedSkill: skill });
     },
+    // 键盘 Enter/Space 也可选择技能（原先只有 onClick 的 div 不可键盘操作）
+    handleSkillKey: function (skill, event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            event.preventDefault();
+            this.handleSkillTab(skill);
+        }
+    },
     // 技能列表（名称 + 等级角标，单击选中）
     getSkillList: function () {
         var skill = this.context.skill;
         if (getLength(skill) == 0) {
-            return <p style={{ color: COLOR.YELLOW }}>你还没有习得任何技能</p>
+            return <p className="skillEmpty">你还没有习得任何技能。使用“能力提升”类道具（技能书等）即可习得，菜单 → 设置里可查看存档。</p>
         }
         var result = [];
         for (var attr in skill) {
             if (!SKILL_DATA[attr].name) continue;
-            result.push(<div className='btn skillItem' onClick={this.handleSkillTab.bind(this, attr)} key={SKILL_DATA[attr].name}>{SKILL_DATA[attr].name} &nbsp; {SKILL_DATA[attr].one ? null : <span className='badge'>{skill[attr]}</span>}</div>)
+            result.push(<div className='btn skillItem' tabIndex="0" role="button" onClick={this.handleSkillTab.bind(this, attr)} onKeyDown={this.handleSkillKey.bind(this, attr)} key={SKILL_DATA[attr].name}>{SKILL_DATA[attr].name} &nbsp; {SKILL_DATA[attr].one ? null : <span className='badge'>{skill[attr]}</span>}</div>)
         }
         return result;
     },
@@ -77,7 +84,7 @@ var SkillPanelComponent = React.createClass({
                     desc_2 = buffTotal;
                     break;
             }
-            return <p>{desc_1}<span style={{ color: COLOR.GREEN }}>{desc_2}</span></p>
+            return <p>{desc_1}<span className="skillBonus" style={{ color: UX_GREEN }}>{desc_2}</span></p>
         }
         return <div>
             <p>{SKILL_DATA[selectedSkill].desc}</p>

@@ -7,8 +7,85 @@
 //游戏逻辑层/////////////////////////////////////////////////////////////////////////////
 //tiny components
 //小组件
+// ===== 0) UX 基础工具（对比度/键盘/移动端面板切换） =====
+// sRGB 相对亮度（WCAG），用于自动选择可读的前景/背景组合
+function uxRelLum(r, g, b) {
+    function f(c) {
+        c = c / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    }
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+// 给定底色，返回黑或白中对比度更高的前景（分界 0.18 时两者均 ≥ 4.5:1）
+function uxReadableText(r, g, b) {
+    return uxRelLum(r, g, b) > 0.18 ? '#000000' : '#ffffff';
+}
+// 把任意颜色压暗到“白底上对比度 ≥ 4.5:1”，用于物品类型色（保留色相，不改数据表）
+function uxContrastOnWhite(color) {
+    var hex = String(color || '').replace('#', '');
+    if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) return COLOR.BLACK;
+    var r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    if (1.05 / (uxRelLum(r, g, b) + 0.05) >= 4.5) return '#' + hex;
+    for (var i = 1; i <= 20; i++) {
+        var k = 1 - i * 0.04;
+        var rr = Math.round(r * k), gg = Math.round(g * k), bb = Math.round(b * k);
+        if (1.05 / (uxRelLum(rr, gg, bb) + 0.05) >= 4.5) return 'rgb(' + rr + ',' + gg + ',' + bb + ')';
+    }
+    return COLOR.BLACK;
+}
+// 简化 class 切换（body 级开关：移动端背包 / 桌面端收起背包）
+function uxSetBodyClass(cls, on) {
+    if (typeof document === 'undefined' || !document.body) return;
+    var list = String(document.body.className || '').split(/\s+/);
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] && list[i] !== cls) out.push(list[i]);
+    }
+    if (on) out.push(cls);
+    document.body.className = out.join(' ');
+}
+function uxIsNarrow() {
+    return (typeof window !== 'undefined') && window.innerWidth <= 900;
+}
+// 移动端：场景/背包互斥切换；桌面端：收起/展开右侧背包栏
+function uxToggleBagPanel() {
+    if (uxIsNarrow()) {
+        var open = String(document.body.className || '').indexOf('mobile-bag-open') >= 0;
+        uxSetBodyClass('bag-collapsed', false);
+        uxSetBodyClass('mobile-bag-open', !open);
+        var panel = document.getElementById('equip');
+        if (!open && panel && panel.scrollIntoView) {
+            try { panel.scrollIntoView({ block: 'start' }); } catch (e) { }
+        }
+    } else {
+        var collapsed = String(document.body.className || '').indexOf('bag-collapsed') >= 0;
+        uxSetBodyClass('mobile-bag-open', false);
+        uxSetBodyClass('bag-collapsed', !collapsed);
+    }
+}
+function uxCloseBagPanel() {
+    uxSetBodyClass('mobile-bag-open', false);
+    uxSetBodyClass('bag-collapsed', false);
+}
+// 让可点 div 支持 Enter/Space（配合 tabIndex/role 使用）
+function uxKeyActivate(handler) {
+    return function (event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            event.preventDefault();
+            this._uxKeyHandled = true;
+            handler.call(this, event);
+        }
+    };
+}
+// 注：src/main.js 已移除全局空格/回车拦截（由 code-auditor 修复），
+// 因此这里不再需要捕获阶段的按键守卫。
+
+// 深色绿：白底对比度 5.5:1（原 #74AB6A 仅 2.7:1），供需求/加成等文字使用
+var UX_GREEN = '#3f6b32';
+
 // ===== 1) 通用 UI 组件 =====
-// 单个物品格：显示名称/数量/耐久，处理左键转移、右键使用或装备
+// 单个物品格：显示名称/数量/耐久；左键选中（详情常驻）并保留转移，右键使用/装备
 var ItemComponent = React.createClass({
     //物体组件
     getDefaultProps: function () {
@@ -30,6 +107,7 @@ var ItemComponent = React.createClass({
         durableSaveData:      React.PropTypes.object.isRequired,
         getMaxDurable:        React.PropTypes.func.isRequired,
         currentEquip:         React.PropTypes.object.isRequired,
+        detailedItem:         React.PropTypes.string.isRequired,
         setStateFromChildren: React.PropTypes.func.isRequired,
         skill:                React.PropTypes.object.isRequired,
         dungeonSaveData:      React.PropTypes.object.isRequired,
@@ -40,20 +118,60 @@ var ItemComponent = React.createClass({
     itemMouseEnter: function () {
         this.context.changeMsg(this.props.item, 'item');
     },
+    // 选中物品：详情面板常驻显示（桌面/触屏一致），不再依赖鼠标悬停
+    selectItem: function () {
+        this.context.changeMsg(this.props.item, 'item');
+        // 窄屏（背包为全屏面板）时把详情滚进视野，避免“点了没变化”
+        if (uxIsNarrow()) {
+            var detail = document.getElementById('detail');
+            if (detail && detail.scrollIntoView) {
+                try { detail.scrollIntoView({ block: 'nearest' }); } catch (e) { }
+            }
+        }
+    },
     itemMouseClick: function (event) {
         // this.context.AudioEngine.playEffect('pick');
 
-        CTRL_PRESSED = event.ctrlKey;
-        SHIFT_PRESSED = event.shiftKey;
+        if (event) {
+            CTRL_PRESSED = event.ctrlKey;
+            SHIFT_PRESSED = event.shiftKey;
+        }
 
+        // 单击先选中，让右侧详情常驻；有容器打开时仍保留原来的“点击转移”行为
+        this.selectItem();
         if (this.props.handleClick) {
             this.props.handleClick();
         }
-        if (IS_IPAD) {
-            this.itemMouseEnter();
-        }
-
         this.context.handleExchange(this.props.item, this.props.box, this.context.isDueling);
+    },
+    itemKeyDown: function (event) {
+        uxKeyActivate(this.selectItem).call(this, event);
+    },
+    // 供 shouldComponentUpdate 使用的渲染签名（装备高亮 / 耐久 / 选中态）
+    getItemSignature: function (ctx) {
+        var item = this.props.item;
+        var wear = 0;
+        if (ctx.durableSaveData && typeof durableWear === 'function') {
+            wear = durableWear(ctx.durableSaveData, item);
+        }
+        var equipped = '';
+        for (var slot in ctx.currentEquip) {
+            if (ctx.currentEquip[slot] === item) equipped += slot + ',';
+        }
+        return wear + '|' + equipped + '|' + (ctx.detailedItem === item ? '1' : '0');
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        if (nextProps.item !== this.props.item || nextProps.amount !== this.props.amount ||
+            nextProps.box !== this.props.box || nextProps.handleClick !== this.props.handleClick) {
+            return true;
+        }
+        var ctx = nextContext || this.context;
+        var sig = this.getItemSignature(ctx);
+        if (sig !== this._uxSig) {
+            this._uxSig = sig;
+            return true;
+        }
+        return false;
     },
     itemClickRight: function (event) {
         var item = this.props.item;
@@ -82,9 +200,17 @@ var ItemComponent = React.createClass({
     render: function () {
         var item = this.props.item;
         var isCurrentEquip = this.checkIfISCurrentEquip(item);
+        var isSelected = this.context.detailedItem === item;
         var maxDurable = this.context.getMaxDurable(item);
-        return <div className={"item " + (isCurrentEquip ? 'currentEquip' : '')} onMouseEnter={this.itemMouseEnter} onClick={this.itemMouseClick} onContextMenu={this.itemClickRight}>
-            <p style={{ color: ((TYPE_DATA[ITEM_DATA[this.props.item].type] || {}).color || COLOR.BLACK) }}>{ITEM_DATA[item].name}</p>
+        this._uxSig = this.getItemSignature(this.context);
+        var typeColor = uxContrastOnWhite((TYPE_DATA[ITEM_DATA[this.props.item].type] || {}).color || COLOR.BLACK);
+        var name = ITEM_DATA[item].name;
+        return <div className={"item " + (isCurrentEquip ? 'currentEquip ' : '') + (isSelected ? 'itemSelected' : '')}
+            tabIndex="0" role="button" aria-label={name + ' ' + this.props.amount + ' 个'}
+            title={ITEM_DATA[item].desc || name}
+            onMouseEnter={this.itemMouseEnter} onClick={this.itemMouseClick}
+            onKeyDown={this.itemKeyDown} onContextMenu={this.itemClickRight}>
+            <p style={{ color: typeColor }}>{name}</p>
             {ITEM_DATA[item].durable ? <ProgressComponent addStyle={{ position: 'absolute', width: '30px', left: '9px', top: '22px', height: '5px' }} max={maxDurable} current={maxDurable - durableWear(this.context.durableSaveData, item)} /> : null}
             <span className="badge itemAmount">{this.props.amount}</span>
         </div>
@@ -106,15 +232,18 @@ var StateVectorComponent = React.createClass({
     showMsg: function () {
         this.context.changeMsg(this.props.state, 'state');
     },
+    stateKeyDown: function (event) {
+        uxKeyActivate(this.showMsg).call(this, event);
+    },
     render: function () {
         var playerState = this.context.playerState;
         var state = playerState[this.props.state];
         var stateName = STATE_DATA[this.props.state].name;
         var max = this.context.getMaxState(this.props.state);
+        var isTemp = this.props.state == 'temp';
         function getColor(num) {
-            var str = "";
             var color_0, color_1, r, g, b;
-            if (this.props.state == 'temp') {
+            if (isTemp) {
                 color_1 = { r: 100, g: 177, b: 255 };
                 color_0 = { r: 255, g: 177, b: 100 };
                 var offset = num + 50;
@@ -130,11 +259,23 @@ var StateVectorComponent = React.createClass({
                 g = Math.floor((Math.abs(num)) * (color_0.g - color_1.g) / max + color_1.g);
                 b = Math.floor((Math.abs(num)) * (color_0.b - color_1.b) / max + color_1.b);
             }
-            return 'rgb(' + r + ',' + g + ',' + b + ')';
+            return { r: r, g: g, b: b, css: 'rgb(' + r + ',' + g + ',' + b + ')' };
         }
-        return <div className="stateVector" onMouseEnter={this.showMsg} style={{ background: getColor.bind(this, Math.ceil(state.amount))() }} >
+        var bg = getColor(Math.ceil(state.amount));
+        // 前景色按底色亮度自动选择，保证 ≥4.5:1（原先固定白字在浅底上只有 2.1:1）
+        var fg = uxReadableText(bg.r, bg.g, bg.b);
+        var ratio = isTemp ? 1 : (max > 0 ? state.amount / max : 1);
+        // 低状态加非颜色的“!”提示，色盲/色弱也能看出危险
+        var low = !isTemp && ratio < 0.3;
+        var valueText = isTemp ? TEMP_DATA[this.context.getTempDesc()].name : Math.ceil(state.amount);
+        var label = stateName + ' ' + valueText + (low ? '（偏低）' : '');
+        return <div className="stateVector" tabIndex="0" role="button"
+            aria-label={label} title={label + '：点击查看说明'}
+            onMouseEnter={this.showMsg} onClick={this.showMsg} onKeyDown={this.stateKeyDown}
+            style={{ background: bg.css, color: fg }}>
             {stateName}
-            <span className="badge"> {this.props.state == 'temp' ? TEMP_DATA[this.context.getTempDesc()].name : Math.ceil(state.amount)} </span>
+            <span className="badge"> {valueText} </span>
+            {low ? <span className="stateWarn" title="该状态偏低，注意补充">!</span> : null}
         </div>
     }
 });
@@ -202,7 +343,13 @@ var RequireComponent = React.createClass({
                 if (count > 0 && this.props.withSpace) result.push(<br key={'br_' + count} />);
                 var amount = requireList[attr];
                 var name = ITEM_DATA[attr] ? ITEM_DATA[attr].name : (STATE_DATA[attr] ? STATE_DATA[attr].name : attr);
-                result.push(<span key={count} className="resourceName" style={{ color: this.props.isGreen ? COLOR.GREEN : (this.context.checkHaveResource(attr, amount, bag) ? COLOR.GREEN : COLOR.RED) }}>
+                var ok = this.props.isGreen ? true : this.context.checkHaveResource(attr, amount, bag);
+                // 不只靠红/绿：同时给出 ✓/✗ 与可读 title（色盲/色弱可用）
+                var mark = this.props.isGreen ? null : <span className="reqMark" aria-hidden="true">{ok ? '✓' : '✗'}</span>;
+                result.push(<span key={count} className={'resourceName reqItem ' + (ok ? 'reqOk' : 'reqMissing')}
+                    title={(ok ? '已满足：' : '缺少：') + name + '×' + amount}
+                    style={{ color: this.props.isGreen ? UX_GREEN : (ok ? UX_GREEN : COLOR.RED) }}>
+                    {mark}
                     {name}
                     <span className="badge resourceAmount">
                         {this.props.showTotal ? (amount + '/' + countBagItem(bag, attr)) : amount}
@@ -241,6 +388,10 @@ var BoxComponent = React.createClass({
     contextTypes: {
         boxSaveData: React.PropTypes.object.isRequired,
         setCurrentBox: React.PropTypes.func.isRequired,
+        // 子物品格依赖这些 context：必须一并声明，否则 sCU 会挡住 context 变更
+        detailedItem: React.PropTypes.string.isRequired,
+        currentEquip: React.PropTypes.object.isRequired,
+        durableSaveData: React.PropTypes.object.isRequired,
     },
     getDefaultProps: function () {
         return {
@@ -265,14 +416,38 @@ var BoxComponent = React.createClass({
         var box = this.context.boxSaveData[this.props.box];
         if (this.props.box != 'bag' && !box.isDone) this.context.setCurrentBox('');
     },
+    // 只在“本容器内容/容量变化”或 props 变化时重渲染，减少后期满背包的整树重绘
+    getBoxSignature: function (ctx) {
+        var box = ctx.boxSaveData && ctx.boxSaveData[this.props.box];
+        if (!box) return 'none';
+        return JSON.stringify(box.things || {}) + '|' + box.size;
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        if (nextProps.box !== this.props.box || nextProps.isRegister !== this.props.isRegister ||
+            nextProps.handleClick !== this.props.handleClick) {
+            return true;
+        }
+        var ctx = nextContext || this.context;
+        var sig = this.getBoxSignature(ctx);
+        if (sig !== this._uxBoxSig) {
+            this._uxBoxSig = sig;
+            return true;
+        }
+        // 即使容器内容不变，选中物品 / 装备变化也要让子物品格更新
+        if (ctx.detailedItem !== this.context.detailedItem) return true;
+        if (JSON.stringify(ctx.currentEquip) !== JSON.stringify(this.context.currentEquip)) return true;
+        if (JSON.stringify(ctx.durableSaveData) !== JSON.stringify(this.context.durableSaveData)) return true;
+        return false;
+    },
     render: function () {
         var box = this.context.boxSaveData[this.props.box];
-        var bagSize = this.state.size;
+        this._uxBoxSig = this.getBoxSignature(this.context);
         function createVector() {
             var result = [];
             var count = 0;
             var itemList = box.things;
-            var bagSize = this.props.isRegister ? getLength(box.things) + 1 : box.size;
+            // 拾取/交易暂存不再额外渲染一个无标签空格子（原先会显示成“神秘白盒”）
+            var bagSize = this.props.isRegister ? getLength(box.things) : box.size;
             for (var attr in itemList) {
                 result.push(
                     <li className="vector" key={count}>
@@ -287,9 +462,21 @@ var BoxComponent = React.createClass({
             };
             return result;
         };
-        return <ul className="boxList">
+        var list = <ul className="boxList">
             {createVector.bind(this)()}
-        </ul>
+        </ul>;
+        if (this.props.box === 'bigBox') {
+            var used = getLength(box.things);
+            var cap = box.size || 0;
+            var ratio = cap > 0 ? used / cap : 0;
+            return <div className='boxWithCapacity'>
+                {list}
+                <div className={'boxCapacity' + (ratio >= 0.9 ? ' boxCapacityFull' : '')}>
+                    大箱子容量：{used} / {cap}{ratio >= 0.9 ? '（快满了）' : ''}
+                </div>
+            </div>;
+        }
+        return list;
     }
 });
 // 返回按钮：关闭当前窗口，并可选执行回调
@@ -414,6 +601,8 @@ var ResourceDisplayComponent = React.createClass({
 var BtnComponent = React.createClass({
     contextTypes: {
         checkHaveResourceAll: React.PropTypes.func.isRequired,
+        checkHaveResource: React.PropTypes.func.isRequired,
+        boxSaveData: React.PropTypes.object.isRequired,
         AudioEngine: React.PropTypes.object.isRequired,
         showMsg: React.PropTypes.func.isRequired,
     },
@@ -434,16 +623,34 @@ var BtnComponent = React.createClass({
     getDisabled: function () {
         return this.props.disabled || !this.context.checkHaveResourceAll(this.props.requireList, true)
     },
+    // 列出缺少的材料（让“材料不足”可读：缺什么、缺多少）
+    getMissingText: function () {
+        var requireList = this.props.requireList;
+        if (!requireList) return '';
+        var boxSaveData = this.context.boxSaveData;
+        var bag = together(boxSaveData.bag.things, boxSaveData.bigBox.things);
+        var miss = [];
+        for (var attr in requireList) {
+            if (!this.context.checkHaveResource(attr, requireList[attr], bag)) {
+                var name = ITEM_DATA[attr] ? ITEM_DATA[attr].name : (STATE_DATA[attr] ? STATE_DATA[attr].name : attr);
+                miss.push(name + '×' + requireList[attr]);
+            }
+        }
+        return miss.length ? ('缺少：' + miss.join('、')) : '';
+    },
     getDisabledReason: function () {
         //先判定材料，再给出调用方指定的其它原因（如饱食/水分不足、冷却中）
-        if (this.props.requireList && !this.context.checkHaveResourceAll(this.props.requireList, true)) return '材料不足';
-        if (this.props.disabled) return this.props.disabledReason || '';
+        if (this.props.requireList && !this.context.checkHaveResourceAll(this.props.requireList, true)) {
+            return this.getMissingText() || '材料不足';
+        }
+        if (this.props.disabled) return this.props.disabledReason || '条件不满足：材料、状态、空间或时间不足';
         return '';
     },
     handleClick: function (isRight, event) {
         if (this.getDisabled()) {
             var reason = this.getDisabledReason();
-            if (reason) this.context.showMsg(<p key={Math.random()}>{reason}</p>);
+            // 兜底文案保证“点了没反应”不会再出现
+            this.context.showMsg(<p key={Math.random()}>{reason || '条件不满足：材料、状态、空间或时间不足'}</p>);
             return;
         }
         this.context.AudioEngine.playEffect(this.props.sound);
@@ -459,8 +666,9 @@ var BtnComponent = React.createClass({
         if (this.props.handleMouseEnter) this.props.handleMouseEnter();
     },
     render: function () {
-        var disabledReason = this.getDisabled() ? this.getDisabledReason() : '';
-        return <button title={disabledReason || undefined} style={this.props.style} onContextMenu={this.handleClick.bind(null, 'right')} onClick={this.handleClick.bind(null, false)} onMouseEnter={this.handleMouseEnter} className={this.props.className + (this.getDisabled() ? " disabled" : '')}>{this.props.desc || this.props.children}</button>
+        var disabled = this.getDisabled();
+        var disabledReason = disabled ? this.getDisabledReason() : '';
+        return <button type="button" title={disabledReason || undefined} aria-disabled={disabled ? 'true' : undefined} style={this.props.style} onContextMenu={this.handleClick.bind(null, 'right')} onClick={this.handleClick.bind(null, false)} onMouseEnter={this.handleMouseEnter} className={this.props.className + (disabled ? " disabled" : '')}>{this.props.desc || this.props.children}</button>
     }
 });
 
@@ -505,9 +713,16 @@ var DebugComponent = React.createClass({
         })
     },
     log: function () {
-        var state = this.context.parentState;
-        var log = ($('#log')[0].value);
-        eval(log);
+        // 调试输入改为 JSON 状态覆盖（原先直接 eval 任意 JS，存在风险且无法静态检查）
+        var el = document.getElementById('log');
+        if (!el) return;
+        try {
+            var patch = JSON.parse(el.value);
+            if (!patch || typeof patch !== 'object' || patch instanceof Array) throw new Error('需要一个 JSON 对象');
+            this.context.setStateFromChildren(patch);
+        } catch (e) {
+            console.warn('[debug] 解析失败：请输入形如 {"menuHint":1} 的 JSON 对象', e && e.message);
+        }
     },
     logState: function () {
         var state = this.context.parentState;

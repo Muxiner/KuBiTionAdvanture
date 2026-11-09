@@ -58,6 +58,25 @@ var StudioComponent = React.createClass({
             makeAmountMax: 1,
             require: null,
             alwayMakeOne: false,
+            // U4：配方列表搜索 / 只看可制作（受控输入，ES5）
+            recipeSearch: '',
+            onlyCraftable: false,
+        }
+    },
+    // U4：配方搜索框变化
+    handleRecipeSearch: function (sender) {
+        var obj = sender.nativeEvent.srcElement ? sender.nativeEvent.srcElement : sender.nativeEvent.target;
+        this.setState({ recipeSearch: obj.value || '' });
+    },
+    // U4：切换「只看可制作」
+    toggleOnlyCraftable: function () {
+        this.setState({ onlyCraftable: !this.state.onlyCraftable });
+    },
+    // 键盘可达：Enter / Space 触发制作面板
+    handleMakeKeyDown: function (attr, event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            event.preventDefault();
+            this.makeWindow(attr);
         }
     },
     // 计算实际耗时：制作台属性科技会缩短制造台的制作时间
@@ -231,7 +250,11 @@ var StudioComponent = React.createClass({
             //烹调的情况
             if (type == 'cooked') {
                 var cookResult = this.getCookResult();
-                var disabled = (this.context.getTheMaxTimeToUse() < 1) || (this.state.cookAmount == 0) || (this.state.cookAmount > this.checkMaxCookAmount());
+                var maxCook = this.checkMaxCookAmount();
+                var cookReason = '';
+                if (this.state.cookAmount == 0 || this.state.cookAmount > maxCook) cookReason = '烹调数量无效（缺少食材或数量超出）';
+                else if (this.context.getTheMaxTimeToUse() < 1) cookReason = '饱食或水分不足，撑不过烹调耗时';
+                var disabled = cookReason != '';
                 if (!cookResult) {
                     return <div></div>;
                 }
@@ -245,7 +268,7 @@ var StudioComponent = React.createClass({
                                         <td>{ITEM_DATA[cookResult].desc}</td>
                                         <td><input className='scheduleInput form-control' value={String(this.state.cookAmount)} type='number' onChange={this.changeCookAmount} /></td>
                                         <td>耗时:{Math.round(this.getCookTime())}</td>
-                                        <td><BtnComponent disabled={disabled} disabledReason={'饱食或水分不足，或烹调数量无效'} desc='烹调' handleClick={this.handleCook} /></td>
+                                        <td><BtnComponent disabled={disabled} disabledReason={cookReason} desc='烹调' handleClick={this.handleCook} /></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -257,6 +280,14 @@ var StudioComponent = React.createClass({
 
             return <div style={{ width: '100%', height: '100%' }}>
                 <div className='viewOuter'>
+                    <div className='makeFilter' style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', padding: '6px 8px', borderBottom: '1px solid #ddd', background: '#f6f7f2', flex: '0 0 auto' }}>
+                        <input className='form-control' type='text' value={this.state.recipeSearch} placeholder='搜索配方名称…' onChange={this.handleRecipeSearch} style={{ width: '180px', minWidth: '120px', height: '28px', display: 'inline-block' }} />
+                        <label style={{ margin: 0, fontWeight: 'normal', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                            <input type='checkbox' checked={this.state.onlyCraftable} onChange={this.toggleOnlyCraftable} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                            只看可制作
+                        </label>
+                        <span style={{ color: '#888', fontSize: '12px' }}>（按现有材料可制作次数排序）</span>
+                    </div>
                     <div className="tableOuter studioTableOuter">
                         <div className="makeGroups">
                             {result}
@@ -285,12 +316,15 @@ var StudioComponent = React.createClass({
                 if (this.context.boxSaveData[type].things[attr]) continue;
                 //科技类的物品的检查
                 if (BUILDING_UPDATE_DATA[type][attr].science && !this.context.boxSaveData[type].things[BUILDING_UPDATE_DATA[type][attr].science]) continue;
-                var disabled = !this.context.checkHaveResourceAll(tmp.require, true) || !haveTimeToMake.bind(this, attr)();
+                var noMaterial = !this.context.checkHaveResourceAll(tmp.require, true);
+                var noTime = !haveTimeToMake.bind(this, attr)();
+                var updateReason = noMaterial ? '材料不足' : (noTime ? '饱食或水分不足，撑不过升级耗时' : '');
+                var disabled = noMaterial || noTime;
                 result.push(<tr key={'update' + count} title={getItemInfoText(attr)} onMouseEnter={this.context.changeMsg.bind(null, attr, 'item')}>
                     <td>{ITEM_DATA[attr] ? ITEM_DATA[attr].name : attr}</td>
                     <td><RequireComponent requireList={tmp.require} haveBox={true} /></td>
                     <td>
-                        <BtnComponent disabled={disabled} disabledReason={'饱食或水分不足，撑不过升级耗时'} handleClick={this.updateBuilding.bind(this, attr)} desc="升级" />
+                        <BtnComponent disabled={disabled} disabledReason={updateReason} handleClick={this.updateBuilding.bind(this, attr)} desc="升级" />
                     </td>
                 </tr>);
                 count++;
@@ -313,6 +347,14 @@ var StudioComponent = React.createClass({
                 if (attachData[attr].event && !this.context.eventSaveData[attachData[attr].event].experienced) continue;
                 //需要建筑的情况的检查
                 if (tmp.building && !this.context.buildingSaveData[tmp.building].own) continue;
+                //U4：关键字过滤（配方 id 或显示名）
+                var kw = String(this.state.recipeSearch || '').replace(/^\s+|\s+$/g, '').toLowerCase();
+                if (kw) {
+                    var shownName = ((ITEM_DATA[attr] && ITEM_DATA[attr].name) || attr).toLowerCase();
+                    if (shownName.indexOf(kw) < 0 && String(attr).toLowerCase().indexOf(kw) < 0) continue;
+                }
+                //U4：只看当前材料能制作的配方
+                if (this.state.onlyCraftable && getCraftableCount(tmp.require, bag) <= 0) continue;
                 entries.push({ attr: attr, tmp: tmp });
             };
             // 先按「现有材料可制作的次数」从多到少排序，再按物品类型分组
@@ -335,14 +377,16 @@ var StudioComponent = React.createClass({
                 var ib = MAKE_CATEGORY_ORDER.indexOf(b); if (ib < 0) ib = 99;
                 return ia - ib;
             });
-            if (entries.length == 0) return false;
+            if (entries.length == 0) {
+                return <p className='makeEmpty' style={{ padding: '8px', color: '#666' }}>没有匹配的配方（可清空搜索或关闭「只看可制作」）。</p>;
+            }
             return catOrder.map(function (cat) {
                 return <div className='makeGroup' key={cat}>
                     <div className='makeGroupTitle'>{TYPE_DATA[cat] ? TYPE_DATA[cat].name : cat}</div>
                     <div className='makeGrid'>
                         {groups[cat].map(function (entry, count) {
                             var attr = entry.attr, tmp = entry.tmp;
-                            return <div className='makeItem' onClick={this.makeWindow.bind(this, attr)} key={'make_' + cat + '_' + count} title={getItemInfoText(attr)} onMouseEnter={this.context.changeMsg.bind(null, attr, 'item')}>
+                            return <div className='makeItem' tabIndex={0} role='button' onClick={this.makeWindow.bind(this, attr)} onKeyDown={this.handleMakeKeyDown.bind(this, attr)} key={'make_' + cat + '_' + count} title={getItemInfoText(attr)} onMouseEnter={this.context.changeMsg.bind(null, attr, 'item')}>
                                 <span className='makeName'>{ITEM_DATA[attr] ? ITEM_DATA[attr].name : attr}{list[attr].amount ? ' * ' + list[attr].amount : null}</span>
                                 <span className='makeRequire'><RequireComponent requireList={tmp.require} haveBox={true} /></span>
                             </div>;
@@ -358,7 +402,11 @@ var StudioComponent = React.createClass({
             var require = this.props.attachData[name].require;
             var totalRequire = cloneMul(require, amount);
             //检查产物寄存是否被占用
-            var disabled = !this.context.checkHaveResourceAll(totalRequire, true) || !haveTimeToMake.bind(this, name)() || (!this.props.alwayMakeOne && this.context.checkFull(this.props.type, name));
+            var makeNoMaterial = !this.context.checkHaveResourceAll(totalRequire, true);
+            var makeNoTime = !haveTimeToMake.bind(this, name)();
+            var makeBoxFull = (!this.props.alwayMakeOne && this.context.checkFull(this.props.type, name));
+            var makeReason = makeNoMaterial ? '材料不足' : (makeNoTime ? '饱食或水分不足，撑不过制作耗时' : (makeBoxFull ? '成品容器已满' : ''));
+            var disabled = makeNoMaterial || makeNoTime || makeBoxFull;
 
             return <div className='schedule'>
                 <table className="table table-hover ">
@@ -368,7 +416,7 @@ var StudioComponent = React.createClass({
                         {this.props.alwayMakeOne ? null : <td><input className='scheduleInput form-control' value={String(amount)} type='number' onChange={this.updateSchedule} /></td>}
                         <td><RequireComponent haveBox={true} withSpace={true} showTotal={true} requireList={totalRequire} /></td>
                         <td>{Math.round(this.getTimeNeed(this.props.attachData[name].timeNeed * amount))}</td>
-                        <td><BtnComponent disabled={disabled} disabledReason={'饱食或水分不足，或容器已满'} handleClick={this.make.bind(this, name)} desc="执行" /></td>
+                        <td><BtnComponent disabled={disabled} disabledReason={makeReason} handleClick={this.make.bind(this, name)} desc="执行" /></td>
                     </tr></tbody>
                 </table>
             </div>
@@ -390,6 +438,12 @@ var BuildingComponent = React.createClass({
     },
     callWindow: function (wind) {
         this.context.callWindow(wind);
+    },
+    handleKeyDown: function (event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            event.preventDefault();
+            this.handleClick();
+        }
     },
     handleClick: function () {
         this.context.AudioEngine.playEffect('pick');
@@ -416,7 +470,7 @@ var BuildingComponent = React.createClass({
         var building = this.props.building;
         var size = (BUILDING_LAYOUT[building] && BUILDING_LAYOUT[building].size) || 'medium';
         return (
-            <div onClick={this.handleClick} className={'building btn btn-default building-' + size}>
+            <div tabIndex={0} role='button' onClick={this.handleClick} onKeyDown={this.handleKeyDown} className={'building btn btn-default building-' + size}>
                 {BUILDING_DATA[building].name}
                 {buildingSaveData[building].hint ? <span className='badge'>!</span> : null}
             </div>
@@ -509,7 +563,10 @@ var ActionComponent = React.createClass({
             }
         }
         var require = this.props.require;
-        var disabled = this.props.disabled || this.context.getTheMaxTimeToUse() < this.state.timeNeed || !this.context.checkHaveResourceAll(require, true);
+        var noMaterial = !this.context.checkHaveResourceAll(require, true);
+        var noTime = this.context.getTheMaxTimeToUse() < this.state.timeNeed;
+        var actionReason = this.props.disabled ? (this.props.disabledReason || '当前不可用') : (noMaterial ? '材料不足' : (noTime ? '饱食或水分不足，撑不过该行动耗时' : ''));
+        var disabled = this.props.disabled || noTime || noMaterial;
 
         var coolDown = this.context.getcoolDownSaveData(this.props.action);
         var hasCooledDown = (coolDown == 0 || coolDown == undefined);
@@ -520,7 +577,7 @@ var ActionComponent = React.createClass({
                     {require ? <td><RequireComponent haveBox={true} requireList={cloneMul(require, this.state.timeNeed)} /></td> : null}
                     <td><RequireComponent isGreen='true' requireList={canGet} /></td>
                     <td>{getTimeDesc.bind(this)()}</td>
-                    {hasCooledDown ? <td><BtnComponent disabled={disabled} disabledReason={'饱食或水分不足，撑不过该行动耗时'} handleClick={this.act.bind(this, name)} desc={this.props.desc} /></td> : <td><BtnComponent disabled={true} disabledReason={'冷却中，还需约 ' + Math.round(coolDown) + ' 小时'} desc={this.props.desc + '(冷却:' + Math.round(coolDown) + ')'} /></td>}
+                    {hasCooledDown ? <td><BtnComponent disabled={disabled} disabledReason={actionReason} handleClick={this.act.bind(this, name)} desc={this.props.desc} /></td> : <td><BtnComponent disabled={true} disabledReason={'冷却中，还需约 ' + Math.round(coolDown) + ' 小时'} desc={this.props.desc + '(冷却:' + Math.round(coolDown) + ')'} /></td>}
                 </tr></tbody>
             </table>
         </div>

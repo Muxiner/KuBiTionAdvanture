@@ -138,21 +138,32 @@ var AdvanComponent = React.createClass({
         var misk = this.props.misk;
         var time = this.context.time;
         var progress = this.props.progress;
+        // 深色季节文字（白底 ≥5.8:1；原绿色 #74AB6A 仅 2.7:1）
         var seasonDescMap = {
-            'spring': <span className='season' style={{ color: COLOR.GREEN }}>春</span>,
-            'summer': <span className='season' style={{ color: COLOR.RED }}>夏</span>,
-            'autumn': <span className='season' style={{ color: COLOR.YELLOW }}>秋</span>,
-            'winter': <span className='season' style={{ color: COLOR.BLUE }}>冬</span>,
+            'spring': <span className='season' style={{ color: '#2f6b2f' }}>春</span>,
+            'summer': <span className='season' style={{ color: '#a3352a' }}>夏</span>,
+            'autumn': <span className='season' style={{ color: '#6b5300' }}>秋</span>,
+            'winter': <span className='season' style={{ color: '#1f4f8a' }}>冬</span>,
         }
+        // 用文字表达昼夜（原来的 30×30 颜色方块没有图例，正午白块/半夜黑块像占位符）
+        var isNight = time.hour >= 19 || time.hour < 6;
+        var phaseText = isNight ? '夜晚' : '白天';
+        // 标题随场景推导，避免地图/窗口里顶部一直显示“家”
+        var sceneTitles = { home: '家', branch: '地图', dungeon: '地牢' };
+        var sceneTitle = sceneTitles[this.context.currentScene] ||
+            (PLACE_DATA[this.context.currentScene] ? PLACE_DATA[this.context.currentScene].name : this.state.title);
         return <div className="panel panel-primary advanMain" >
             <div className="panel-heading">
                 <div className="time" id="time">
-                    {this.context.generation ? <span>-轮回{this.context.generation}-</span> : null}
+                    {this.context.generation ? <span className="generation">-轮回{this.context.generation}-</span> : null}
                     {seasonDescMap[this.context.season]}第<span className="date">{time.day}</span>日 {getTimeDiplay(time.hour)}
-                    <div style={{ backgroundColor: getColor(time.hour) }} className="weatherBox"></div>
+                    <span className={'dayPhase ' + (isNight ? 'dayPhaseNight' : 'dayPhaseDay')}
+                        title={'游戏内时间：' + Math.floor(time.hour) + ' 点，' + phaseText}>
+                        {isNight ? '☾ ' + phaseText : '☀ ' + phaseText}
+                    </span>
                 </div>
-                <span> : </span>
-                <div className="title">{this.state.title}</div>
+                <span className="headingSep">·</span>
+                <div className="title" title={'当前位置：' + sceneTitle}>{sceneTitle}</div>
             </div>
             <div className="panel-body  clearFix">
                 <div className="mask" style={{ display: misk == 0 ? 'none' : 'block', opacity: misk }}>
@@ -165,14 +176,16 @@ var AdvanComponent = React.createClass({
                         {getDisplay.bind(this)()}
                     </div>
                 </div>
-                {/* 回家按钮：独立容器，外出场景（分支/地点等）始终显示 */}
-                {this.props.children == null && this.context.currentScene != 'home' && this.context.currentScene != 'dungeon' ?
-                    <div className='homeBtnBar'>
-                        <BtnHome placeName={PLACE_DATA[this.context.currentScene] ? this.context.currentScene : null} />
-                    </div>
+                {this.context.msgList && this.context.msgList.length ?
+                    <div className='toast' role='status' aria-live='polite'>{this.context.msgList[this.context.msgList.length - 1]}</div>
                     : null}
-                {this.context.msgList && this.context.msgList.length ? <div className='toast'>{this.context.msgList[this.context.msgList.length - 1]}</div> : null}
             </div>
+            {/* 回家按钮：移到场景内容层之外（原绝对定位会压住地点卡片的“出发”） */}
+            {this.props.children == null && this.context.currentScene != 'home' && this.context.currentScene != 'dungeon' ?
+                <div className='homeBtnBar'>
+                    <BtnHome placeName={PLACE_DATA[this.context.currentScene] ? this.context.currentScene : null} />
+                </div>
+                : null}
             <StateComponent />
         </div>
     }

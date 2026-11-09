@@ -225,7 +225,8 @@ var BattleChoiceComponent = React.createClass({
 var BattleComponent = React.createClass({
     //战斗的整体场景
     step: 0,
-    battleTurnTime: 0,
+    // G3：每回合消耗的游戏时间（小时）。原先恒为 0，导致战斗完全免费。
+    battleTurnTime: COMBAT_TURN_TIME,
     contextTypes: {
         playerStateChange: React.PropTypes.func.isRequired,
         playerState: React.PropTypes.object.isRequired,
@@ -246,6 +247,7 @@ var BattleComponent = React.createClass({
         durableSaveData: React.PropTypes.object.isRequired,
         getMaxState: React.PropTypes.func.isRequired,
         generation: React.PropTypes.number.isRequired,
+        setDueling: React.PropTypes.func.isRequired,
     },
     getDefaultProps: function () {
         return {
@@ -287,6 +289,9 @@ var BattleComponent = React.createClass({
     },
     componentWillMount: function () {
         this.step = 0;
+        this.busy = false;
+        this.unmounted = false;
+        this.context.setDueling(true);
         if (this.context.mstState.hp != undefined) return;
         var mst = clone(MST_DATA[this.props.mst]);
 
@@ -303,6 +308,9 @@ var BattleComponent = React.createClass({
         this.context.setStateFromChildren({ 'mstState': mst });
     },
     componentWillUnmount: function () {
+        this.unmounted = true;
+        this.busy = false;
+        this.context.setDueling(false);
         this.context.setStateFromChildren({ 'mstState': {} });
     },
     getRunChance: function () {
@@ -442,17 +450,16 @@ var BattleComponent = React.createClass({
 
         }
 
-        //前缀加成
+        //前缀加成（G7：原先算了 preBuff 却没使用，"残暴的"前缀无效果）
         var prefix = this.props.prefix;
-        if (prefix.atk) {
-            var preBuff = PREFIX_DATA.atk.buff;
-        } else {
-            var preBuff = 0;
-        }
+        var preBuff = prefix.atk ? PREFIX_DATA.atk.buff : 0;
 
         var skillDecMul = Math.pow(SKILL_DATA.def.buff, level) * 0.95 + 0.05 * (10 / (10 + level));
 
         var dmg = damage * skillDecMul * (equipBuff) * (1 + preBuff);
+        // G4：总减伤上限 85%，且单次伤害至少 1 点
+        var minDmg = Math.max(1, Math.ceil(damage * (1 - DAMAGE_REDUCTION_CAP)));
+        if (dmg < minDmg) dmg = minDmg;
         return Math.ceil(dmg);
     },
     getRequire: function (weapon) {
@@ -479,6 +486,8 @@ var BattleComponent = React.createClass({
         return require;
     },
     handleAttack: function (weapon) {
+        if (this.busy) return;
+        this.busy = true;
         var maxHp = this.context.mstState.maxHp;
         this.step++;
         var mst = this.props.mst;
@@ -540,8 +549,8 @@ var BattleComponent = React.createClass({
                 this.context.setStateFromChildren({ playerState: playerState });
                 break;
         }
-        callBack.bind(this)();
-
+        // G3：回合耗时 0.5h（推进饥饿/口渴/冷却等），回合期间锁住操作
+        this.context.useTime(callBack.bind(this), timeNeed);
 
         function getMstDo() {
             if (mst_feared) return <span>害怕地动弹不得！</span>;
@@ -559,6 +568,8 @@ var BattleComponent = React.createClass({
             </span>
         }
         function callBack() {
+            this.busy = false;
+            if (this.unmounted) return;
             if (require) this.context.playerStateUse(require);
             this.context.playerStateUse(o(weapon, 1));
             playerSuccess ? this.context.mstStateChange({ hp: -playerDmg }) : null;
@@ -590,6 +601,8 @@ var BattleComponent = React.createClass({
         }
     },
     handleRun: function () {
+        if (this.busy) return;
+        this.busy = true;
         // this.context.setStateFromChildren({msgList:[]});
         this.step++;
         var mst = this.props.mst;
@@ -597,6 +610,8 @@ var BattleComponent = React.createClass({
         var timeNeed = this.battleTurnTime;
         this.context.useTime(callBack.bind(this), timeNeed);
         function callBack() {
+            this.busy = false;
+            if (this.unmounted) return;
             var chance = this.getRunChance();
             if (Math.random() < chance) {
                 this.context.callWindow(null);

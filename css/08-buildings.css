@@ -264,3 +264,68 @@ td:nth-child(1) {
     width: 100%;
     height: 100%;
 }
+
+/* =====================================================================
+   UX 修复覆盖块（U7/U4）
+   - 建筑入口/装备槽等关键可点元素：手型光标 + 焦点框
+   - .me（战斗/地牢小按钮）从 40×20 放大到 48×32
+   - .vector .btn（收获/取消）从 38×20 放大到 38×28，移动端 44 高
+   - 伤害标签底色加深，白字对比度由 2.4:1 提升到 6:1
+   ===================================================================== */
+
+.building {
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.building:focus,
+.building:focus-visible,
+.equipSlot:focus,
+.makeItem:focus,
+.skillItem:focus {
+    outline: 2px solid #1f4f8a;
+    outline-offset: 1px;
+}
+
+.me {
+    width: 48px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 13px;
+}
+
+.vector .btn {
+    width: 38px;
+    min-width: 38px;
+    height: 28px;
+    line-height: 14px;
+    font-size: 12px;
+    padding: 0;
+}
+
+.damage {
+    background: #4d5347;
+    color: #ffffff;
+}
+
+.branch,
+.oppo {
+    font-size: 13px;
+}
+
+.msgShow {
+    font-size: 13px;
+    height: auto;
+    min-height: 60px;
+    max-height: 120px;
+}
+
+/* 地图/集市卡片里的“耗时、资源”说明字号（辅助文字 ≥12px） */
+.placeTime {
+    font-size: 12px;
+}
+
+/* 伤害数字 hover 不再放大（避免战斗日志行高跳动） */
+.damage:hover {
+    transform: none;
+}

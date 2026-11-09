@@ -22,32 +22,8 @@
 
 var CTRL_PRESSED = false;
 var SHIFT_PRESSED = false;
-$(function () {
-    $(document).keypress(function (e) {
-        if (e.keyCode == 32) {
-            //...........code.......
-            event.preventDefault();
-            return false;
-        }
-        if (e.keyCode == 13) {
-            //...........code.......
-            event.preventDefault();
-            return false;
-        }
-    })
-    $(document).keyup(function (e) {
-        if (e.keyCode == 32) {
-            event.preventDefault();
-            return false;
-            //...........code.......
-        }
-        if (e.keyCode == 13) {
-            //...........code.......
-            event.preventDefault();
-            return false;
-        }
-    })
-});
+// 注：原实现会全局拦截空格/回车按键并阻止默认行为，妨碍键盘操作按钮与输入框，
+// 已移除；保留两个修饰键全局标记供 ItemComponent 批量操作使用。
 
 //引入React动画库
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;

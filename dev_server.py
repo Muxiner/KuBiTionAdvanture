@@ -23,17 +23,21 @@
 """
 
 import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 import signal
 import subprocess
 import sys
 import queue
+import tempfile
 import threading
 import time
 import urllib.parse
 import webbrowser
+from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -46,6 +50,19 @@ IGNORE_SUFFIX = (".pyc", ".swp", ".tmp")
 SAVE_DIR = os.path.join(ROOT, "saves")
 SAVE_API_PATH = "/api/save.php"
 ACCOUNT_RE = re.compile(r"^[A-Za-z0-9]{3,12}$")
+# 密码新格式允许 3-64 位字母数字；旧存档的 3-12 位密码继续可用
+PASSWORD_RE = re.compile(r"^[A-Za-z0-9]{3,64}$")
+# PBKDF2 参数（per-account 随机盐；旧版无盐 sha256 在登录成功后自动升级）
+PBKDF2_ITERATIONS = 200000
+PBKDF2_SALT_BYTES = 16
+# 单个请求体上限（正常存档约 30KB，留足余量，防止内存/磁盘被灌爆）
+MAX_BODY_BYTES = 4 * 1024 * 1024
+# 只允许本机来源，配合 Host 校验阻断 DNS rebinding
+ALLOWED_HOST_NAMES = {"127.0.0.1", "localhost", "::1"}
+# 静态服务拒绝的目录/文件：存档、git 数据、Python 缓存与源码
+DENY_DIR_NAMES = {"saves", ".git", "__pycache__", ".idea", ".vscode", "node_modules"}
+DENY_FILE_SUFFIXES = (".py",)
+_save_lock = threading.Lock()
 
 # 注入到 HTML 的自动刷新客户端
 RELOAD_SNIPPET = b"""<script>
@@ -131,8 +148,42 @@ def watch_loop():
             broadcast()
 
 
-def _hash_pass(password):
+def _pbkdf2_hash(password, salt, iterations=PBKDF2_ITERATIONS):
+    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations).hex()
+
+
+def _legacy_hash(password):
+    """旧版无盐哈希：sha256("kubition::" + 密码)。仅用于校验旧存档。"""
     return hashlib.sha256(("kubition::" + password).encode("utf-8")).hexdigest()
+
+
+def _new_password_record(password):
+    salt = secrets.token_bytes(PBKDF2_SALT_BYTES)
+    return {
+        "passAlgo": "pbkdf2_sha256",
+        "passIter": PBKDF2_ITERATIONS,
+        "passSalt": salt.hex(),
+        "passHash": _pbkdf2_hash(password, salt, PBKDF2_ITERATIONS),
+    }
+
+
+def _is_legacy_record(record):
+    return record.get("passAlgo") != "pbkdf2_sha256"
+
+
+def _verify_password(record, password):
+    stored = record.get("passHash") or ""
+    if record.get("passAlgo") == "pbkdf2_sha256":
+        try:
+            iterations = int(record.get("passIter") or PBKDF2_ITERATIONS)
+            salt = bytes.fromhex(record.get("passSalt") or "")
+            if not salt or iterations < 1 or iterations > 2000000:
+                return False
+            return hmac.compare_digest(_pbkdf2_hash(password, salt, iterations), stored)
+        except (TypeError, ValueError):
+            return False
+    # 兼容旧存档：无盐 sha256（只有旧档没有 passAlgo 时才会走到这里）
+    return hmac.compare_digest(_legacy_hash(password), stored)
 
 
 def _save_file(account):
@@ -140,14 +191,51 @@ def _save_file(account):
 
 
 def _load_save_file(account):
+    """读取存档。返回 (record, status)，status 为 ok/missing/corrupt。
+
+    区分"文件不存在"和"文件损坏"很重要：损坏的存档绝不能被当成新账号覆盖。
+    """
     path = _save_file(account)
     if not os.path.isfile(path):
-        return None
+        return None, "missing"
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            record = json.load(f)
     except (OSError, ValueError):
-        return None
+        return None, "corrupt"
+    if not isinstance(record, dict) or not record.get("passHash"):
+        return None, "corrupt"
+    return record, "ok"
+
+
+def _write_save(account, record):
+    """原子写入：临时文件 + fsync + os.replace，避免写一半留下损坏 JSON。"""
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=SAVE_DIR, prefix="." + account + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(record, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, _save_file(account))
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+
+
+def _upgrade_record(account, record, password):
+    """旧无盐哈希校验通过后，自动升级为带随机盐的 PBKDF2 并落盘。"""
+    try:
+        record.update(_new_password_record(password))
+        _write_save(account, record)
+        print("  [upgrade] %s 的密码哈希已升级为 PBKDF2" % account, flush=True)
+        return True
+    except OSError as e:
+        print("  [upgrade] %s 密码哈希升级失败: %s" % (account, e), flush=True)
+        return False
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -160,33 +248,122 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Expires", "0")
         super().end_headers()
 
+    def _host_allowed(self):
+        """只接受本机 Host：阻断 DNS rebinding（恶意域名解析到 127.0.0.1）。"""
+        host = (self.headers.get("Host") or "").strip()
+        if not host:
+            return False
+        hostname = host
+        if host.startswith("["):
+            hostname = host.split("]")[0].lstrip("[")
+        elif ":" in host:
+            hostname = host.rsplit(":", 1)[0]
+        return hostname.lower() in ALLOWED_HOST_NAMES
+
+    def _origin_allowed(self):
+        """跨站 form POST 没有 Origin 时靠 Host 校验兜底；带 Origin 时必须本机来源。"""
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        try:
+            parsed = urllib.parse.urlsplit(origin)
+        except ValueError:
+            return False
+        if parsed.scheme not in ("http", "https"):
+            return False
+        return (parsed.hostname or "").lower() in ALLOWED_HOST_NAMES
+
+    def _safe_rel_path(self):
+        """把请求路径归一化并做真实路径包含校验。
+
+        返回相对 ROOT 的安全路径（"" 表示站点根）；不安全/被禁止时返回 None。
+        兼容 /SAVES/、/%73aves/、多重编码、符号链接等绕过方式。
+        """
+        raw_path = urllib.parse.urlsplit(self.path).path
+        decoded = raw_path
+        # 多重 percent-encoding 归一（最多 3 层，100% 足够覆盖浏览器/代理行为）
+        for _ in range(3):
+            new_path = urllib.parse.unquote(decoded)
+            if new_path == decoded:
+                break
+            decoded = new_path
+        if "\x00" in decoded:
+            return None
+        rel = os.path.normpath(decoded).lstrip("/")
+        if rel in ("", "."):
+            return ""
+        parts = [p for p in rel.split(os.sep) if p not in ("", ".")]
+        for part in parts:
+            lower = part.lower()
+            if lower in DENY_DIR_NAMES:
+                return None
+            if lower.startswith("."):
+                return None
+        if rel.lower().endswith(DENY_FILE_SUFFIXES):
+            return None
+        full = os.path.realpath(os.path.join(ROOT, rel))
+        root_real = os.path.realpath(ROOT)
+        save_real = os.path.realpath(SAVE_DIR)
+        try:
+            full_path = Path(full)
+            if not full_path.is_relative_to(Path(root_real)):
+                return None
+            if full_path.is_relative_to(Path(save_real)):
+                return None
+        except (ValueError, OSError):
+            return None
+        return rel
+
     def do_GET(self):
+        if not self._host_allowed():
+            self._send_text("forbidden host", 403)
+            return
         path = self.path.split("?", 1)[0]
         if path == "/__livereload":
             self._handle_sse()
             return
-        if path == "/saves" or path.startswith("/saves/"):
+        rel = self._safe_rel_path()
+        if rel is None:
             self._send_text("forbidden", 403)
             return
-        fs_path = self.translate_path(self.path)
-        if fs_path.endswith(".html") and os.path.isfile(fs_path):
+        # 站点根与 index.html 都要注入 livereload（否则开在 / 时热重载不生效）
+        if rel == "" or rel.lower() == "index.html":
+            self._serve_html(os.path.join(ROOT, "index.html"))
+            return
+        fs_path = os.path.realpath(os.path.join(ROOT, rel))
+        if fs_path.lower().endswith(".html") and os.path.isfile(fs_path):
             self._serve_html(fs_path)
             return
+        self.path = "/" + rel
         super().do_GET()
 
     def do_POST(self):
+        if not self._host_allowed():
+            self._send_text("forbidden host", 403)
+            return
+        if not self._origin_allowed():
+            self._send_text("forbidden origin", 403)
+            return
         path = self.path.split("?", 1)[0]
         if path == SAVE_API_PATH:
             self._handle_save_api()
             return
         self._send_text("not found", 404)
 
+    def list_directory(self, path):
+        # 不提供目录浏览，避免列出存档/源码目录内容
+        self._send_text("forbidden", 403)
+        return None
+
     def _read_form(self):
+        """读取 urlencoded 表单；超长/非法长度返回 None（由调用方回 413/400）。"""
         try:
             length = int(self.headers.get("Content-Length") or 0)
         except ValueError:
-            length = 0
-        body = self.rfile.read(length).decode("utf-8", "replace") if length else ""
+            return None
+        if length <= 0 or length > MAX_BODY_BYTES:
+            return None
+        body = self.rfile.read(length).decode("utf-8", "replace")
         parsed = urllib.parse.parse_qs(body, keep_blank_values=True)
         return {k: v[0] for k, v in parsed.items()}
 
@@ -199,63 +376,84 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(data)
 
     def _handle_save_api(self):
-        """兼容原 save.php 协议：action=save / load / end。"""
+        """兼容原 save.php 协议：action=save / load / end。
+
+        错误响应约定（前端按原文判断）：
+          invalid           参数/格式不合法
+          no account        账号不存在
+          incorrect pass    密码错误
+          save corrupted    存档文件损坏（拒绝覆盖/读取）
+          save failed: ...  写入失败
+        """
         fields = self._read_form()
+        if fields is None:
+            self._send_text("invalid", 413)
+            return
         action = fields.get("action", "")
         account = fields.get("account", "")
         password = fields.get("pass", "")
 
-        if not ACCOUNT_RE.match(account) or not ACCOUNT_RE.match(password):
+        if not ACCOUNT_RE.match(account) or not PASSWORD_RE.match(password):
             self._send_text("invalid")
             return
 
-        record = _load_save_file(account)
+        with _save_lock:
+            record, status = _load_save_file(account)
+            if status == "corrupt":
+                # 绝不能在损坏存档上继续写：否则会丢掉玩家数据
+                self._send_text("save corrupted")
+                return
 
-        if action == "save":
-            if record is not None and record.get("passHash") != _hash_pass(password):
-                self._send_text("incorrect pass")
+            if action == "save":
+                if status == "ok" and not _verify_password(record, password):
+                    self._send_text("incorrect pass")
+                    return
+                raw = fields.get("data", "")
+                try:
+                    game_data = json.loads(raw)
+                except ValueError:
+                    self._send_text("invalid")
+                    return
+                if not isinstance(game_data, dict):
+                    self._send_text("invalid")
+                    return
+                envelope = record if record is not None else {}
+                envelope.update({
+                    "account": account,
+                    "day": fields.get("day", ""),
+                    "generation": fields.get("g", ""),
+                    "savedAt": int(time.time() * 1000),
+                    "schemaVersion": game_data.get("schemaVersion", 1),
+                    "data": game_data,
+                })
+                envelope.update(_new_password_record(password))
+                try:
+                    _write_save(account, envelope)
+                except OSError as e:
+                    self._send_text("save failed: %s" % e)
+                    return
+                print("  [save] %s -> saves/%s.json" % (account, account), flush=True)
+                self._send_text("success")
                 return
-            raw = fields.get("data", "")
-            try:
-                game_data = json.loads(raw)
-            except ValueError:
-                self._send_text("invalid")
-                return
-            os.makedirs(SAVE_DIR, exist_ok=True)
-            envelope = {
-                "account": account,
-                "passHash": _hash_pass(password),
-                "day": fields.get("day", ""),
-                "generation": fields.get("g", ""),
-                "savedAt": int(time.time() * 1000),
-                "data": game_data,
-            }
-            try:
-                with open(_save_file(account), "w", encoding="utf-8") as f:
-                    json.dump(envelope, f, ensure_ascii=False, indent=2)
-            except OSError as e:
-                self._send_text("save failed: %s" % e)
-                return
-            print("  [save] %s -> saves/%s.json" % (account, account), flush=True)
-            self._send_text("success")
-            return
 
-        if action == "load":
-            if record is None:
-                self._send_text("no account")
+            if action == "load":
+                if status == "missing":
+                    self._send_text("no account")
+                    return
+                if not _verify_password(record, password):
+                    self._send_text("incorrect pass")
+                    return
+                if _is_legacy_record(record):
+                    _upgrade_record(account, record, password)
+                self._send_text(json.dumps(record.get("data", {}), ensure_ascii=False))
                 return
-            if record.get("passHash") != _hash_pass(password):
-                self._send_text("incorrect pass")
+
+            if action == "end":
+                # 通关排行榜：暂返回空榜单占位
+                self._send_text("[]")
                 return
-            self._send_text(json.dumps(record.get("data", {}), ensure_ascii=False))
-            return
 
-        if action == "end":
-            # 通关排行榜：暂返回空榜单占位（前端会 eval 成数组）
-            self._send_text("[]")
-            return
-
-        self._send_text("invalid")
+            self._send_text("invalid")
 
     def _serve_html(self, fs_path):
         with open(fs_path, "rb") as f:
