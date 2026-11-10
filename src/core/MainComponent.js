@@ -51,12 +51,10 @@ var MainComponent = React.createClass({
             isDueling: false,
             menuDesc: {},
             menuHint: 0,
-            misk: 0,
             msgList: [],
             mstState: {},//怪物的状态
             placeSaveData: clone(PLACE_INIT),
             playerState: clone(PLAYER_STATE_INIT),
-            progress: 0,
             startSeason: startSeason,
             season: startSeason,
             showMenu: '',
@@ -1506,51 +1504,50 @@ var MainComponent = React.createClass({
             setTimeout(doCallBack, delay);
         }
     },
-    // 播放顶部进度条动画，结束后回调
+    // 播放顶部进度条动画，结束后回调（逐帧状态走 UX_PROGRESS，避免根组件每帧重渲染）
     setProgress: function (delay, callBack) {
         var progress = 0;
         var foo = bindAnimation(
             function (step) {
                 progress += step / delay;
-                this.setState({ progress: progress });
                 if (progress >= 1) {
+                    // 保持原时序：先归零再回调，避免遮罩停在满格
+                    UX_PROGRESS.setProgress(0);
                     callBack();
-                    this.setState({ progress: 0 });
                 } else {
+                    UX_PROGRESS.setProgress(progress);
                     requestAnimationFrame(foo);
                 }
             }.bind(this)
         )()
         requestAnimationFrame(foo);
     },
-    // 渐显遮罩（misk）
+    // 渐显遮罩（misk，走 UX_PROGRESS 总线）
     setMisk: function (delay) {
-        var step = 100;
         var misk = 0;
         var foo = bindAnimation(
             function (step) {
                 misk += step / delay;
-                this.setState({ misk: misk });
                 if (misk >= 1) {
-                    this.setState({ misk: 1 })
+                    UX_PROGRESS.setMisk(1);
                 } else {
+                    UX_PROGRESS.setMisk(misk);
                     requestAnimationFrame(foo);
                 }
             }.bind(this)
         )()
         requestAnimationFrame(foo);
     },
-    // 渐隐遮罩（misk）
+    // 渐隐遮罩（misk，走 UX_PROGRESS 总线）
     clearMisk: function (delay) {
-        var step = 100;
         var misk = 1;
         var foo = bindAnimation(
             function (step) {
                 misk -= step / delay;
-                this.setState({ misk: misk });
                 if (misk <= 0) {
-                    this.setState({ misk: 0 })
+                    UX_PROGRESS.setMisk(0);
                 } else {
+                    UX_PROGRESS.setMisk(misk);
                     requestAnimationFrame(foo);
                 }
             }.bind(this)
@@ -1601,7 +1598,7 @@ var MainComponent = React.createClass({
     render: function () {
         return <div className="main clearFix" onContextMenu={this.preventDefault} onSelect={this.preventDefault}>
             <MenuComponent type={this.state.showMenu} />
-            <AdvanComponent misk={this.state.misk} progress={this.state.progress}>{this.state.wind}</AdvanComponent>
+            <AdvanComponent>{this.state.wind}</AdvanComponent>
             <BagComponent items={this.state.boxSaveData.bag.things} size={this.state.boxSaveData.bag.size} />
 
         </div>;
@@ -1614,6 +1611,7 @@ var MainComponent = React.createClass({
     // 用初始状态重置全局状态
     init: function () {
         var initState = this.getInitialState();
+        UX_PROGRESS.reset();
         this.setState(initState);
     },
     setVolume: function (argument) {
@@ -1695,6 +1693,7 @@ var MainComponent = React.createClass({
         //对存档的预处理（UI-only 字段不落盘，旧档里若有也在这里丢弃）
         data.misk = 0;
         data.progress = 0;
+        UX_PROGRESS.reset();
         data.wind = null;
         data.detailedItem = '';
         data.detailedType = '';

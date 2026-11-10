@@ -18,6 +18,24 @@ var BoxTransferComponent = React.createClass({
         AudioEngine: React.PropTypes.object.isRequired,
         showMsg: React.PropTypes.func.isRequired,
     },
+    // 渲染签名：当前容器件数 / 大箱子件数与容量 / 大箱子是否已建
+    // （boxSaveData、buildingSaveData 都可能原地修改）
+    getTransferSig: function (props, ctx) {
+        var boxSaveData = ctx.boxSaveData || {};
+        var buildingSaveData = ctx.buildingSaveData || {};
+        var src = boxSaveData[props.box];
+        var big = boxSaveData['bigBox'];
+        var bigBuilding = buildingSaveData['bigBox'];
+        return (src ? getLength(src.things) : 0) + '|' +
+            (big ? getLength(big.things) : 0) + '|' +
+            (big ? big.size : 0) + '|' +
+            (bigBuilding && bigBuilding.own ? 1 : 0);
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        if (uxShallowChanged(nextProps, this.props)) return true;
+        if (uxCtxChanged(nextContext, this.context, ['boxSaveData', 'buildingSaveData', 'checkFull', 'changeItem', 'AudioEngine', 'showMsg'])) return true;
+        return this.getTransferSig(nextProps, nextContext || this.context) !== this._transferSig;
+    },
     // 放入大箱子：把当前容器内的物品全部移回大箱子（受容量限制）
     putOut: function () {
         var box = this.props.box;
@@ -56,6 +74,7 @@ var BoxTransferComponent = React.createClass({
         return '大箱子已满';
     },
     render: function () {
+        this._transferSig = this.getTransferSig(this.props, this.context);
         if (!this.props.box || this.props.box == 'bigBox') return null;
         var empty = getLength(this.context.boxSaveData[this.props.box].things) == 0;
         var noBigBox = !(this.context.buildingSaveData['bigBox'] && this.context.buildingSaveData['bigBox'].own);

@@ -13,6 +13,12 @@
 - 静态部署必须包含最新的 `build/game.bundle.js`，否则页面会提示启动失败。
 - `build/game.bundle.js` 为自动生成文件，手改无效；提交时连同源码一起提交最新产物。
 
+## 渲染性能约定（v0.55）
+- 不允许在 rAF/高频回调里对根组件 `setState`；动画/进度类瞬时状态走 `UX_PROGRESS` 总线（`src/ui/common.js`），由订阅组件局部 `setState`。
+- 给组件加 `shouldComponentUpdate` 时必须列全实际读取的 context key（`uxCtxChanged`），可变对象用内容签名兜底，本地 state 变化要放行。
+- 当前是**阶段性渲染隔离**：完整状态切片、`addTime`/`handleDayOver` 批量 `setState` 未做，不要当作已完成。
+- 新增/修改 JSX 源码后仍须 `node build_game.js`。
+
 ## 项目要点
 - 纯前端 HTML5 沙盒生存文字游戏（React `createClass`）；生产用离线预编译 `build/game.bundle.js`，开发用浏览器内 Babel 源码热加载，无 npm/打包器。
 - 本地开发运行：`python3 dev_server.py`（实时重载 + 本地存档后端 + 服务器自身热重载；启动时自动构建一次预编译产物）。

@@ -55,6 +55,21 @@ var StatPanelComponent = React.createClass({
         rows.push({ name: '幸运', value: bonusPct(skillPct('lucky')), title: skillTitle('lucky', '每级敌人材料掉落 +50%') });
         return rows;
     },
+    // 渲染签名：技能等级 + 当前装备（skill/currentEquip 都可能被原地修改）
+    getStatSig: function (props) {
+        var skill = props.skill || {};
+        var equip = props.currentEquip || {};
+        var parts = [];
+        for (var k in skill) parts.push(k + ':' + skill[k]);
+        for (var slot in equip) parts.push(slot + ':' + (equip[slot] || ''));
+        return parts.join(',');
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        // 本组件不读取 context；state 变化（折叠）与 props/签名变化都要放行
+        if (nextState.open !== this.state.open) return true;
+        if (uxShallowChanged(nextProps, this.props)) return true;
+        return this.getStatSig(nextProps) !== this._statSig;
+    },
     getInitialState: function () {
         // 属性统计默认展开，可折叠（后期信息过载时让玩家自己决定看不看）
         return { open: true };
@@ -63,6 +78,7 @@ var StatPanelComponent = React.createClass({
         this.setState({ open: !this.state.open });
     },
     render: function () {
+        this._statSig = this.getStatSig(this.props);
         var rows = this.getStatRows();
         var open = this.state.open;
         return <div className={"statPanel" + (open ? '' : ' isCollapsed')}>

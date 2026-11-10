@@ -7,6 +7,35 @@
 //游戏逻辑层/////////////////////////////////////////////////////////////////////////////
 //tiny components
 //小组件
+// ===== 0) 动画状态总线（v0.55 渲染隔离）=====
+// MainComponent 的 rAF 只更新这里，只有订阅者（ProgressOverlay）重渲染，避免全树每帧刷新。
+var UX_PROGRESS = (function () {
+    var state = { progress: 0, misk: 0 };
+    var listeners = [];
+    function notify() { for (var i = 0; i < listeners.length; i++) { try { listeners[i](state.progress, state.misk); } catch (e) {} } }
+    return {
+        get: function () { return state; },
+        subscribe: function (fn) { listeners.push(fn); return fn; },
+        unsubscribe: function (fn) { var i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); },
+        setProgress: function (p) { state.progress = p; notify(); },
+        setMisk: function (m) { state.misk = m; notify(); },
+        reset: function () { state.progress = 0; state.misk = 0; notify(); }
+    };
+})();
+
+// 浅比较 props（SCU 用：props 变化一律放行）
+function uxShallowChanged(nextProps, prevProps) {
+    if (nextProps === prevProps) return false;
+    if (!nextProps || !prevProps) return true;
+    for (var k in nextProps) {
+        if (nextProps[k] !== prevProps[k]) return true;
+    }
+    for (var k2 in prevProps) {
+        if (!(k2 in nextProps)) return true;
+    }
+    return false;
+}
+
 // ===== 0) UX 基础工具（对比度/键盘/移动端面板切换） =====
 // sRGB 相对亮度（WCAG），用于自动选择可读的前景/背景组合
 function uxRelLum(r, g, b) {

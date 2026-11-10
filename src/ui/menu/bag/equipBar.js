@@ -13,6 +13,21 @@ var EquipBarComponent = React.createClass({
     contextTypes: {
         changeMsg: React.PropTypes.func.isRequired,
     },
+    // 渲染签名：7 个装备槽的物品 id（装备对象可能原地修改，不能只比引用）
+    getEquipSig: function (props) {
+        var equip = props.currentEquip || {};
+        var parts = [];
+        for (var i = 0; i < EQUIP_SLOTS.length; i++) {
+            var slot = EQUIP_SLOTS[i];
+            parts.push(slot + ':' + (equip[slot] || ''));
+        }
+        return parts.join(';');
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        if (uxShallowChanged(nextProps, this.props)) return true;
+        if (uxCtxChanged(nextContext, this.context, ['changeMsg'])) return true;
+        return this.getEquipSig(nextProps) !== this._equipSig;
+    },
     // 点击/回车：查看该槽物品详情（不再“一点就卸下”，避免误操作）
     openDetail: function (slot, item) {
         if (item) this.context.changeMsg(item, 'item');
@@ -24,6 +39,7 @@ var EquipBarComponent = React.createClass({
         }
     },
     render: function () {
+        this._equipSig = this.getEquipSig(this.props);
         var currentEquip = this.props.currentEquip;
         var self = this;
         return <div className="equipBar">

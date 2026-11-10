@@ -21,6 +21,22 @@ var RegisterComponent = React.createClass({
         callWindow: React.PropTypes.func.isRequired,
         showMsg: React.PropTypes.func.isRequired,
     },
+    // 渲染签名：register 容器的物品（原地修改，不能只比 context 引用）
+    getRegisterSig: function (ctx) {
+        var boxSaveData = ctx.boxSaveData || {};
+        var register = boxSaveData.register;
+        return JSON.stringify((register && register.things) || {});
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        if (uxShallowChanged(nextProps, this.props)) return true;
+        // 本组件读取的 context：boxSaveData；另外三个方法用于操作
+        // detailedItem/currentEquip/durableSaveData 透传给子级 BoxComponent/ItemComponent（子级高亮与耐久）
+        if (uxCtxChanged(nextContext, this.context, [
+            'boxSaveData', 'setStateFromChildren', 'checkFull', 'changeItem', 'callWindow', 'showMsg',
+            'detailedItem', 'currentEquip', 'durableSaveData'
+        ])) return true;
+        return this.getRegisterSig(nextContext || this.context) !== this._registerSig;
+    },
     componentWillMount: function () {
         var itemList = this.props.itemList;
         if (!itemList) {
@@ -42,9 +58,11 @@ var RegisterComponent = React.createClass({
         var picked = [];
         for (var attr in itemList) {
             if (!this.context.checkFull('bag', attr)) {
-                this.context.changeItem(o(attr, itemList[attr]), 'bag');
-                this.context.changeItem(o(attr, itemList[attr]), 'register', true);
-                picked.push(uxDisplayName(attr) + ' ' + fmtQty(itemList[attr]));
+                var amount = itemList[attr];
+                var displayName = uxDisplayName(attr);
+                this.context.changeItem(o(attr, amount), 'bag');
+                this.context.changeItem(o(attr, amount), 'register', true);
+                picked.push(displayName + ' ' + fmtQty(amount));
             }
         }
         this.context.setStateFromChildren({ boxSaveData: saveData });
@@ -66,6 +84,7 @@ var RegisterComponent = React.createClass({
         }
     },
     render: function () {
+        this._registerSig = this.getRegisterSig(this.context);
         var things = this.context.boxSaveData.register.things;
         var disabled = (getLength(things) == 0);
         return <div>

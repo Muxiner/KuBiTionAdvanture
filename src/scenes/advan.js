@@ -8,6 +8,34 @@
 // 顶层冒险面板：显示时间/季节，按 currentScene 路由场景或渲染 callWindow 打开的窗口，
 // 并承载加载进度遮罩与全局提示
 // 顶层冒险面板：显示时间/季节，按 currentScene 路由场景或渲染 callWindow 打开的窗口
+// 进度遮罩：只订阅 UX_PROGRESS 总线，自己 setState（避免 MainComponent 每帧驱动全树渲染）
+var ProgressOverlay = React.createClass({
+    getInitialState: function () {
+        var s = UX_PROGRESS.get();
+        return { progress: s.progress, misk: s.misk };
+    },
+    componentDidMount: function () {
+        var self = this;
+        this._uxProgressListener = function (progress, misk) {
+            if (progress === self.state.progress && misk === self.state.misk) return;
+            self.setState({ progress: progress, misk: misk });
+        };
+        UX_PROGRESS.subscribe(this._uxProgressListener);
+    },
+    componentWillUnmount: function () {
+        if (this._uxProgressListener) UX_PROGRESS.unsubscribe(this._uxProgressListener);
+        this._uxProgressListener = null;
+    },
+    render: function () {
+        var misk = this.state.misk;
+        var progress = this.state.progress;
+        return <div className="mask" style={{ display: misk == 0 ? 'none' : 'block', opacity: misk }}>
+            <div className="waitBar" style={{ display: (misk == 0 || progress == 0) ? 'none' : 'block', opacity: misk }}>
+                <div className="waitBarIn" style={{ width: Math.ceil(100 * progress) }}></div>
+            </div>
+        </div>;
+    }
+});
 var AdvanComponent = React.createClass({
     getDefaultProps: function () {
         return {
@@ -135,9 +163,7 @@ var AdvanComponent = React.createClass({
             str += ")";
             return str;
         }
-        var misk = this.props.misk;
         var time = this.context.time;
-        var progress = this.props.progress;
         // 深色季节文字（白底 ≥5.8:1；原绿色 #74AB6A 仅 2.7:1）
         var seasonDescMap = {
             'spring': <span className='season' style={{ color: '#2f6b2f' }} title='当前季节：春季（影响作物生长与环境温度）'>春</span>,
@@ -172,11 +198,7 @@ var AdvanComponent = React.createClass({
                 <div className="title" title={'当前位置：' + sceneTitle}>{sceneTitle}</div>
             </div>
             <div className="panel-body  clearFix">
-                <div className="mask" style={{ display: misk == 0 ? 'none' : 'block', opacity: misk }}>
-                    <div className="waitBar" style={{ display: (misk == 0 || progress == 0) ? 'none' : 'block', opacity: misk }}>
-                        <div className="waitBarIn" style={{ width: Math.ceil(100 * progress) }}></div>
-                    </div>
-                </div>
+                <ProgressOverlay />
                 <div className='advanOuter' >
                     <div className="advan">
                         {getDisplay.bind(this)()}

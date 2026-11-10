@@ -254,6 +254,19 @@ function getFirst(obj) {
         return { attr: attr, value: obj[attr] }
     }
 }
+// —— 渲染隔离辅助（v0.55）：只比较组件真正用到的 context 字段，避免全树重渲染 ——
+// 用法（在 shouldComponentUpdate 中）：
+//   return uxCtxChanged(nextContext, this.context, ['playerState','time','currentScene']);
+function uxCtxChanged(nextContext, currentContext, keys) {
+    if (!currentContext) return true;
+    if (!nextContext) return true;
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (nextContext[k] !== currentContext[k]) return true;
+    }
+    return false;
+}
+
 // ===== UI 文案格式化工具（v0.52 内容优化，供全部界面共用）=====
 // 千分位数字：15766 -> "15,766"；非数字原样返回。
 function fmtNum(value) {

@@ -50,6 +50,13 @@ saves/                # 本地存档后端数据目录
 
 ## ChangeLog
 
+### v 0.55
+- 渲染隔离（**阶段性优化，非完整状态切片**）：`MainComponent` 的 `setProgress` / `setMisk` / `clearMisk` 三个 rAF 循环不再逐帧 `setState`，改为写入全局 `UX_PROGRESS` 总线（`src/ui/common.js`），由 `ProgressOverlay`（`src/scenes/advan.js`）局部订阅渲染；根组件 state 已不含 `progress` / `misk`。
+- 实测（`.ui-optimize/measure-render.js`）：5 次采集动作脚本耗时 134ms→66ms（约 −51%，单动作约 26.8ms→13.2ms），Task 439ms→418ms，long task 0；动画期间遮罩内 84 次变更、遮罩外仅 19 次一次性变更。
+- 叶子组件渲染隔离：`EquipBar` / `StatPanel` / `OwnedList` / `Register` / `BoxTransfer` 增加 `shouldComponentUpdate`（context key 白名单 + 内容签名 + 本地 state 放行），避免无关重渲染。
+- 回归与修复：`verify.js` 新增 [5b]「动作期间遮罩出现、结束后消失」，当前 18/18；顺带修复 register 拾取 toast 缺少数量的问题。
+- 未做（后续）：完整状态切片、`addTime` / `handleDayOver` 的批量 setState 优化；本轮只是把逐帧动画从根组件移出，根级状态变更仍会触发整树渲染。
+
 ### v 0.54
 - 首屏/加载优化：新增离线预编译 `build_game.js`，把 22 个 JSX 源文件构建为 `build/game.bundle.js`（ES5 单文件，确定性产物，带 sources-hash）；生产/静态托管不再下载 1.33MB Babel、不再 22 次串行 fetch。
 - 实测首屏（`.ui-optimize/shots-precompile/result.json`）：生产模式 24 请求 / 约 1.8MB / 本机 163ms / 慢网（1.6Mbps+4xCPU）9.7s；开发模式 46 请求 / 约 3.24MB / 894ms / 22.0s（原生产走开发路径为 47 请求 / 约 3.2MB / 894ms / 22.0s）；两种模式均无 console 错误、交互正常。

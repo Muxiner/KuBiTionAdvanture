@@ -49,14 +49,40 @@ var OwnedListComponent = React.createClass({
     toggle: function () {
         this.setState({ open: !this.state.open });
     },
-    boxAllowed: function (box) {
+    boxAllowed: function (box, ctx) {
         if (box === 'bag') return true;
         if (box === 'register') return false; // 交易/拾取暂存，不是玩家资产
         var building = OWNED_BOX_BUILDING[box];
         if (!building) return false; // 升级记录、技能等非物品容器不统计
-        var buildingSaveData = this.context.buildingSaveData || {};
+        var buildingSaveData = (ctx || this.context).buildingSaveData || {};
         var data = buildingSaveData[building];
         return !!(data && data.own);
+    },
+    // 渲染签名：所有“可见容器”的物品内容 + 容器所属建筑的 own 状态
+    // （boxSaveData/buildingSaveData 均可能原地修改，必须比内容而不是引用）
+    getDataSig: function (props, ctx) {
+        var boxSaveData = props.boxSaveData || {};
+        var buildingSaveData = ctx.buildingSaveData || {};
+        var parts = [];
+        for (var box in boxSaveData) {
+            var boxData = boxSaveData[box];
+            if (!boxData || !boxData.things) continue;
+            if (!this.boxAllowed(box, ctx)) continue;
+            parts.push(box + ':' + JSON.stringify(boxData.things));
+        }
+        for (var k in OWNED_BOX_BUILDING) {
+            var b = buildingSaveData[OWNED_BOX_BUILDING[k]];
+            parts.push('own:' + k + ':' + (b && b.own ? 1 : 0));
+        }
+        return parts.join('|');
+    },
+    shouldComponentUpdate: function (nextProps, nextState, nextContext) {
+        // 展开/折叠是本地 state，必须放行
+        if (nextState.open !== this.state.open) return true;
+        if (uxShallowChanged(nextProps, this.props)) return true;
+        // 读取的 context：buildingSaveData（容器归属过滤）；currentScene/callWindow/showMsg 用于来源点击后的跳转
+        if (uxCtxChanged(nextContext, this.context, ['buildingSaveData', 'currentScene', 'callWindow', 'showMsg'])) return true;
+        return this.getDataSig(nextProps, nextContext || this.context) !== this._ownedSig;
     },
     boxName: function (box) {
         return OWNED_BOX_NAME[box] || box;
@@ -167,6 +193,7 @@ var OwnedListComponent = React.createClass({
         });
     },
     render: function () {
+        this._ownedSig = this.getDataSig(this.props, this.context);
         var open = this.state.open;
         var content = open ? this.getOwnedList() : null;
         var empty = open && (!content || !content.length);
