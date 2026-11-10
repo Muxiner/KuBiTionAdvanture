@@ -81,21 +81,21 @@ var ITEM_DATA = {
     jellyfish: {
         name: '水母',
         type: 'food',
-        desc: '水汪汪的海鲜。',
+        desc: '滑溜溜的水母，水分很足，但生吃会伤身体，最好煮一下。',
         effect: { moist: 40, full: 1, hp: -2 },
         canUse: true,
     },
     rowJellyfish: {
         name: '海蜇皮',
         type: 'cooked',
-        desc: '水汪汪的海鲜。',
+        desc: '处理过的海蜇皮，脆爽多汁，还能安抚一下精神。',
         effect: { moist: 45, full: 2, san: 8 },
         canUse: true,
     },
     seafood: {
         name: '海鲜汤',
         type: 'cooked',
-        desc: '非常鲜美。',
+        desc: '用海鲜慢炖的汤，鲜美又管饱，是海边最舒服的一顿。',
         effect: { moist: 40, full: 30, san: 8 },
         canUse: true,
     },
@@ -116,21 +116,21 @@ var ITEM_DATA = {
     fishSoap: {
         name: '鱼汤',
         type: 'cooked',
-        desc: '鲜美又有营养。',
+        desc: '奶白的鱼汤，暖胃又补水，疲惫时来一碗正好。',
         effect: { full: 15, moist: 10, ps: 10 },
         canUse: true,
     },
     fishMeat: {
         name: '鱼羊鲜',
         type: 'cooked',
-        desc: '鲜美又有营养。',
+        desc: '鱼肉与羊肉同烧，鲜上加鲜，吃完浑身有劲。',
         effect: { full: 30, ps: 10 },
         canUse: true,
     },
     fish: {
         name: '生鱼',
         type: 'food',
-        desc: '生鲜海鲜。',
+        desc: '刚捞上来的生鱼，能垫肚子，但生吃会败精神。',
         effect: { full: 5, san: -2 },
         canUse: true,
     },
@@ -151,7 +151,7 @@ var ITEM_DATA = {
     mixJuice: {
         name: '果蔬汁',
         type: 'cooked',
-        desc: '营养丰富。',
+        desc: '几种果蔬榨成的汁，清爽补水，还能补点生命。',
         effect: { moist: 15, hp: 10 },
         canUse: true,
         isDrink: true,
@@ -188,14 +188,14 @@ var ITEM_DATA = {
     humanCook: {
         name: '煮人肉',
         type: 'cooked',
-        desc: '可以充饥。',
+        desc: '烤熟的人肉，能同时填肚子和恢复一点生命，来源不太体面。',
         effect: { full: 15, hp: 15, ps: 15, san: -5 },
         canUse: true,
     },
     boilEgg: {
         name: '蒸蛋',
         type: 'cooked',
-        desc: '营养丰富。',
+        desc: '蒸得嫩滑的蛋，入口即化，能填肚子也能补体力。',
         effect: { full: 30, ps: 5 },
         canUse: true,
     },
@@ -209,28 +209,28 @@ var ITEM_DATA = {
     bread: {
         name: '面包',
         type: 'food',
-        desc: '可以充饥。',
+        desc: '烤得松软的面包，能快速填饱肚子，是出门前的常备口粮。',
         effect: { full: 15 },
         canUse: true
     },
     woodBread: {
         name: '碳烤面包',
         type: 'cooked',
-        desc: '可以充饥。',
+        desc: '炭火烤硬的面包，带着木香，赶路时啃一口很顶饿。',
         effect: { full: 22 },
         canUse: true
     },
     wheat: {
         name: '小麦',
         type: 'food',
-        desc: '可以充饥。',
+        desc: '刚收割的小麦，能直接嚼两口压饿，也是烹饪的基础食材。',
         effect: { full: 5 },
         canUse: true
     },
     bigBread: {
         name: '大面包',
         type: 'food',
-        desc: '可以充饥。',
+        desc: '分量扎实的大面包，适合长途远行前塞进背包。',
         effect: { full: 25 },
         canUse: true
     },
@@ -245,7 +245,7 @@ var ITEM_DATA = {
     water: {
         name: '水',
         type: 'food',
-        desc: '此乃生命之源。',
+        desc: '干净的清水，解渴续命，出门在外千万别忘了带。',
         effect: { moist: 10 },
         canUse: true,
         isDrink: true,
@@ -261,14 +261,14 @@ var ITEM_DATA = {
         name: '肉丸',
         type: 'cooked',
         effect: { full: 25, san: 2 },
-        desc: '简单而又美味。',
+        desc: '手捏的肉丸，Q 弹管饱，煮汤或干煎都不错。',
         canUse: true
     },
     woodMeat: {
         name: '碳烤肉片',
         type: 'cooked',
         effect: { full: 17 },
-        desc: '可以充饥。',
+        desc: '炭火烤出的肉片，油香扎实，赶路时来一片最能顶饿。',
         canUse: true
     },
     vegSalad: {
@@ -289,7 +289,7 @@ var ITEM_DATA = {
         name: '胡萝卜',
         type: 'food',
         effect: { full: 6, hp: 1 },
-        desc: '胡萝卜对你的生命健康很有好处。',
+        desc: '脆生生的胡萝卜，生啃清甜，也是农田与烹饪的常客。',
         canUse: true
     },
     fruit: {
@@ -303,14 +303,14 @@ var ITEM_DATA = {
         name: '冰露',
         type: 'food',
         effect: { moist: 4, temp: -7 },
-        desc: '寒冷的果实。',
+        desc: '冰凉的露珠果实，能降温解暑，但别在冬天贪嘴。',
         canUse: true
     },
     fire: {
         name: '火草',
         type: 'food',
         effect: { full: 4, temp: 7 },
-        desc: '引火的易燃物。',
+        desc: '辛辣的草叶，能驱寒暖身，生嚼有点冲。',
         canUse: true
     },
     herb: {
@@ -361,14 +361,14 @@ var ITEM_DATA = {
         name: '凉粉',
         type: 'cooked',
         effect: { moist: 15, hp: 8, san: 2 },
-        desc: '清爽可口的饮品。',
+        desc: '凉滑的凉粉，解暑补水，精神也跟着清爽起来。',
         canUse: true
     },
     juice: {
         name: '果汁',
         type: 'cooked',
         effect: { moist: 12, temp: -5 },
-        desc: '清爽可口的饮品。',
+        desc: '现榨的果汁，清甜解渴，暑天喝最舒服。',
         canUse: true,
         isDrink: true,
     },
@@ -376,7 +376,7 @@ var ITEM_DATA = {
         name: '热咖啡',
         type: 'cooked',
         effect: { moist: 10, ps: 12, san: 4, temp: 10 },
-        desc: '提神醒脑。',
+        desc: '滚烫的咖啡，能提神醒脑；夜里赶路或熬夜刷材料时来一口。',
         canUse: true,
         isDrink: true,
     },
@@ -384,7 +384,7 @@ var ITEM_DATA = {
         name: '咖啡',
         type: 'cooked',
         effect: { moist: 10, ps: 10, san: 2 },
-        desc: '提神醒脑。',
+        desc: '现煮的黑咖啡，苦得提神，赶路时喝一口能顶住困意。',
         canUse: true,
         isDrink: true,
     },
@@ -392,7 +392,7 @@ var ITEM_DATA = {
         name: '热花茶',
         type: 'cooked',
         effect: { moist: 10, ps: 10, san: 6, temp: 10 },
-        desc: '提神醒脑。',
+        desc: '冒着热气的花茶，香气温润，适合在寒冷时慢慢啜饮。',
         canUse: true,
         isDrink: true,
     },
@@ -400,7 +400,7 @@ var ITEM_DATA = {
         name: '花茶',
         type: 'cooked',
         effect: { moist: 10, ps: 10, san: 3 },
-        desc: '提神醒脑。',
+        desc: '用花瓣泡的茶，清香解乏，能让人静下心来。',
         canUse: true,
         isDrink: true,
     },
@@ -408,7 +408,7 @@ var ITEM_DATA = {
         name: '肉汤',
         type: 'cooked',
         effect: { full: 15, moist: 8 },
-        desc: '做成了汤，营养更加丰富。',
+        desc: '慢炖的肉汤，暖身又顶饱，是营地里的硬菜。',
         canUse: true,
         isDrink: true,
     },
@@ -416,7 +416,7 @@ var ITEM_DATA = {
         name: '菜汤',
         type: 'cooked',
         effect: { full: 10, moist: 8, hp: 5 },
-        desc: '做成了汤，营养更加丰富。',
+        desc: '清甜的菜汤，暖胃补水，病后喝很舒服。',
         canUse: true,
         isDrink: true,
     },
@@ -424,7 +424,7 @@ var ITEM_DATA = {
         name: '温酒',
         type: 'cooked',
         effect: { san: 35, moist: 5, temp: 13 },
-        desc: '畅饮一杯可以忘却烦恼。',
+        desc: '温热过的酒，入口暖喉，能驱散寒意与坏心情。',
         canUse: true,
         isDrink: true,
     },
@@ -432,7 +432,7 @@ var ITEM_DATA = {
         name: '极烈朗姆',
         type: 'cooked',
         effect: { san: 42, moist: 5, temp: 6 },
-        desc: '本地最烈的酒！',
+        desc: '本地最烈的朗姆，一口烧喉咙，却能让人忘掉疲惫。',
         canUse: true,
         isDrink: true,
     },
@@ -457,7 +457,7 @@ var ITEM_DATA = {
         name: '麦酒',
         type: 'cooked',
         effect: { san: 22, moist: 7, full: 3 },
-        desc: '畅饮一杯可以忘却烦恼。',
+        desc: '清淡的麦酒，解渴又解乏，配烤肉最合适。',
         canUse: true,
         isDrink: true,
     },
@@ -465,7 +465,7 @@ var ITEM_DATA = {
         name: '冰镇酒',
         type: 'cooked',
         effect: { san: 32, moist: 7, full: 3, temp: -10 },
-        desc: '畅饮一杯可以忘却烦恼。',
+        desc: '冰镇过的酒，入口透凉，暑热时来一杯格外痛快。',
         canUse: true,
         isDrink: true,
     },
@@ -480,42 +480,42 @@ var ITEM_DATA = {
         name: '果干吐司',
         type: 'cooked',
         effect: { full: 18, hp: 10 },
-        desc: '可以充饥。',
+        desc: '夹着果干的吐司，甜香管饱，还能顺手补点生命。',
         canUse: true
     },
     seedBread: {
         name: '榛仁吐司',
         type: 'cooked',
         effect: { full: 18, hp: 9 },
-        desc: '可以充饥。',
+        desc: '撒满坚果碎的吐司，口口扎实，越嚼越香。',
         canUse: true
     },
     flowerBread: {
         name: '花饼',
         type: 'cooked',
         effect: { full: 18, hp: 8, san: 4 },
-        desc: '可以充饥。',
+        desc: '带花香的面饼，吃着松软，心情也会好一点。',
         canUse: true
     },
     jamBread: {
         name: '香料面包',
         type: 'cooked',
         effect: { full: 18, hp: 12, san: 2 },
-        desc: '可以充饥。',
+        desc: '抹了果酱的面包，酸甜开胃，是难得的小奢侈。',
         canUse: true
     },
     sandwich: {
         name: '三明治',
         type: 'cooked',
         effect: { full: 25, hp: 4 },
-        desc: '可以充饥。',
+        desc: '夹着蔬菜和肉的面包，一手就能吃，冒险路上很方便。',
         canUse: true
     },
     hamburger: {
         name: '汉堡',
         type: 'cooked',
         effect: { full: 40 },
-        desc: '可以充饥。',
+        desc: '厚实多汁的汉堡，一口下去顶半天，谁会拒绝呢。',
         canUse: true
     },
     fishHamburger: {
@@ -564,19 +564,19 @@ var ITEM_DATA = {
     part_1: {
         name: '青铜钥匙',
         type: 'met',
-        desc: '开启机关的关键道具。',
+        desc: '冰冷的青铜钥匙，似乎能打开地下通道里的某道机关。',
         value: 0,
     },
     part_2: {
         name: '白金钥匙',
         type: 'met',
-        desc: '开启机关的关键道具。',
+        desc: '沉甸甸的白金钥匙，做工精细，对应更深的机关。',
         value: 0,
     },
     part_3: {
         name: '邪灵钥匙',
         type: 'met',
-        desc: '开启机关的关键道具。',
+        desc: '握在手里发凉的邪灵钥匙，封印的尽头需要它。',
         value: 0,
     },
 
@@ -590,7 +590,7 @@ var ITEM_DATA = {
     blood: {
         name: '魔王之血',
         type: 'quest',
-        desc: '我会回来哒！',
+        desc: '魔王留下的血，蕴含着轮回之力，别弄丢了。',
         value: 0,
     },
     iceGet: {
@@ -627,32 +627,32 @@ var ITEM_DATA = {
     misteryPot: {
         name: '神秘壶',
         type: 'quest',
-        desc: '并不能打开它。',
+        desc: '来自强盗手中的古怪壶，据说打开会出事。',
         value: 100,
     },
     misteryCry: {
         name: '神秘瓶',
         type: 'quest',
-        desc: '并不能打开它。',
+        desc: '被黑暗之力浸过的瓶子，晃一晃还有回声。',
         value: 100,
     },
     misteryBox: {
         name: '神秘箱',
         type: 'quest',
-        desc: '并不能打开它。',
+        desc: '从恶魔守卫身上找到的神秘箱子，打不开。',
         value: 100,
     },
     //材料
     mithril: {
         name: '秘银',
         type: 'met',
-        desc: '罕见的贵金属。',
+        desc: '泛着银光的稀有金属，后期武器与科技都指望它。',
         value: 40,
     },
     snakeSkin: {
         name: '蛇皮',
         type: 'met',
-        desc: '蛇的表皮。',
+        desc: '柔韧的蛇皮，裁缝手里能变成轻便的护具。',
         value: 10,
     },
     dragonBone: {
@@ -670,7 +670,7 @@ var ITEM_DATA = {
     eagleEye: {
         name: '鹰眼',
         type: 'met',
-        desc: '鹰的眼球。',
+        desc: '锐利的鹰眼，射手们相信戴着它能看得更远。',
         value: 10,
     },
     fireHeart: {
@@ -694,7 +694,7 @@ var ITEM_DATA = {
     dust: {
         name: '光尘',
         type: 'met',
-        desc: '发光的尘土。',
+        desc: '会发光的细尘，魔法材料的常见原料。',
         value: 10,
     },
     crystal: {
@@ -706,7 +706,7 @@ var ITEM_DATA = {
     gem: {
         name: '宝石',
         type: 'met',
-        desc: '贵重的交易品。',
+        desc: '切面漂亮的宝石，贵重到能换不少金币。',
         value: 45,
     },
     darkGold: {
@@ -718,19 +718,19 @@ var ITEM_DATA = {
     gold: {
         name: '金子',
         type: 'met',
-        desc: '贵重的交易品。',
+        desc: '亮闪闪的金子，冒险者最实在的硬通货。',
         value: 30,
     },
     wood: {
         name: '木头',
         type: 'met',
-        desc: '最重要的材料之一。',
+        desc: '最常见的建房与制作材料，砍树即可获得，前期永远不嫌多。',
         value: 3,
     },
     hay: {
         name: '干草',
         type: 'met',
-        desc: '最重要的材料之一。',
+        desc: '晒干的牧草，喂牲畜、编绳子都用得上，山里随处可见。',
         value: 2,
     },
     rope: {
@@ -742,7 +742,7 @@ var ITEM_DATA = {
     iron: {
         name: '铁块',
         type: 'met',
-        desc: '最重要的材料之一。',
+        desc: '沉甸甸的铁块，打造武器与工具的基础料，矿洞管够。',
         value: 5
     },
     saltpeter: {
@@ -760,19 +760,19 @@ var ITEM_DATA = {
     shit: {
         name: '粪便',
         type: 'met',
-        desc: '就是粪便而已。',
+        desc: '新鲜的粪便，臭是臭了点，却是肥料与沼气的原料。',
         value: 0
     },
     fertilizer: {
         name: '肥料',
         type: 'met',
-        desc: '农作物的最爱。',
+        desc: '沤好的肥料，作物长得更欢，农田离不开它。',
         value: 3
     },
     gas: {
         name: '沼气',
         type: 'met',
-        desc: '发酵产物。',
+        desc: '发酵产生的沼气，臭得提神，却是好用的燃料。',
         value: 3
     },
 
@@ -791,13 +791,13 @@ var ITEM_DATA = {
     paper: {
         name: '纸',
         type: 'met',
-        desc: '纸可以用来制作地图。',
+        desc: '粗糙的纸，画地图、写信都靠它，平时多囤几张。',
         value: 12,
     },
     teeth: {
         name: '尖牙',
         type: 'met',
-        desc: '非常锋利。',
+        desc: '锋利的尖牙，能做武器，也能当陷阱的诱饵。',
         value: 10,
     },
     poizonRoot: {
@@ -809,7 +809,7 @@ var ITEM_DATA = {
     fur: {
         name: '毛皮',
         type: 'met',
-        desc: '毛皮可以做衣服。',
+        desc: '厚实的毛皮，裁缝手里能变成保暖衣物。',
         value: 20,
     },
     soul: {
@@ -827,13 +827,13 @@ var ITEM_DATA = {
     bile: {
         name: '胆汁',
         type: 'met',
-        desc: '珍贵的药材。',
+        desc: '腥苦的胆汁，药剂的珍贵辅料，别嫌它难闻。',
         value: 22,
     },
     feather: {
         name: '羽毛',
         type: 'met',
-        desc: '珍贵的药材。',
+        desc: '轻软的羽毛，做箭、做羽绒都少不了它。',
         value: 22,
     },
     part: {
@@ -850,7 +850,7 @@ var ITEM_DATA = {
     bone: {
         name: '骨',
         type: 'met',
-        desc: '是一种材料。',
+        desc: '结实的骨头，可做骨棒、骨粉与各种小玩意。',
         value: 10,
     },
     silk: {
@@ -863,13 +863,13 @@ var ITEM_DATA = {
     bullet: {
         name: '子弹',
         type: 'bullet',
-        desc: '枪械的弹药。',
+        desc: '枪械用的子弹，打一发少一发，出门前记得点数。',
         canUse: false
     },
     arrow: {
         name: '箭',
         type: 'bullet',
-        desc: '是弓的弹药。',
+        desc: '弓用的箭矢，便宜但架不住射得快，多备一些。',
         canUse: false
     },
     //武器
@@ -932,7 +932,7 @@ var ITEM_DATA = {
         name: '诅咒之剑',
         type: 'weapon',
         weaponType: 'melee',
-        desc: "附加等同于敌人的(20%)最大生命值的伤害。",
+        desc: '剑身缠着不祥的咒纹，命中时撕开更深的伤口，握久了心里发毛。',
         range: 1,
         damage: 15,
         curse: 0.2,
@@ -955,7 +955,7 @@ var ITEM_DATA = {
         name: '恶魔长枪',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '凝聚着恶魔诅咒之力。',
+        desc: '沉重的恶魔长枪，带着诅咒般的杀气，适合正面硬拼。',
         range: 15,
         damage: 270,
         durable: 200,
@@ -967,7 +967,7 @@ var ITEM_DATA = {
         name: '恶魔刺剑',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '凝聚着恶魔诅咒之力。',
+        desc: '细长的恶魔刺剑，出手快，剑身泛着不祥的暗光。',
         range: 2,
         damage: 185,
         durable: 300,
@@ -1011,6 +1011,7 @@ var ITEM_DATA = {
 
     noWeapon: {
         name: '拳头',
+        desc: '空手攻击，伤害很低但胜在不耗体力与弹药，应急时也能挥两下。',
         weaponType: 'melee',
         type: 'weapon',
         damage: 4,
@@ -1031,7 +1032,7 @@ var ITEM_DATA = {
         name: '匕首',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '初级的近战武器,很容易损坏。',
+        desc: '轻巧的短刃，适合贴身缠斗；耐久偏低，随时准备替换。',
         range: 1,
         damage: 18,
         durable: 6,
@@ -1051,7 +1052,7 @@ var ITEM_DATA = {
         name: '锄头',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '开垦土地的工具,同时是不错的近战武器。',
+        desc: '开垦土地用的锄头，农活之外也能凑合当武器。',
         damage: 12,
         range: 2,
         durable: 20,
@@ -1061,7 +1062,7 @@ var ITEM_DATA = {
         name: '铲子',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '挖掘的工具,同时是不错的近战武器。',
+        desc: '挖土、挖坑都行，铲刃也能防身。',
         range: 2,
         damage: 12,
         durable: 20,
@@ -1071,7 +1072,7 @@ var ITEM_DATA = {
         name: '斧头',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '伐木工具,同时是不错的近战武器。',
+        desc: '伐木与近战都能应付，用久了刃口会卷。',
         damage: 12,
         range: 2,
         durable: 20,
@@ -1081,7 +1082,7 @@ var ITEM_DATA = {
         name: '铁镐',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '采矿工具,同时是不错的近战武器。',
+        desc: '采矿必备，挖矿时会磨损耐久；出门前记得多备一把。',
         range: 2,
         damage: 12,
         durable: 10,
@@ -1091,7 +1092,7 @@ var ITEM_DATA = {
         name: '淬毒匕首',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '伤害和命中能力兼具的近战武器。',
+        desc: '刃口淬了毒，刺中后会让敌人持续掉血，近身很阴。',
         range: 1,
         damage: 35,
         science: 'smith_1',
@@ -1166,7 +1167,7 @@ var ITEM_DATA = {
         name: '骨棒',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '伤害和命中能力兼具的近战武器。',
+        desc: '粗壮的骨棒，抡起来又沉又稳，敲人很疼。',
         range: 4,
         damage: 25,
         durable: 60,
@@ -1302,7 +1303,7 @@ var ITEM_DATA = {
         name: '狙击枪',
         type: 'weapon',
         weaponType: 'shoot',
-        desc: '超高射程的远程枪械武器，需要子弹。',
+        desc: '拉栓狙击枪，射程很远，但每发都要子弹。',
         range: 200,
         damage: 62,
         durable: 600,
@@ -1312,7 +1313,7 @@ var ITEM_DATA = {
         name: '精锐狙击枪',
         type: 'weapon',
         weaponType: 'shoot',
-        desc: '超高射程的远程枪械武器，需要子弹。',
+        desc: '精调过的狙击枪，射得更准更远，子弹消耗也更快。',
         range: 800,
         damage: 82,
         durable: 1200,
@@ -1364,7 +1365,7 @@ var ITEM_DATA = {
         name: '弓',
         type: 'weapon',
         weaponType: 'shoot',
-        desc: '远程弓箭系武器，需要箭。',
+        desc: '木制长弓，射程不错，但每箭都要消耗箭矢。',
         range: 30,
         damage: 18,
         durable: 400,
@@ -1375,7 +1376,7 @@ var ITEM_DATA = {
         name: '牛角弓',
         type: 'weapon',
         weaponType: 'shoot',
-        desc: '远程弓箭系武器，需要箭。',
+        desc: '用牛角加固的弓，拉感更扎实，适合稳定输出。',
         range: 38,
         damage: 22,
         durable: 400,
@@ -1386,7 +1387,7 @@ var ITEM_DATA = {
         name: '淬毒弓',
         type: 'weapon',
         weaponType: 'shoot',
-        desc: '远程弓箭系武器，需要箭。',
+        desc: '弓弦浸过毒液，中箭的敌人会持续吃苦头。',
         range: 30,
         damage: 35,
         durable: 400,
@@ -1397,7 +1398,7 @@ var ITEM_DATA = {
         name: '毒角弓',
         type: 'weapon',
         weaponType: 'shoot',
-        desc: '远程弓箭系武器，需要箭。',
+        desc: '牛角与毒液结合的强弓，射得远也放得倒人。',
         range: 40,
         damage: 47,
         durable: 400,
@@ -1455,7 +1456,7 @@ var ITEM_DATA = {
         name: '燃烧弹',
         type: 'weapon',
         weaponType: 'melee',
-        desc: "投掷型近战武器，伤害巨大。",
+        desc: '一扔就炸的燃烧弹，威力大，用完就没了。',
         range: 5,
         damage: 100,
         require: { ps: 1 },
@@ -1465,7 +1466,7 @@ var ITEM_DATA = {
         name: '猛毒爆弹',
         type: 'weapon',
         weaponType: 'melee',
-        desc: "投掷型近战武器，伤害巨大。",
+        desc: '炸开还会散毒的爆弹，范围伤害很可观，慎用。',
         range: 5,
         damage: 200,
         require: { hp: 2 },
@@ -1486,7 +1487,7 @@ var ITEM_DATA = {
         name: '烈焰法杖',
         type: 'weapon',
         weaponType: 'magic',
-        desc: "创造灼热的火焰,伤害巨大。",
+        desc: '杖尖喷出灼焰，魔法伤害很高，蓝量消耗也快。',
         range: 25,
         damage: 125,
         require: { san: 12 },
@@ -1496,7 +1497,7 @@ var ITEM_DATA = {
         name: '冰枪法杖',
         type: 'weapon',
         weaponType: 'magic',
-        desc: "(冻结)敌人的魔法。",
+        desc: '凝着霜花的法杖，命中能让敌人动作迟缓。',
         range: 35,
         damage: 75,
         require: { san: 12 },
@@ -1517,7 +1518,7 @@ var ITEM_DATA = {
         name: '死灵法杖',
         type: 'weapon',
         weaponType: 'magic',
-        desc: "每控制一个(尸体)(上限1000)，伤害便加(2)。",
+        desc: "每控制一个（尸体）（上限1000），伤害便加(2)。",
         range: 30,
         damage: 95,
         require: { san: 10 },
@@ -1527,7 +1528,7 @@ var ITEM_DATA = {
         name: '千刀魔杖',
         type: 'weapon',
         weaponType: 'magic',
-        desc: "每携带一个(飞刀)(上限1000)，伤害便加(1)。",
+        desc: "每携带一个（飞刀）（上限1000），伤害便加(1)。",
         range: 25,
         damage: 80,
         require: { san: 20 },
@@ -1537,7 +1538,7 @@ var ITEM_DATA = {
         name: '诅咒魔杖',
         type: 'weapon',
         weaponType: 'magic',
-        desc: "附加等同于敌人的(20%)最大生命值的伤害。",
+        desc: '杖身缠着咒纹，能撕开敌人伤口，握久了心里发毛。',
         curse: 0.2,
         range: 30,
         damage: 80,
@@ -1582,7 +1583,7 @@ var ITEM_DATA = {
         name: '霜爆法杖',
         type: 'weapon',
         weaponType: 'magic',
-        desc: "(冻结)敌人的魔法。",
+        desc: '寒气凝成的法杖，霜爆能冻住一片敌人。',
         range: 35,
         damage: 275,
         require: { san: 20 },
@@ -1594,7 +1595,7 @@ var ITEM_DATA = {
         name: '火刃',
         type: 'weapon',
         weaponType: 'melee',
-        desc: '创造灼热的火焰,伤害巨大。',
+        desc: '附着火舌的弯刃，挥砍时带出灼热刀风。',
         range: 2,
         damage: 195,
         durable: 120,
@@ -1630,7 +1631,7 @@ var ITEM_DATA = {
         name: '膏药',
         type: 'poizon',
         effect: { hp: 40 },
-        desc: '有效治愈伤口。',
+        desc: '外敷内服都行的膏药，伤口愈合得很快。',
         canUse: true
     },
     poizon: {
@@ -1645,7 +1646,7 @@ var ITEM_DATA = {
         name: '生命药剂',
         type: 'poizon',
         effect: { moist: 10, hp: 30 },
-        desc: '恢复少量生命。',
+        desc: '微苦的红色药水，轻伤后来一瓶能稳住生命。',
         canUse: true,
     },
     icePotion: {
@@ -1680,113 +1681,113 @@ var ITEM_DATA = {
         name: '深红药剂',
         type: 'poizon',
         effect: { moist: 10, hp: 80 },
-        desc: '恢复大量生命。',
+        desc: '深红的浓稠药剂，重伤时的救命货，别舍不得喝。',
         canUse: true,
     },
     //科技
     securityBox_1: {
         name: '木质保险箱',
         type: '安全属性',
-        desc: '减少(10%)失窃数量。',
+        desc: '第 1 级：失窃数量 -10%（累计 -10%）。',
     },
     securityBox_2: {
         name: '铁质保险箱',
         type: '安全属性',
-        desc: '减少(10%)失窃数量。',
+        desc: '第 2 级：失窃数量 -10%（累计 -20%）。',
     },
     securityBox_3: {
         name: '金质保险箱',
         type: '安全属性',
-        desc: '减少(10%)失窃数量。',
+        desc: '第 3 级：失窃数量 -10%（累计 -30%）。',
     },
     securityBox_4: {
         name: '水晶保险箱',
         type: '安全属性',
-        desc: '减少(10%)失窃数量。',
+        desc: '第 4 级：失窃数量 -10%（累计 -40%）。',
     },
     securityBox_5: {
         name: '宝石保险箱',
         type: '安全属性',
-        desc: '减少(10%)失窃数量。',
+        desc: '第 5 级：失窃数量 -10%（累计 -50%）。',
     },
 
     makeSpeed_1: {
         name: '微型车床',
         type: '制作台属性',
-        desc: '增加(20%)制作速度。',
+        desc: '第 1 级：制作速度 +20%（累计 +20%）。',
     },
     makeSpeed_2: {
         name: '小型车床',
         type: '制作台属性',
-        desc: '增加(20%)制作速度。',
+        desc: '第 2 级：制作速度 +20%（累计 +40%）。',
     },
     makeSpeed_3: {
         name: '中型车床',
         type: '制作台属性',
-        desc: '增加(20%)制作速度。',
+        desc: '第 3 级：制作速度 +20%（累计 +60%）。',
     },
     makeSpeed_4: {
         name: '大型车床',
         type: '制作台属性',
-        desc: '增加(20%)制作速度。',
+        desc: '第 4 级：制作速度 +20%（累计 +80%）。',
     },
     makeSpeed_5: {
         name: '数控车床',
         type: '制作台属性',
-        desc: '增加(20%)制作速度。',
+        desc: '第 5 级：制作速度 +20%（累计 +100%）。',
     },
 
     collectDec_1: {
         name: '斗车',
         type: '采集消耗减免属性',
-        desc: '减少(20%)采集消耗。',
+        desc: '第 1 级：采集消耗 -20%（累计 -20%）。',
     },
     collectDec_2: {
         name: '推土机',
         type: '采集消耗减免属性',
-        desc: '减少(20%)采集消耗。',
+        desc: '第 2 级：采集消耗 -20%（累计 -40%）。',
     },
     collectDec_3: {
         name: '抓钢机',
         type: '采集消耗减免属性',
-        desc: '减少(20%)采集消耗。',
+        desc: '第 3 级：采集消耗 -20%（累计 -60%）。',
     },
     collectDec_4: {
         name: '挖掘机',
         type: '采集消耗减免属性',
-        desc: '减少(20%)采集消耗。',
+        desc: '第 4 级：采集消耗 -20%（累计 -80%）。',
     },
 
     trapGet_1: {
         name: '尖刺陷阱(I)',
         type: '陷阱收益属性',
-        desc: '增加(50%)陷阱的收益。',
+        desc: '第 1 级：陷阱收益 +50%（累计 +50%）。',
     },
     trapGet_2: {
         name: '尖刺陷阱(II)',
         type: '陷阱收益属性',
-        desc: '增加(50%)陷阱的收益。',
+        desc: '第 2 级：陷阱收益 +50%（累计 +100%）。',
     },
     trapGet_3: {
         name: '尖刺陷阱(III)',
         type: '陷阱收益属性',
-        desc: '增加(50%)陷阱的收益。',
+        desc: '第 3 级：陷阱收益 +50%（累计 +150%）。',
     },
 
     trapChance_1: {
         name: '诱饵(I)',
         type: '陷阱属性',
-        desc: '增加(50%)捕获几率。',
+        desc: '第 1 级：陷阱每日捕获率 +50%（累计 +50%）。',
     },
     trapChance_2: {
         name: '诱饵(II)',
         type: '陷阱属性',
-        desc: '增加(50%)捕获几率。',
+        desc: '第 2 级：陷阱每日捕获率 +50%（累计 +100%）。',
     },
     trapChance_3: {
         name: '诱饵(III)',
         type: '陷阱属性',
-        desc: '增加(50%)捕获几率。',
+        desc: '第 3 级：陷阱每日捕获率 +50%（累计 +150%）。',
     },
 
     antiRogue: {
@@ -1798,43 +1799,43 @@ var ITEM_DATA = {
     lock_1: {
         name: '锁具(I)',
         type: '防盗能力',
-        desc: '增加(1)天盗贼破门而入的间隔。',
+        desc: '第 1 级：盗贼来袭间隔 +1 天（累计 +1 天）。',
     },
     lock_2: {
         name: '锁具(II)',
         type: '防盗能力',
-        desc: '增加(1)天盗贼破门而入的间隔。',
+        desc: '第 2 级：盗贼来袭间隔 +1 天（累计 +2 天）。',
     },
     lock_3: {
         name: '锁具(III)',
         type: '防盗能力',
-        desc: '增加(1)天盗贼破门而入的间隔。',
+        desc: '第 3 级：盗贼来袭间隔 +1 天（累计 +3 天）。',
     },
 
     cooker_1: {
         name: '炊具升级(I)',
         type: '烹饪技能',
-        desc: '加快(20%)烹饪速度。',
+        desc: '第 1 级：烹饪速度 +20%（累计 +20%）。',
     },
     cooker_2: {
         name: '炊具升级(II)',
         type: '烹饪技能',
-        desc: '加快(20%)烹饪速度。',
+        desc: '第 2 级：烹饪速度 +20%（累计 +40%）。',
     },
     cooker_3: {
         name: '炊具升级(III)',
         type: '烹饪技能',
-        desc: '加快(20%)烹饪速度。',
+        desc: '第 3 级：烹饪速度 +20%（累计 +60%）。',
     },
     cooker_4: {
         name: '炊具升级(IV)',
         type: '烹饪技能',
-        desc: '加快(20%)烹饪速度。',
+        desc: '第 4 级：烹饪速度 +20%（累计 +80%）。',
     },
     cooker_5: {
         name: '炊具升级(V)',
         type: '烹饪技能',
-        desc: '加快(20%)烹饪速度。',
+        desc: '第 5 级：烹饪速度 +20%（累计 +100%）。',
     },
 
     upgradePlace: {
@@ -1855,32 +1856,32 @@ var ITEM_DATA = {
     durableUpdate_1: {
         name: '锻造(I)',
         type: '锻造技术',
-        desc: '增加所有非魔法武器的耐久度(25%)。',
+        desc: '第 1 级：非魔法武器耐久 +25%（累计 +25%）。',
     },
     durableUpdate_2: {
         name: '锻造(II)',
         type: '锻造技术',
-        desc: '增加所有非魔法武器的耐久度(25%)。',
+        desc: '第 2 级：非魔法武器耐久 +25%（累计 +50%）。',
     },
     durableUpdate_3: {
         name: '锻造(III)',
         type: '锻造技术',
-        desc: '增加所有非魔法武器的耐久度(25%)。',
+        desc: '第 3 级：非魔法武器耐久 +25%（累计 +75%）。',
     },
     magicDurableUpdate_1: {
         name: '提炼(I)',
         type: '魔法锻造技术',
-        desc: '增加所有魔法武器的耐久度(25%)。',
+        desc: '第 1 级：魔法武器耐久 +25%（累计 +25%）。',
     },
     magicDurableUpdate_2: {
         name: '提炼(II)',
         type: '魔法锻造技术',
-        desc: '增加所有魔法武器的耐久度(25%)。',
+        desc: '第 2 级：魔法武器耐久 +25%（累计 +50%）。',
     },
     magicDurableUpdate_3: {
         name: '提炼(III)',
         type: '魔法锻造技术',
-        desc: '增加所有魔法武器的耐久度(25%)。',
+        desc: '第 3 级：魔法武器耐久 +25%（累计 +75%）。',
     },
     magicWeapon: {
         name: '附魔武器',
@@ -1890,252 +1891,252 @@ var ITEM_DATA = {
     magicEquip: {
         name: '附魔装备(I)',
         type: '科技',
-        desc: '能够制造先进的附魔装备。'
+        desc: '第 1 级：解锁基础附魔装备制作（护具与武器）。'
     },
     magicEquip_2: {
         name: '附魔装备(II)',
         type: '科技',
-        desc: '能够制造先进的附魔装备。'
+        desc: '第 2 级：解锁进阶附魔装备制作（需龙材）。'
     },
     bagSize_1: {
         name: '背包扩容(I)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 1 级：背包容量 +1 格（累计 +1 格）。'
     },
     bagSize_2: {
         name: '背包扩容(II)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 2 级：背包容量 +1 格（累计 +2 格）。'
     },
     bagSize_3: {
         name: '背包扩容(III)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 3 级：背包容量 +1 格（累计 +3 格）。'
     },
     bagSize_4: {
         name: '背包扩容(IV)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 4 级：背包容量 +1 格（累计 +4 格）。'
     },
     bagSize_5: {
         name: '超级魔法背包(I)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 5 级：背包容量 +1 格（累计 +5 格）。'
     },
     bagSize_6: {
         name: '超级魔法背包(II)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 6 级：背包容量 +1 格（累计 +6 格）。'
     },
     bagSize_7: {
         name: '超级魔法背包(III)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 7 级：背包容量 +1 格（累计 +7 格）。'
     },
     bagSize_8: {
         name: '超级魔法背包(IV)',
         type: '背包属性',
-        desc: '背包空间增加(1)。'
+        desc: '第 8 级：背包容量 +1 格（累计 +8 格）。'
     },
     trapSize_1: {
         name: '陷阱扩容(I)',
         type: '陷阱空间属性',
-        desc: '陷阱空间增加(1)。'
+        desc: '第 1 级：陷阱槽位 +1 个（累计 +1 个）。'
     },
     trapSize_2: {
         name: '陷阱扩容(II)',
         type: '陷阱空间属性',
-        desc: '陷阱空间增加(1)。'
+        desc: '第 2 级：陷阱槽位 +1 个（累计 +2 个）。'
     },
     farmSize_1: {
         name: '农田扩建(I)',
         type: '农田属性',
-        desc: '农田空间增加(1)。'
+        desc: '第 1 级：农田槽位 +1 个（累计 +1 个）。'
     },
     farmSize_2: {
         name: '农田扩建(II)',
         type: '农田属性',
-        desc: '农田空间增加(1)。'
+        desc: '第 2 级：农田槽位 +1 个（累计 +2 个）。'
     },
     farmSize_3: {
         name: '农田扩建(III)',
         type: '农田属性',
-        desc: '农田空间增加(1)。'
+        desc: '第 3 级：农田槽位 +1 个（累计 +3 个）。'
     },
     farmSize_4: {
         name: '农田扩建(IV)',
         type: '农田属性',
-        desc: '农田空间增加(1)。'
+        desc: '第 4 级：农田槽位 +1 个（累计 +4 个）。'
     },
     farmSize_5: {
         name: '农田扩建(V)',
         type: '农田属性',
-        desc: '农田空间增加(1)。'
+        desc: '第 5 级：农田槽位 +1 个（累计 +5 个）。'
     },
     farmSize_6: {
         name: '农田扩建(VI)',
         type: '农田属性',
-        desc: '农田空间增加(1)。'
+        desc: '第 6 级：农田槽位 +1 个（累计 +6 个）。'
     },
     alcoSize_1: {
         name: '酒桶扩建(I)',
         type: '酒桶属性',
-        desc: '酒桶空间增加(1)。'
+        desc: '第 1 级：酿酒桶槽位 +1 个（累计 +1 个）。'
     },
     alcoSize_2: {
         name: '酒桶扩建(II)',
         type: '酒桶属性',
-        desc: '酒桶空间增加(1)。'
+        desc: '第 2 级：酿酒桶槽位 +1 个（累计 +2 个）。'
     },
     alcoSize_3: {
         name: '酒桶扩建(III)',
         type: '酒桶属性',
-        desc: '酒桶空间增加(1)。'
+        desc: '第 3 级：酿酒桶槽位 +1 个（累计 +3 个）。'
     },
     alcoSize_4: {
         name: '酒桶扩建(IV)',
         type: '酒桶属性',
-        desc: '酒桶空间增加(1)。'
+        desc: '第 4 级：酿酒桶槽位 +1 个（累计 +4 个）。'
     },
     alcoSize_5: {
         name: '酒桶扩建(V)',
         type: '酒桶属性',
-        desc: '酒桶空间增加(1)。'
+        desc: '第 5 级：酿酒桶槽位 +1 个（累计 +5 个）。'
     },
     alcoSize_6: {
         name: '酒桶扩建(VI)',
         type: '酒桶属性',
-        desc: '酒桶空间增加(1)。'
+        desc: '第 6 级：酿酒桶槽位 +1 个（累计 +6 个）。'
     },
     bigBoxSize_1: {
         name: '箱子扩容(I)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 1 级：大箱子容量 +4 格（累计 +4 格）。'
     },
     bigBoxSize_2: {
         name: '箱子扩容(II)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 2 级：大箱子容量 +4 格（累计 +8 格）。'
     },
     bigBoxSize_3: {
         name: '箱子扩容(III)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 3 级：大箱子容量 +4 格（累计 +12 格）。'
     },
     bigBoxSize_4: {
         name: '箱子扩容(IV)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 4 级：大箱子容量 +4 格（累计 +16 格）。'
     },
     bigBoxSize_5: {
         name: '箱子扩容(V)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 5 级：大箱子容量 +4 格（累计 +20 格）。'
     },
     bigBoxSize_6: {
         name: '箱子扩容(VI)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 6 级：大箱子容量 +4 格（累计 +24 格）。'
     },
     bigBoxSize_7: {
         name: '箱子扩容(VII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 7 级：大箱子容量 +4 格（累计 +28 格）。'
     },
     bigBoxSize_8: {
         name: '箱子扩容(VIII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 8 级：大箱子容量 +4 格（累计 +32 格）。'
     },
     bigBoxSize_9: {
         name: '箱子扩容(IX)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 9 级：大箱子容量 +4 格（累计 +36 格）。'
     },
     bigBoxSize_10: {
         name: '箱子扩容(X)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 10 级：大箱子容量 +4 格（累计 +40 格）。'
     },
     bigBoxSize_11: {
         name: '箱子扩容(XI)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 11 级：大箱子容量 +4 格（累计 +44 格）。'
     },
     bigBoxSize_12: {
         name: '箱子扩容(XII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 12 级：大箱子容量 +4 格（累计 +48 格）。'
     },
     bigBoxSize_13: {
         name: '箱子扩容(XII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 13 级：大箱子容量 +4 格（累计 +52 格）。'
     },
     bigBoxSize_14: {
         name: '箱子扩容(XIV)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 14 级：大箱子容量 +4 格（累计 +56 格）。'
     },
     bigBoxSize_15: {
         name: '箱子扩容(XV)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 15 级：大箱子容量 +4 格（累计 +60 格）。'
     },
     bigBoxSize_16: {
         name: '箱子扩容(XVI)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 16 级：大箱子容量 +4 格（累计 +64 格）。'
     },
     bigBoxSize_17: {
         name: '箱子扩容(XVII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 17 级：大箱子容量 +4 格（累计 +68 格）。'
     },
     bigBoxSize_18: {
         name: '箱子扩容(XVIII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 18 级：大箱子容量 +4 格（累计 +72 格）。'
     },
     bigBoxSize_19: {
         name: '箱子扩容(XIX)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 19 级：大箱子容量 +4 格（累计 +76 格）。'
     },
     bigBoxSize_20: {
         name: '箱子扩容(XX)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 20 级：大箱子容量 +4 格（累计 +80 格）。'
     },
     bigBoxSize_21: {
         name: '箱子扩容(XXI)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 21 级：大箱子容量 +4 格（累计 +84 格）。'
     },
     bigBoxSize_22: {
         name: '箱子扩容(XXII)',
         type: '箱子属性',
-        desc: '箱子空间增加(4)。'
+        desc: '第 22 级：大箱子容量 +4 格（累计 +88 格）。'
     },
     map_1: {
         name: '地图测绘(I)',
         type: '地图属性',
-        desc: '在地图上标出新地点(2)。'
+        desc: '第 1 级：地图标注新增 2 个地点（累计 +2 个）。'
     },
     map_2: {
         name: '地图测绘(II)',
         type: '地图属性',
-        desc: '在地图上标出新地点(2)。'
+        desc: '第 2 级：地图标注新增 2 个地点（累计 +4 个）。'
     },
     map_3: {
         name: '地图测绘(III)',
         type: '地图属性',
-        desc: '在地图上标出新地点(2)。'
+        desc: '第 3 级：地图标注新增 2 个地点（累计 +6 个）。'
     },
     map_4: {
         name: '地牢钥匙',
         type: '地图属性',
-        desc: '你可以前往地牢开始真正的冒险。'
+        desc: '第 4 级：地图标注新增 2 个地点（累计 +8 个）。'
     },
     potion_1: {
         name: '炼金提纯(I)',
@@ -2165,7 +2166,7 @@ var ITEM_DATA = {
     tailor_1: {
         name: '裁缝工具(I)',
         type: '科技',
-        desc: '学会制作防具。'
+        desc: '第 1 级：解锁防具制作（皮甲、布甲等基础护具）。'
     },
     tailor_2: {
         name: '裁缝工具(II)',
@@ -2186,64 +2187,64 @@ var ITEM_DATA = {
     beaconMax_1: {
         name: '老旧的马车',
         type: '通勤性能',
-        desc: '增加商人(50%)的最大交易量。',
+        desc: '第 1 级：商人单次交易上限 +50%（累计 +50%）。',
     },
     beaconMax_2: {
         name: '普通的马车',
         type: '通勤性能',
-        desc: '增加商人(50%)的最大交易量。',
+        desc: '第 2 级：商人单次交易上限 +50%（累计 +100%）。',
     },
     beaconMax_3: {
         name: '宽敞的马车',
         type: '通勤性能',
-        desc: '增加商人(50%)的最大交易量。',
+        desc: '第 3 级：商人单次交易上限 +50%（累计 +150%）。',
     },
     beaconMax_4: {
         name: '豪华的马车',
         type: '通勤性能',
-        desc: '增加商人(50%)的最大交易量。',
+        desc: '第 4 级：商人单次交易上限 +50%（累计 +200%）。',
     },
 
     wellDig_1: {
         name: '地下水挖掘(I)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 1 级：水井每日产水 +1 份（累计 +1 份）。',
     },
     wellDig_2: {
         name: '地下水挖掘(II)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 2 级：水井每日产水 +1 份（累计 +2 份）。',
     },
     wellDig_3: {
         name: '地下水挖掘(III)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 3 级：水井每日产水 +1 份（累计 +3 份）。',
     },
     wellDig_4: {
         name: '地下水挖掘(IV)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 4 级：水井每日产水 +1 份（累计 +4 份）。',
     },
     wellDig_5: {
         name: '地下水挖掘(V)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 5 级：水井每日产水 +1 份（累计 +5 份）。',
     },
     wellDig_6: {
         name: '地下水挖掘(VI)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 6 级：水井每日产水 +1 份（累计 +6 份）。',
     },
     wellDig_7: {
         name: '地下水挖掘(VII)',
         type: '井产量',
-        desc: '井每天的产量额外增加(1)。',
+        desc: '第 7 级：水井每日产水 +1 份（累计 +7 份）。',
     },
 
     showerPlace: {
         name: '大水缸',
         type: '卫浴功能',
-        desc: '可以洗澡。',
+        desc: '卫浴升级：把卫生间改成可以洗澡的大水缸。',
     },
     marshGasTank: {
         name: '沼气池',
@@ -2253,22 +2254,22 @@ var ITEM_DATA = {
     bed_1: {
         name: '木床',
         type: '休息场所功能',
-        desc: '木板做的床。',
+        desc: '第 1 级：解锁木床，睡觉恢复效果小幅提升。',
     },
     bed_2: {
         name: '凉席',
         type: '休息场所功能',
-        desc: '稍微柔软一些的床。',
+        desc: '第 2 级：解锁凉席，睡觉恢复效果进一步提升。',
     },
     bed_3: {
         name: '棉被',
         type: '休息场所功能',
-        desc: '更加快速得恢复你的精力。',
+        desc: '第 3 级：解锁棉被，睡觉恢复效果明显提升。',
     },
     bed_4: {
         name: '枕头',
         type: '休息场所功能',
-        desc: '更加快速得恢复你的精力。',
+        desc: '第 4 级：解锁枕头，睡觉恢复达到最高档。',
     },
     heatedBed: {
         name: '火炕',
@@ -2297,13 +2298,13 @@ var ITEM_DATA = {
     woodStatue: {
         name: '木雕',
         type: 'art',
-        desc: '木质的雕像。',
+        desc: '地精风格的木雕，摆着好看，转手也能卖个好价。',
         value: 65
     },
     ironStatue: {
         name: '铁像',
         type: 'art',
-        desc: '铁制的雕像。',
+        desc: '铁铸的雕像，做工粗犷，转手能换不少金币。',
         value: 60
     },
     //装备
@@ -2344,7 +2345,7 @@ var ITEM_DATA = {
     shootShoe: {
         name: '弹射之靴',
         type: 'equip',
-        desc: '造成的伤害增加(100%),受到额外(50%)伤害。',
+        desc: '带弹射装置的靴子，攻击更凶，但也会让自己更痛。',
         equipType: 'foot',
         meleeMul: 1,
         magicMul: 1,
@@ -2355,7 +2356,7 @@ var ITEM_DATA = {
     bumbHat: {
         name: '爆破者帽',
         type: 'equip',
-        desc: '造成的伤害增加(150%),受到额外(50%)伤害。',
+        desc: '加固过的爆破者帽，伤害拉满，代价是更容易受伤。',
         equipType: 'head',
         meleeMul: 1.5,
         magicMul: 1.5,
@@ -2385,7 +2386,7 @@ var ITEM_DATA = {
     pirateHat: {
         name: '海盗帽',
         type: 'equip',
-        desc: '造成的伤害增加(35%)。',
+        desc: '缀着旧羽毛的海盗帽，带着海风的狠劲，攻击更凌厉。',
         equipType: 'head',
         meleeMul: 0.35,
         magicMul: 0.35,
@@ -2395,14 +2396,14 @@ var ITEM_DATA = {
     probeHat: {
         name: '探测帽',
         type: 'equip',
-        desc: '采集耗时减少(50%)。',
+        desc: '装着镜片的探测帽，让采集动作快上不少。',
         equipType: 'head',
         collectSpeed: 0.5,
     },
     dogBelt: {
         name: '狗带',
         type: 'equip',
-        desc: '造成的伤害增加(200%),受到伤害变为(10)倍。',
+        desc: '传说中的狗带，伤害暴涨，但挨打也格外疼。',
         equipType: 'neck',
         meleeMul: 2,
         magicMul: 2,
@@ -2413,7 +2414,7 @@ var ITEM_DATA = {
     dragonMedal: {
         name: '勇者之印',
         type: 'equip',
-        desc: '造成的伤害增加(35%)。',
+        desc: '龙之峡谷的勇者凭证，佩戴后攻击更狠，适合挑战强敌时使用。',
         equipType: 'neck',
         meleeMul: 0.35,
         magicMul: 0.35,
@@ -2449,7 +2450,7 @@ var ITEM_DATA = {
     ghostHat: {
         name: '黑帽',
         type: 'equip',
-        desc: '魔法伤害增加(75%),其消耗额外增加(100%)。',
+        desc: '泛着幽光的黑帽，魔法伤害惊人，代价是法术消耗更大。',
         equipType: 'head',
         magicCostDec: -1,
         magicMul: 0.75,
@@ -2534,7 +2535,7 @@ var ITEM_DATA = {
     glove: {
         name: '棉手套',
         type: 'equip',
-        desc: '减缓(30%)体温下降的速度。',
+        desc: '厚实的棉手套，冬天出门能少挨点冻。',
         equipType: 'hand',
         tempDownMul: 0.7,
     },
@@ -2608,7 +2609,7 @@ var ITEM_DATA = {
     magicGlove: {
         name: '魔力手套',
         type: 'equip',
-        desc: '增加魔法伤害(10%),施放法术的消耗减少(20%)。',
+        desc: '织入魔纹的手套，魔法伤害更高，施法消耗略降。',
         magicCostDec: 0.2,
         equipType: 'hand',
         magicMul: 0.1,
@@ -2616,7 +2617,7 @@ var ITEM_DATA = {
     searchGlove: {
         name: '消防手套',
         type: 'equip',
-        desc: '采集耗时减少(50%)。',
+        desc: '耐热的消防手套，不怕烫，也能加快翻找与采集。',
         collectSpeed: 0.5,
         equipType: 'hand',
     },
@@ -2624,7 +2625,7 @@ var ITEM_DATA = {
     advanHat: {
         name: '探险帽',
         type: 'equip',
-        desc: '增加在地牢中获得宝箱的几率(40%)。',
+        desc: '缝满口袋的探险帽，据说能让地牢里的宝箱更常出现。',
         equipType: 'head',
         rewardChanceMul: 0.6,
     },
@@ -2687,7 +2688,7 @@ var ITEM_DATA = {
     ninjaShoe: {
         name: '忍者足具',
         type: 'equip',
-        desc: '提升射程优势(4)。',
+        desc: '轻若无物的忍者足具，穿上后射程更远。',
         equipType: 'foot',
         agileInc: 4,
         value: 50,
@@ -2695,7 +2696,7 @@ var ITEM_DATA = {
     shoe: {
         name: '雪地靴',
         type: 'equip',
-        desc: '减缓(30%)体温下降的速度。',
+        desc: '厚底雪地靴，保暖耐磨，走雪路不打滑。',
         equipType: 'foot',
         tempDownMul: 0.7,
     },
@@ -2716,7 +2717,7 @@ var ITEM_DATA = {
     luckyShoe: {
         name: '幸运靴',
         type: 'equip',
-        desc: '增加在地牢中获得宝箱的几率(40%)。',
+        desc: '闪着微光的幸运靴，穿着它翻箱子时心里更有底。',
         equipType: 'foot',
         rewardChanceMul: 0.6,
     },
@@ -2809,7 +2810,7 @@ var ITEM_DATA = {
     lightHat: {
         name: '流光兜帽',
         type: 'equip',
-        desc: '增加魔法伤害(50%)',
+        desc: '流转着微光的兜帽，聚拢魔力，魔法伤害提升明显。',
         equipType: 'head',
         magicMul: 0.5,
         value: 100,
@@ -2843,7 +2844,7 @@ var ITEM_DATA = {
     ninjaHat: {
         name: '盗贼头巾',
         type: 'equip',
-        desc: '提升射程优势(4)。',
+        desc: '只露出眼睛的盗贼头巾，让出手更远更准。',
         equipType: 'head',
         agileInc: 4,
         value: 50,
@@ -2852,7 +2853,7 @@ var ITEM_DATA = {
     forceBelt: {
         name: '蛮力腰带',
         type: 'equip',
-        desc: '每小时恢复(4)点体力,损失(2)点满腹。',
+        desc: '勒得很紧的蛮力腰带，持续回体力，但会一直消耗满腹。',
         equipType: 'body',
         rec: { ps: 4, full: -2 },
     },
@@ -2899,7 +2900,7 @@ var ITEM_DATA = {
     elementOverhang: {
         name: '元素吊坠',
         type: 'equip',
-        desc: '增加魔法伤害(50%)',
+        desc: '贴身摇晃的元素吊坠，能感到魔力在流动。',
         equipType: 'head',
         magicMul: 0.5,
         equipType: 'neck',
@@ -2956,7 +2957,7 @@ var ITEM_DATA = {
         name: '格斗指南',
         type: 'special',
         canUse: true,
-        desc: '永久提升格斗技能。',
+        desc: '记载近身格斗要领的旧册子，翻阅后能永久提升格斗技巧。',
         value: 400,
         upgrade: 'melee',
     },
@@ -2964,7 +2965,7 @@ var ITEM_DATA = {
         name: '射击指南',
         type: 'special',
         canUse: true,
-        desc: '永久提升射击技能。',
+        desc: '王牌猎人的手记，读完能永久提升射击技巧。',
         value: 400,
         upgrade: 'shoot',
     },
@@ -2972,7 +2973,7 @@ var ITEM_DATA = {
         name: '防身指南',
         type: 'special',
         canUse: true,
-        desc: '永久提升防御技能。',
+        desc: '防身术的图解册，照着练能永久提升防御技巧。',
         value: 400,
         upgrade: 'def',
     },
@@ -2980,7 +2981,7 @@ var ITEM_DATA = {
         name: '迅捷奥义',
         type: 'special',
         canUse: true,
-        desc: '永久提升敏捷技能。',
+        desc: '迅捷身法的抄本，练成后永久提升敏捷技巧。',
         value: 400,
         upgrade: 'agile',
     },
@@ -2996,7 +2997,7 @@ var ITEM_DATA = {
         name: '黑魔法书',
         type: 'special',
         canUse: true,
-        desc: '永久提升魔法技能。',
+        desc: '字迹发烫的黑魔法书，读后永久提升魔法技巧。',
         value: 400,
         upgrade: 'magic',
     },
@@ -3004,7 +3005,7 @@ var ITEM_DATA = {
     magicPotion: {
         name: '霜之精华',
         type: 'special',
-        desc: '永久提升魔法技能。',
+        desc: '寒意入喉的霜之精华，魔法技巧永久提升。',
         canUse: true,
         upgrade: 'magic',
         isDrink: true,
@@ -3013,7 +3014,7 @@ var ITEM_DATA = {
     strPotion: {
         name: '炎之精华',
         type: 'special',
-        desc: '永久提升格斗技能。',
+        desc: '封存火之力的精华，饮下后永久强化格斗技巧，比指南更烫嘴。',
         canUse: true,
         upgrade: 'melee',
         isDrink: true,
@@ -3022,7 +3023,7 @@ var ITEM_DATA = {
     shootPotion: {
         name: '鹰之精华',
         type: 'special',
-        desc: '永久提升射击技能。',
+        desc: '仰头灌下的鹰之精华，射击技巧永久提升。',
         canUse: true,
         upgrade: 'shoot',
         isDrink: true,
@@ -3031,7 +3032,7 @@ var ITEM_DATA = {
     agiPotion: {
         name: '羽之精华',
         type: 'special',
-        desc: '永久提升敏捷技能。',
+        desc: '轻得像要飘起来的羽之精华，敏捷技巧永久提升。',
         canUse: true,
         upgrade: 'agile',
         isDrink: true,
@@ -3040,7 +3041,7 @@ var ITEM_DATA = {
     defPotion: {
         name: '熊之精华',
         type: 'special',
-        desc: '永久提升防御技能。',
+        desc: '喝下去皮糙肉厚的熊之精华，防御技巧永久提升。',
         canUse: true,
         upgrade: 'def',
         isDrink: true,

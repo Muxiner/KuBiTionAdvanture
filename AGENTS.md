@@ -13,10 +13,11 @@
 - 界面为铺满窗口的响应式流式布局；样式按 `css/01…09` 分类加载，响应式/覆盖样式集中在 `css/09-responsive.css`（必须最后加载）。
 - `saves/` 下的实际存档文件与 `__pycache__/` 已由 `.gitignore` 忽略。
 
-## 文案规范（v0.52）
+## 文案规范（v0.53）
 - 玩家可见文案统一「原因 + 建议」；按钮禁用说明缺什么，空状态说明下一步。
 - 数字必须走 `src/lib.js` 的 `fmtNum` / `fmtHours` / `fmtMoney` / `fmtQty` / `fmtItemName` / `fmtReqText` / `fmtMissingText`，不要手写千分位或单位。
 - 术语统一：生命 / 体力 / 满腹 / 水分 / 精神 / 体温；禁止用"饱食""饥饿度""精力"等旧词混用。
 - 存档统一称：账号存档（跨设备，需 dev_server）/ 本地存档（本浏览器）/ 自动存档（出门时自动保存）/ 存档槽。
-- 详细规范见 `.ui-optimize/STYLE-GUIDE.md`。
+- 物品/事件描述同样适用：去重（不允许两件物品共用完全相同的描述）、标点全角（省略号统一 `……`）、不写与 UI 重复的精确数值；数据层只改文本字段，不改键名/数值。
+- 详细规范见 `.ui-optimize/STYLE-GUIDE.md`（UI 文案）与 `.ui-optimize/CONTENT-GUIDE.md`（物品/事件文本）。
 

@@ -54,9 +54,10 @@ function uxToggleBagPanel() {
         var open = String(document.body.className || '').indexOf('mobile-bag-open') >= 0;
         uxSetBodyClass('bag-collapsed', false);
         uxSetBodyClass('mobile-bag-open', !open);
-        var panel = document.getElementById('equip');
-        if (!open && panel && panel.scrollIntoView) {
-            try { panel.scrollIntoView({ block: 'start' }); } catch (e) { }
+        // 打开背包时从顶部展示（装备栏 → 详情 → 属性 → 物品格），不要自动滚到物品格
+        if (!open) {
+            var pb = document.querySelector('.equipMain > .panel-body');
+            if (pb) pb.scrollTop = 0;
         }
     } else {
         var collapsed = String(document.body.className || '').indexOf('bag-collapsed') >= 0;

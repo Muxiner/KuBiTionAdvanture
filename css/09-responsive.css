@@ -1760,3 +1760,144 @@ body.bag-collapsed .main > .equipMain {
     color: #4a4f45;
     font-size: 12px;
 }
+
+/* =====================================================================
+   极窄屏（≤380px）增量适配（v0.53）
+   注意：主断点仍是 900px，这里只做窄屏细节修正。
+   ===================================================================== */
+
+/* 详情区左右 margin 会让背包面板产生 20px 横向溢出（panel-body scrollWidth > clientWidth） */
+.equipMain .detail {
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 380px) {
+    /* 折叠标题：标题/箭头一行，提示换到下一行，避免“点此展/开”这种断字 */
+    .sectionToggle {
+        flex-wrap: wrap;
+        row-gap: 2px;
+        padding: 6px 8px;
+    }
+
+    .sectionToggleHint {
+        flex: 1 1 100%;
+        margin-left: 0;
+        font-size: 11px;
+        line-height: 16px;
+        white-space: normal;
+    }
+
+    .sectionToggleMark {
+        order: 2;
+        margin-left: auto;
+    }
+
+    /* 地点说明贴边：留 10px 内边距，避免整行文字贴屏幕边缘 */
+    .placeDesc {
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+
+    /* 建筑缩小一档：320 宽下减少纵向滚动，一屏能看到更多分组 */
+    .building.building-large {
+        width: 64px;
+        height: 64px;
+        min-width: 64px;
+        font-size: 13px;
+    }
+
+    .building.building-medium {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        font-size: 12px;
+    }
+
+    .building.building-small {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 11px;
+    }
+
+    .buildingGroupItems {
+        gap: 6px;
+        padding: 2px 4px;
+    }
+
+    /* 横向滚动提示更明显（表格/状态栏） */
+    .advan .tableOuter,
+    .advanOuter .tableOuter {
+        box-shadow: inset -16px 0 14px -14px rgba(0, 0, 0, 0.55);
+    }
+
+    .stateMain {
+        box-shadow: inset -14px 0 12px -12px rgba(0, 0, 0, 0.55);
+    }
+
+    /* 菜单：可见滚动条，提示内容可继续向下滚 */
+    .menu {
+        scrollbar-width: thin;
+        scrollbar-color: #8a917c #e6e8dd;
+    }
+
+    .menu::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .menu::-webkit-scrollbar-thumb {
+        background: #8a917c;
+        border-radius: 3px;
+    }
+
+    /* 菜单标题与说明在 320 下收紧，减少首屏占用 */
+    .ux-menuTitle {
+        padding-bottom: 6px;
+        margin-bottom: 6px;
+    }
+
+    .ux-menuTitleMain {
+        font-size: 15px;
+    }
+
+    .ux-menuTitleHint {
+        font-size: 11px;
+        line-height: 16px;
+    }
+
+    /* 详情/背包按钮在 320 下仍保持 ≥40px 触控高度 */
+    .detailActions .btn,
+    .detailDiscard .btn,
+    .bagCloseBtn {
+        min-height: 40px;
+    }
+
+    .bagHeading {
+        gap: 6px;
+    }
+
+    .bagScrollHint {
+        font-size: 11px;
+        line-height: 16px;
+    }
+}
+
+@media (max-width: 380px) {
+    /* 菜单内容高于一屏时，把「技能/设置/返回」页签吸附在底部，始终可点 */
+    .menu > .menuTabs {
+        position: sticky;
+        bottom: -6px;
+        z-index: 3;
+        margin-top: 8px;
+        padding: 6px 0 4px;
+        background: #DBDBCB;
+        border-top: 1px solid #c9cfb8;
+    }
+
+    /* 场景纵向可滚动时给底部一点提示（后期家一屏放不下所有建筑） */
+    .advan {
+        box-shadow: inset 0 -14px 12px -12px rgba(0, 0, 0, 0.35);
+    }
+}
