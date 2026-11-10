@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>超苦逼冒险者 v0.53</title>
+    <title>超苦逼冒险者 v0.54</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="./build/bootstrap.min.css">
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="./build/fastclick.js"></script>
     <script type="text/javascript" src="./build/react-with-addons.js"></script>
     <script type="text/javascript" src="./build/react-dom.js"></script>
-    <script type="text/javascript" src="./build/browser.min.js"></script>
+    <!-- 注：浏览器内 Babel（build/browser.min.js）只在开发模式按需加载；生产走预编译产物 build/game.bundle.js -->
 </head>
 
 <body>
@@ -66,7 +66,10 @@
 <script type="text/javascript" src="./src/data/data_dungeon.js"></script>
 <script type="text/javascript" src="./src/data/data.js"></script>
 
-<!-- 游戏源码（JSX）按顺序加载、合并后一次性编译，保证依赖顺序 -->
+<!-- 游戏源码启动：
+     生产/静态托管：直接加载 build/game.bundle.js（node build_game.js 预编译，无需浏览器内 Babel）
+     本地开发：dev_server.py 会注入 window.__DEV_SERVER__={useSource:true}，
+               此时按原路径顺序加载 22 个 JSX 源文件并在浏览器内编译（改文件即刷新） -->
 <script type="text/javascript">
 (function () {
     var files = [
@@ -107,37 +110,75 @@
         if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
         boot = null;
     }
-    var acc = "";
-    function load(i) {
-        if (i >= files.length) {
-            setBoot('资源已加载，正在用 Babel 编译游戏脚本……');
-            try {
-                var B = window.babel || window.Babel;
-                if (!B) throw new Error('Babel 未加载（build/browser.min.js 加载失败）');
-                var compiled = B.transform(acc, {}).code;
-                (0, eval)(compiled);
-                hideBoot();
-            } catch (e) {
-                setBoot('游戏启动失败：' + (e && e.message ? e.message : e) +
-                    '\n\n请打开浏览器控制台查看详细堆栈，刷新页面可重试。', true);
-                console.error("[game] 编译/执行失败：", e);
-            }
-            return;
-        }
-        setBoot('正在加载游戏资源：' + (i + 1) + ' / ' + files.length + '\n' + files[i]);
-        fetch(files[i]).then(function (r) {
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            return r.text();
-        }).then(function (t) {
-            acc += "\n" + t + "\n";
-            load(i + 1);
-        }).catch(function (e) {
-            setBoot('资源加载失败：' + files[i] + '\n' + (e && e.message ? e.message : e) +
-                '\n\n请确认 python3 dev_server.py 正在运行，刷新页面可重试。', true);
-            console.error("[game] 加载失败：", files[i], e);
-        });
+
+    // ---- 生产模式：加载预编译产物（一次请求，无 Babel、无串行 fetch） ----
+    function startBundle() {
+        setBoot('正在加载游戏……');
+        var script = document.createElement('script');
+        script.src = './build/game.bundle.js';
+        script.async = false;
+        script.onload = function () { hideBoot(); };
+        script.onerror = function () {
+            setBoot('游戏启动失败：未找到 build/game.bundle.js。\n\n' +
+                '静态部署请先在项目根目录运行 node build_game.js 生成产物；\n' +
+                '本地开发请使用 python3 dev_server.py（会自动走源码热加载）。', true);
+        };
+        document.body.appendChild(script);
     }
-    load(0);
+
+    // ---- 开发模式：动态加载 Babel 后按顺序 fetch JSX 源码并编译 ----
+    function startDevSource() {
+        setBoot('开发模式：正在加载编译工具……');
+        var script = document.createElement('script');
+        script.src = './build/browser.min.js';
+        script.async = false;
+        script.onload = function () { runSourceLoader(); };
+        script.onerror = function () { setBoot('开发模式启动失败：build/browser.min.js 未能加载。', true); };
+        document.body.appendChild(script);
+    }
+    function runSourceLoader() {
+        var acc = "";
+        function load(i) {
+            if (i >= files.length) {
+                setBoot('资源已加载，正在用 Babel 编译游戏脚本……');
+                try {
+                    var B = window.babel || window.Babel;
+                    if (!B) throw new Error('Babel 未加载（build/browser.min.js 加载失败）');
+                    var compiled = B.transform(acc, {}).code;
+                    (0, eval)(compiled);
+                    hideBoot();
+                } catch (e) {
+                    setBoot('游戏启动失败：' + (e && e.message ? e.message : e) +
+                        '\n\n请打开浏览器控制台查看详细堆栈，刷新页面可重试。', true);
+                    console.error("[game] 编译/执行失败：", e);
+                }
+                return;
+            }
+            setBoot('正在加载游戏资源：' + (i + 1) + ' / ' + files.length + '\n' + files[i]);
+            fetch(files[i] + '?t=' + Date.now()).then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            }).then(function (t) {
+                acc += "\n" + t + "\n";
+                load(i + 1);
+            }).catch(function (e) {
+                setBoot('资源加载失败：' + files[i] + '\n' + (e && e.message ? e.message : e) +
+                    '\n\n请确认 python3 dev_server.py 正在运行，刷新页面可重试。', true);
+                console.error("[game] 加载失败：", files[i], e);
+            });
+        }
+        load(0);
+    }
+
+    function start() {
+        if (window.__DEV_SERVER__ && window.__DEV_SERVER__.useSource) startDevSource();
+        else startBundle();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
 })();
 </script>
 

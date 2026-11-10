@@ -29,6 +29,7 @@ import os
 import re
 import secrets
 import signal
+import shutil
 import subprocess
 import sys
 import queue
@@ -63,6 +64,10 @@ ALLOWED_HOST_NAMES = {"127.0.0.1", "localhost", "::1"}
 DENY_DIR_NAMES = {"saves", ".git", "__pycache__", ".idea", ".vscode", "node_modules"}
 DENY_FILE_SUFFIXES = (".py",)
 _save_lock = threading.Lock()
+
+# 开发模式标记：index.html 据此走"源码顺序加载 + 浏览器内 Babel"，
+# 而不加载预编译产物 build/game.bundle.js（改源码即刷新，无需手动构建）。
+DEV_FLAG_SNIPPET = b"""<script>window.__DEV_SERVER__ = { useSource: true };</script>"""
 
 # 注入到 HTML 的自动刷新客户端
 RELOAD_SNIPPET = b"""<script>
@@ -458,10 +463,11 @@ class Handler(SimpleHTTPRequestHandler):
     def _serve_html(self, fs_path):
         with open(fs_path, "rb") as f:
             content = f.read()
+        injected = DEV_FLAG_SNIPPET + RELOAD_SNIPPET
         if b"</body>" in content:
-            content = content.replace(b"</body>", RELOAD_SNIPPET + b"</body>", 1)
+            content = content.replace(b"</body>", injected + b"</body>", 1)
         else:
-            content += RELOAD_SNIPPET
+            content += injected
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
@@ -513,8 +519,32 @@ def _parse_args(argv):
     return port, no_open, no_reload
 
 
+def build_bundle_once():
+    """开发服务器启动时顺手构建一次 build/game.bundle.js（供静态部署/提交使用）。
+
+    失败只告警，不影响开发模式（开发模式用源码热加载，不依赖产物）。
+    """
+    script = os.path.join(ROOT, "build_game.js")
+    if not os.path.isfile(script):
+        return
+    node = shutil.which("node")
+    if not node:
+        print("  [build] 未找到 node，跳过预编译产物构建（仅影响静态部署）", flush=True)
+        return
+    try:
+        result = subprocess.run([node, script], cwd=ROOT, capture_output=True, text=True, timeout=120)
+        if result.returncode == 0:
+            line = (result.stdout or "").strip().splitlines()
+            print("  [build] " + (line[-1] if line else "预编译产物已更新"), flush=True)
+        else:
+            print("  [build] 预编译失败（不影响开发模式）: " + (result.stderr or "").strip()[:300], flush=True)
+    except (OSError, subprocess.SubprocessError) as e:
+        print("  [build] 预编译异常（不影响开发模式）: %s" % e, flush=True)
+
+
 def run_worker(port):
     """实际提供服务：静态文件 + 实时重载 + 本地存档后端。"""
+    build_bundle_once()
     watcher = threading.Thread(target=watch_loop, daemon=True)
     watcher.start()
 

@@ -3,22 +3,37 @@
 一个 HTML5 沙盒生存文字游戏。
 
 - 游戏地址：https://jeason1997.github.io/KuBiTionAdvanture/
-- 技术栈：纯前端（React `createClass` + 浏览器内 Babel），无构建工具；jQuery / Bootstrap / FastClick。
+- 技术栈：纯前端（React `createClass`）；生产用离线预编译产物 `build/game.bundle.js`（构建期 Babel 5），无需 npm/打包器；jQuery / Bootstrap / FastClick。
 - 新人上手：[`新人上手.md`](./新人上手.md)（运行、改数据、读代码路径）；逐文件说明见 [`项目文件说明.md`](./项目文件说明.md)。
 
 ## 本地运行
 
+### 本地开发（推荐）
+
 ```bash
-python3 dev_server.py        # 本地开发服务器：实时重载 + 本地存档后端 + 服务器热重载
+python3 dev_server.py        # 实时重载 + 本地存档后端 + 服务器热重载
 ```
 
-打开 http://127.0.0.1:8000/ 。也可用任意静态服务器（如 `python3 -m http.server`），
-但账号存档写入 `saves/<账号>.json`、浏览器本地存档（localStorage）等需通过 `dev_server.py` 才完整可用。
+打开 http://127.0.0.1:8000/ 。dev_server 启动时会自动运行一次 `node build_game.js` 更新预编译产物；
+页面通过注入的 `window.__DEV_SERVER__={useSource:true}` 走 22 个源码顺序加载 + 浏览器内 Babel（改文件即刷新）。
+账号存档写入 `saves/<账号>.json`、浏览器本地存档（localStorage）也依赖该服务器。
+
+### 静态部署 / 直接静态服务器
+
+```bash
+node build_game.js           # 生成/更新 build/game.bundle.js（只需 node，无需 npm install）
+node build_game.js --check   # 校验产物是否与源码一致（过期时退出码 1，可用于提交前/CI）
+python3 -m http.server        # 或把仓库直接部署到任意静态托管
+```
+
+生产/静态托管下 `index.html` 只加载预编译产物 `build/game.bundle.js`（一次请求，无浏览器内 Babel、无 22 个串行 fetch）。
+账号存档接口 `/api/save.php` 需要 `dev_server.py`，纯静态托管时不可用。
 
 ## 目录结构（简述）
 
 ```
-index.html            # 入口：加载第三方库、数据脚本，并顺序加载/编译游戏源码
+index.html            # 入口：加载第三方库/数据脚本；生产加载预编译产物，开发走源码热加载
+build_game.js          # 离线预编译脚本：22 个 JSX → build/game.bundle.js（支持 --check）
 css/                  # 分类样式 01-base … 09-responsive（按序加载）
 src/
   lib.js              # 通用工具库
@@ -28,12 +43,18 @@ src/
   scenes/             # 家/地点、战斗、地牢、顶层面板
   core/MainComponent  # 全局状态中心
   main.js             # 入口（垫片 + 挂载）
-build/                # 第三方库与构建产物
+build/                # 第三方库与构建产物（game.bundle.js 由 build_game.js 生成）
 res/                  # 音效
 saves/                # 本地存档后端数据目录
 ```
 
 ## ChangeLog
+
+### v 0.54
+- 首屏/加载优化：新增离线预编译 `build_game.js`，把 22 个 JSX 源文件构建为 `build/game.bundle.js`（ES5 单文件，确定性产物，带 sources-hash）；生产/静态托管不再下载 1.33MB Babel、不再 22 次串行 fetch。
+- 实测首屏（`.ui-optimize/shots-precompile/result.json`）：生产模式 24 请求 / 约 1.8MB / 本机 163ms / 慢网（1.6Mbps+4xCPU）9.7s；开发模式 46 请求 / 约 3.24MB / 894ms / 22.0s（原生产走开发路径为 47 请求 / 约 3.2MB / 894ms / 22.0s）；两种模式均无 console 错误、交互正常。
+- 开发体验：`dev_server.py` 启动自动构建一次产物，并注入 `window.__DEV_SERVER__={useSource:true}` 走源码热加载；改文件仍即时刷新。
+- 工程约定：改完 `src/**/*.js` 后需运行 `node build_game.js` 再提交；`--check` 可校验产物是否过期；`build/game.bundle.js` 为自动生成文件，手改无效。
 
 ### v 0.53
 - 数据层文案补全（不改数值/键名/奖励/逻辑）：`ITEM_DATA` 408 件物品描述去重与补全——178 件共用 51 组重复描述，重写为 0 组重复，并补齐唯一缺失的 `noWeapon` 描述；按武器/工具/护具/食物/药剂/材料/科技升级项分类写法统一。
