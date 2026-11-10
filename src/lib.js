@@ -254,6 +254,111 @@ function getFirst(obj) {
         return { attr: attr, value: obj[attr] }
     }
 }
+// ===== UI 文案格式化工具（v0.52 内容优化，供全部界面共用）=====
+// 千分位数字：15766 -> "15,766"；非数字原样返回。
+function fmtNum(value) {
+    if (value == null || value === '') return '';
+    var n = Number(value);
+    if (!isFinite(n)) return String(value);
+    var neg = n < 0;
+    n = Math.abs(n);
+    var str = String(Math.round(n * 10) / 10);
+    var parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return (neg ? '-' : '') + parts.join('.');
+}
+// 游戏内时长：小时数 -> "2 小时" / "1 天 4 小时" / "0.5 小时"。
+function fmtHours(hours) {
+    var n = Number(hours);
+    if (!isFinite(n) || n <= 0) return '0 小时';
+    var days = Math.floor(n / 24);
+    var rest = n - days * 24;
+    var restText = (rest % 1 === 0) ? String(rest) : String(Math.round(rest * 10) / 10);
+    if (days > 0) return fmtNum(days) + ' 天' + (rest > 0 ? ' ' + restText + ' 小时' : '');
+    return restText + ' 小时';
+}
+// 金币：15766 -> "15,766 金币"。
+function fmtMoney(n) {
+    if (n == null || n === '') return '0 金币';
+    return fmtNum(n) + ' 金币';
+}
+// 数量：2 -> "×2"。
+function fmtQty(n) {
+    return '×' + fmtNum(n);
+}
+// 物品/状态显示名（找不到数据时退回 id）。
+// 说明：需求列表里除物品外还会出现 ps/san/hp/full/moist/temp 这类"状态消耗"，
+// 它们不在 ITEM_DATA 里，但 STATE_DATA 有中文名，这里一并映射。
+function fmtItemName(id) {
+    if (id == null) return '';
+    if (typeof ITEM_DATA !== 'undefined' && ITEM_DATA[id] && ITEM_DATA[id].name) return ITEM_DATA[id].name;
+    if (typeof STATE_DATA !== 'undefined' && STATE_DATA[id] && STATE_DATA[id].name) return STATE_DATA[id].name;
+    if (id == 'gold') return '金币';
+    return String(id);
+}
+// 物品 + 数量：("wood",4) -> "木头 ×4"。
+function fmtItemQty(id, n) {
+    return fmtItemName(id) + (n == null ? '' : ' ' + fmtQty(n));
+}
+// 百分比数值：12 -> "+12%"；0 -> "+0%"；负数保留负号（传入的已是百分数，不是 0.12 这种比例）。
+function fmtPct(p) {
+    var n = Number(p);
+    if (!isFinite(n)) return String(p);
+    return (n > 0 ? '+' : '') + Math.round(n) + '%';
+}
+// 需求列表转文本：{wood:4} / ["axe"] -> "木头 ×4、斧头"。
+function fmtReqText(require) {
+    if (!require) return '';
+    var parts = [];
+    if (require instanceof Array) {
+        for (var i = 0; i < require.length; i++) parts.push(fmtItemName(require[i]));
+    } else {
+        for (var attr in require) parts.push(fmtItemQty(attr, require[attr]));
+    }
+    return parts.join('、');
+}
+// 缺失材料文本：传入需求与"现有数量"取值函数/对象，返回 "缺少：木头 ×7、铁块 ×2" 或 "材料齐备"。
+function fmtMissingText(require, amounts) {
+    if (!require) return '';
+    var getAmount = (typeof amounts === 'function') ? amounts : function (id) {
+        return (amounts && amounts[id]) || 0;
+    };
+    var missing = [];
+    if (require instanceof Array) {
+        for (var i = 0; i < require.length; i++) {
+            if (getAmount(require[i]) <= 0) missing.push(fmtItemName(require[i]));
+        }
+    } else {
+        for (var attr in require) {
+            var need = require[attr];
+            var have = getAmount(attr);
+            if (have < need) missing.push(fmtItemName(attr) + ' ×' + fmtNum(need - have));
+        }
+    }
+    return missing.length ? ('缺少：' + missing.join('、')) : '材料齐备';
+}
+// 资源相对丰富度说明（地图卡片/地点页悬浮提示用）。
+function richnessHint(label) {
+    var map = {
+        '大量': '存量很高（约为上限的 80% 以上），适合集中采集',
+        '较多': '存量较高（约 50%~80%），可以稳定采集',
+        '一般': '存量中等（约 20%~50%）',
+        '较少': '存量偏低（约 10%~20%），采几次就会见底',
+        '很少': '存量很低（不足 10%），建议换地点',
+        '极少': '存量极低，基本采不到'
+    };
+    return map[label] || ('相对丰富度：' + label);
+}
+// 状态值语义：按当前/上限比例返回"充足/正常/偏低/危险"（不依赖颜色）。
+function stateLevelText(amount, max) {
+    var m = Number(max) || 100;
+    var ratio = (Number(amount) || 0) / m;
+    if (ratio <= 0.2) return '危险';
+    if (ratio <= 0.4) return '偏低';
+    if (ratio <= 0.8) return '正常';
+    return '充足';
+}
+
 /** 动态向页面 <head> 注入 js/css 文件（用于库回退）。 */
 function loadFile(filename, filetype) {
     if (filetype == "js") {

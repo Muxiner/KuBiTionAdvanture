@@ -16,7 +16,7 @@ var MenuBtnComponent = React.createClass({
     },
     render: function () {
         var menuHint = this.context.menuHint;
-        return <BtnComponent style={{ backgroundColor: '#9FAA83' }} className='stateVector menuToggleBtn' handleClick={this.handleClick}><span>菜单</span>{(menuHint > 0 ? <span className='badge'>{menuHint}</span> : '')}</BtnComponent>
+        return <BtnComponent style={{ backgroundColor: '#9FAA83' }} className='stateVector menuToggleBtn' handleClick={this.handleClick} title='打开菜单：技能 / 设置与存档'><span>菜单</span>{(menuHint > 0 ? <span className='badge'>{menuHint}</span> : '')}</BtnComponent>
     }
 });
 var CustomMenuComponent = React.createClass({
@@ -41,9 +41,13 @@ var MenuComponent = React.createClass({
         if (type == 'menu') {
             return <NormalMenuComponent />;
         }
-        return <div className='menuOuter'>
+        return <div className='menuOuter' role='dialog' aria-modal='true' aria-label='提示'>
             <div className='menuInner'>
                 <div className='menu'>
+                    <div className='ux-menuTitle'>
+                        <span className='ux-menuTitleMain'>提示</span>
+                        <span className='ux-menuTitleHint'>按下方按钮或「返回」关闭</span>
+                    </div>
                     <div className='menuMain'>
                         <CustomMenuComponent />
                     </div>

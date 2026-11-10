@@ -84,6 +84,39 @@ function uxKeyActivate(handler) {
 // 深色绿：白底对比度 5.5:1（原 #74AB6A 仅 2.7:1），供需求/加成等文字使用
 var UX_GREEN = '#3f6b32';
 
+// 需求项名称：物品名优先，其次状态名（体力/精神/满腹/水分/生命/体温）。
+// lib.js 的 fmtItemName 只认识 ITEM_DATA，需求里的 ps/san 等状态会显示成 id，这里补一层。
+function uxDisplayName(id) {
+    if (typeof ITEM_DATA !== 'undefined' && ITEM_DATA[id] && ITEM_DATA[id].name) return ITEM_DATA[id].name;
+    if (typeof STATE_DATA !== 'undefined' && STATE_DATA[id] && STATE_DATA[id].name) return STATE_DATA[id].name;
+    return String(id);
+}
+// 需求列表 → "体力 ×5、斧头 ×1"
+function uxReqText(require) {
+    if (!require) return '';
+    var parts = [];
+    if (require instanceof Array) {
+        for (var i = 0; i < require.length; i++) parts.push(uxDisplayName(require[i]));
+        return parts.join('、');
+    }
+    for (var attr in require) parts.push(uxDisplayName(attr) + ' ' + fmtQty(require[attr]));
+    return parts.join('、');
+}
+// 缺失材料 → "缺少：体力 ×2、斧头 ×1"（amounts 可为对象或函数：返回当前拥有数量）
+function uxMissingText(require, amounts) {
+    if (!require) return '';
+    var getAmount = (typeof amounts === 'function') ? amounts : function (id) {
+        return (amounts && amounts[id]) || 0;
+    };
+    var missing = [];
+    for (var attr in require) {
+        var need = require[attr];
+        var have = getAmount(attr);
+        if (have < need) missing.push(uxDisplayName(attr) + ' ' + fmtQty(need - have));
+    }
+    return missing.length ? ('缺少：' + missing.join('、')) : '材料齐备';
+}
+
 // ===== 1) 通用 UI 组件 =====
 // 单个物品格：显示名称/数量/耐久；左键选中（详情常驻）并保留转移，右键使用/装备
 var ItemComponent = React.createClass({
@@ -206,17 +239,35 @@ var ItemComponent = React.createClass({
         var typeColor = uxContrastOnWhite((TYPE_DATA[ITEM_DATA[this.props.item].type] || {}).color || COLOR.BLACK);
         var name = ITEM_DATA[item].name;
         return <div className={"item " + (isCurrentEquip ? 'currentEquip ' : '') + (isSelected ? 'itemSelected' : '')}
-            tabIndex="0" role="button" aria-label={name + ' ' + this.props.amount + ' 个'}
-            title={ITEM_DATA[item].desc || name}
+            tabIndex="0" role="button" aria-label={fmtItemQty(item, this.props.amount) + (isCurrentEquip ? '（已装备）' : '')}
+            title={fmtItemQty(item, this.props.amount) + (ITEM_DATA[item].desc ? '：' + ITEM_DATA[item].desc : '')}
             onMouseEnter={this.itemMouseEnter} onClick={this.itemMouseClick}
             onKeyDown={this.itemKeyDown} onContextMenu={this.itemClickRight}>
             <p style={{ color: typeColor }}>{name}</p>
             {ITEM_DATA[item].durable ? <ProgressComponent addStyle={{ position: 'absolute', width: '30px', left: '9px', top: '22px', height: '5px' }} max={maxDurable} current={maxDurable - durableWear(this.context.durableSaveData, item)} /> : null}
-            <span className="badge itemAmount">{this.props.amount}</span>
+            <span className="badge itemAmount">{fmtNum(this.props.amount)}</span>
         </div>
     }
 });
 // 单个状态格：显示状态名与数值，按数值插值底色，悬停展示说明
+// 状态含义与恢复方式（状态栏 title / 说明用，纯文案）
+var STATE_HELP = {
+    hp: '生命归零会死亡。恢复：进食、使用药剂，或在床铺睡觉。',
+    ps: '采集与战斗会消耗体力，体力不足时无法行动。恢复：在床铺睡觉、进食。',
+    full: '满腹随时间下降，归零后会开始损失生命。恢复：进食。',
+    moist: '水分随时间下降，归零后会开始损失生命。恢复：饮水（水井、溪流、饮用水）。',
+    san: '夜间在外或熬夜会下降，精神过低会影响战斗。恢复：睡觉或在安全处休息。',
+    temp: '体温受季节与环境影响：过高会流失水分，过低会流失体力。恢复：穿衣保暖或降温。'
+};
+// 仅“怎么恢复”的简短版本（状态详情行用）
+var STATE_RECOVER = {
+    hp: '进食、使用药剂，或回家在床铺睡觉。',
+    ps: '在床铺睡觉、进食。',
+    full: '进食。',
+    moist: '饮水（水井、溪流、饮用水）。',
+    san: '睡觉，或在安全的地方休息。',
+    temp: '穿衣保暖，或靠近热源/降温。'
+};
 var StateVectorComponent = React.createClass({
     contextTypes: {
         playerState: React.PropTypes.object.isRequired,
@@ -264,18 +315,23 @@ var StateVectorComponent = React.createClass({
         var bg = getColor(Math.ceil(state.amount));
         // 前景色按底色亮度自动选择，保证 ≥4.5:1（原先固定白字在浅底上只有 2.1:1）
         var fg = uxReadableText(bg.r, bg.g, bg.b);
-        var ratio = isTemp ? 1 : (max > 0 ? state.amount / max : 1);
-        // 低状态加非颜色的“!”提示，色盲/色弱也能看出危险
-        var low = !isTemp && ratio < 0.3;
-        var valueText = isTemp ? TEMP_DATA[this.context.getTempDesc()].name : Math.ceil(state.amount);
-        var label = stateName + ' ' + valueText + (low ? '（偏低）' : '');
+        var cur = Math.ceil(state.amount);
+        var levelText = isTemp ? TEMP_DATA[this.context.getTempDesc()].name : stateLevelText(cur, max);
+        var levelKey = isTemp ? 'nice' : (levelText == '危险' ? 'danger' : (levelText == '偏低' ? 'low' : 'ok'));
+        var valueText = isTemp ? levelText : (fmtNum(cur) + '/' + fmtNum(max));
+        var stateHelp = STATE_HELP[this.props.state] || '';
+        var tempDesc = isTemp ? TEMP_DATA[this.context.getTempDesc()].desc : '';
+        var titleText = isTemp
+            ? ('体温：' + levelText + '。' + tempDesc + stateHelp + ' 点击查看说明。')
+            : (stateName + '：' + fmtNum(cur) + '/' + fmtNum(max) + '（' + levelText + '）。' + stateHelp + ' 点击查看说明。');
+        var ariaText = stateName + ' ' + valueText + (isTemp ? '' : '（' + levelText + '）');
         return <div className="stateVector" tabIndex="0" role="button"
-            aria-label={label} title={label + '：点击查看说明'}
+            aria-label={ariaText} title={titleText}
             onMouseEnter={this.showMsg} onClick={this.showMsg} onKeyDown={this.stateKeyDown}
             style={{ background: bg.css, color: fg }}>
             {stateName}
             <span className="badge"> {valueText} </span>
-            {low ? <span className="stateWarn" title="该状态偏低，注意补充">!</span> : null}
+            {(levelKey == 'danger' || levelKey == 'low') ? <span className={'ux-stateLevel ux-stateLevel-' + levelKey} title={stateName + '：' + levelText + '，' + stateHelp}>{levelText}</span> : null}
         </div>
     }
 });
@@ -343,16 +399,18 @@ var RequireComponent = React.createClass({
                 if (count > 0 && this.props.withSpace) result.push(<br key={'br_' + count} />);
                 var amount = requireList[attr];
                 var name = ITEM_DATA[attr] ? ITEM_DATA[attr].name : (STATE_DATA[attr] ? STATE_DATA[attr].name : attr);
+                var have = countBagItem(bag, attr);
                 var ok = this.props.isGreen ? true : this.context.checkHaveResource(attr, amount, bag);
                 // 不只靠红/绿：同时给出 ✓/✗ 与可读 title（色盲/色弱可用）
                 var mark = this.props.isGreen ? null : <span className="reqMark" aria-hidden="true">{ok ? '✓' : '✗'}</span>;
+                var titleText = (ok ? '已满足：' : '缺少：') + name + ' ' + fmtQty(amount) + '（当前 ' + fmtNum(have) + '）';
                 result.push(<span key={count} className={'resourceName reqItem ' + (ok ? 'reqOk' : 'reqMissing')}
-                    title={(ok ? '已满足：' : '缺少：') + name + '×' + amount}
+                    title={titleText}
                     style={{ color: this.props.isGreen ? UX_GREEN : (ok ? UX_GREEN : COLOR.RED) }}>
                     {mark}
                     {name}
                     <span className="badge resourceAmount">
-                        {this.props.showTotal ? (amount + '/' + countBagItem(bag, attr)) : amount}
+                        {this.props.showTotal ? (fmtNum(amount) + '/' + fmtNum(have)) : fmtNum(amount)}
                     </span>
                     {total == count + 1 ? null : this.props.separator}
                 </span>);
@@ -469,10 +527,12 @@ var BoxComponent = React.createClass({
             var used = getLength(box.things);
             var cap = box.size || 0;
             var ratio = cap > 0 ? used / cap : 0;
+            var capHint = ratio >= 0.9 ? '（快满了：可先整理，或升级大箱子扩容）' : '（放入/取出物品不会影响已有物品）';
             return <div className='boxWithCapacity'>
                 {list}
-                <div className={'boxCapacity' + (ratio >= 0.9 ? ' boxCapacityFull' : '')}>
-                    大箱子容量：{used} / {cap}{ratio >= 0.9 ? '（快满了）' : ''}
+                <div className={'boxCapacity' + (ratio >= 0.9 ? ' boxCapacityFull' : '')}
+                    title={'大箱子容量：已用 ' + fmtNum(used) + ' 格，共 ' + fmtNum(cap) + ' 格。' + capHint}>
+                    大箱子容量：{fmtNum(used)} / {fmtNum(cap)} 格 · 已用 {Math.round(ratio * 100)}%{ratio >= 0.9 ? '（快满了）' : ''}
                 </div>
             </div>;
         }
@@ -580,10 +640,12 @@ var ResourceDisplayComponent = React.createClass({
         };
         for (var attr in res) {
             if (isMst ? MST_DATA[attr] : TYPE_DATA[attr]) {
-                result.push(<p key={attr}>
-                    <span>{isMst ? MST_DATA[attr].name : TYPE_DATA[attr].name}</span>
+                var amountDesc = getAmountDesc(res[attr]);
+                var groupName = isMst ? MST_DATA[attr].name : TYPE_DATA[attr].name;
+                result.push(<p key={attr} title={groupName + '：' + richnessHint(amountDesc)}>
+                    <span>{groupName}</span>
                     <span className="badge resourceAmount">
-                        {getAmountDesc(res[attr])}
+                        {amountDesc}
                     </span>
                 </p>)
             }
@@ -603,6 +665,8 @@ var BtnComponent = React.createClass({
         checkHaveResourceAll: React.PropTypes.func.isRequired,
         checkHaveResource: React.PropTypes.func.isRequired,
         boxSaveData: React.PropTypes.object.isRequired,
+        currentEquip: React.PropTypes.object.isRequired,
+        playerState: React.PropTypes.object.isRequired,
         AudioEngine: React.PropTypes.object.isRequired,
         showMsg: React.PropTypes.func.isRequired,
     },
@@ -618,39 +682,49 @@ var BtnComponent = React.createClass({
             sound: 'pick',
             className: 'btn',
             disabledReason: null,
+            title: null,
         }
     },
     getDisabled: function () {
         return this.props.disabled || !this.context.checkHaveResourceAll(this.props.requireList, true)
     },
-    // 列出缺少的材料（让“材料不足”可读：缺什么、缺多少）
+    // 列出缺少的材料（让“材料不足”可读：缺什么、缺多少；含背包+大箱子+装备+状态值）
     getMissingText: function () {
         var requireList = this.props.requireList;
         if (!requireList) return '';
         var boxSaveData = this.context.boxSaveData;
         var bag = together(boxSaveData.bag.things, boxSaveData.bigBox.things);
-        var miss = [];
-        for (var attr in requireList) {
-            if (!this.context.checkHaveResource(attr, requireList[attr], bag)) {
-                var name = ITEM_DATA[attr] ? ITEM_DATA[attr].name : (STATE_DATA[attr] ? STATE_DATA[attr].name : attr);
-                miss.push(name + '×' + requireList[attr]);
+        var self = this;
+        var currentEquip = this.context.currentEquip || {};
+        var playerState = this.context.playerState || {};
+        function amounts(id) {
+            var n = countBagItem(bag, id);
+            for (var slot in currentEquip) {
+                if (currentEquip[slot] && itemBaseId(currentEquip[slot]) == id) n++;
             }
+            if (playerState[id] && playerState[id].amount) n += playerState[id].amount;
+            return n;
         }
-        return miss.length ? ('缺少：' + miss.join('、')) : '';
+        if (!this.context.checkHaveResourceAll(requireList, true)) {
+            return uxMissingText(requireList, amounts);
+        }
+        return '';
     },
     getDisabledReason: function () {
         //先判定材料，再给出调用方指定的其它原因（如饱食/水分不足、冷却中）
         if (this.props.requireList && !this.context.checkHaveResourceAll(this.props.requireList, true)) {
             return this.getMissingText() || '材料不足';
         }
-        if (this.props.disabled) return this.props.disabledReason || '条件不满足：材料、状态、空间或时间不足';
+        if (this.props.disabled) return this.props.disabledReason || '条件不满足：材料、状态、空间或时间不足；请检查背包空间与满腹/水分/体力后重试';
         return '';
     },
     handleClick: function (isRight, event) {
         if (this.getDisabled()) {
             var reason = this.getDisabledReason();
-            // 兜底文案保证“点了没反应”不会再出现
-            this.context.showMsg(<p key={Math.random()}>{reason || '条件不满足：材料、状态、空间或时间不足'}</p>);
+            // 兜底文案保证“点了没反应”不会再出现；缺料时补下一步
+            var message = reason || '条件不满足：材料、状态、空间或时间不足';
+            if (/^缺少/.test(message)) message += '；请先采集或制作缺少的材料';
+            this.context.showMsg(<p key={Math.random()}>{message}</p>);
             return;
         }
         this.context.AudioEngine.playEffect(this.props.sound);
@@ -668,7 +742,8 @@ var BtnComponent = React.createClass({
     render: function () {
         var disabled = this.getDisabled();
         var disabledReason = disabled ? this.getDisabledReason() : '';
-        return <button type="button" title={disabledReason || undefined} aria-disabled={disabled ? 'true' : undefined} style={this.props.style} onContextMenu={this.handleClick.bind(null, 'right')} onClick={this.handleClick.bind(null, false)} onMouseEnter={this.handleMouseEnter} className={this.props.className + (disabled ? " disabled" : '')}>{this.props.desc || this.props.children}</button>
+        var titleText = disabledReason || this.props.title || undefined;
+        return <button type="button" title={titleText} aria-disabled={disabled ? 'true' : undefined} style={this.props.style} onContextMenu={this.handleClick.bind(null, 'right')} onClick={this.handleClick.bind(null, false)} onMouseEnter={this.handleMouseEnter} className={this.props.className + (disabled ? " disabled" : '')}>{this.props.desc || this.props.children}</button>
     }
 });
 

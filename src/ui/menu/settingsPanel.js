@@ -32,35 +32,51 @@ var SettingsPanelComponent = React.createClass({
     refreshLocalSaves: function () {
         this.setState({ localSaves: this.context.getLocalSaves() });
     },
-    // 槽位显示名（自动存档 / 第N号）
+    // 槽位显示名（自动存档 / 存档槽 N）
     slotName: function (slot) {
-        return slot == LOCAL_SAVE_AUTO_SLOT ? '自动存档' : ('第' + slot + '号');
+        return slot == LOCAL_SAVE_AUTO_SLOT ? '自动存档' : ('存档槽 ' + slot);
+    },
+    // 存档时间：06:00 / 春季（显示用）
+    formatClock: function (hour) {
+        var h = Math.floor(hour || 0);
+        var m = Math.round((hour - h) * 60) || 0;
+        return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+    },
+    seasonFullName: function (season) {
+        return { spring: '春季', summer: '夏季', autumn: '秋季', winter: '冬季' }[season] || '';
+    },
+    // 存档槽完整说明：存档槽 1 · 春季 第 132 日 06:00
+    slotDetail: function (slot, save) {
+        if (!save) return this.slotName(slot) + ' · 空';
+        var gen = save.generation ? ('轮回 ' + fmtNum(save.generation) + ' · ') : '';
+        return this.slotName(slot) + ' · ' + gen + this.seasonFullName(save.season) + ' 第 ' + fmtNum(save.day) + ' 日 ' + this.formatClock(save.hour);
     },
     // 本地存档：写入指定槽位并刷新列表、回显结果
     handleLocalSave: function (slot) {
         //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
         if (this.context.saveLocal(slot)) {
             this.refreshLocalSaves();
-            this.setState({ saveMsg: this.slotName(slot) + '保存成功' });
+            this.setState({ saveMsg: '已保存到「' + this.slotName(slot) + '」：' + this.slotDetail(slot, this.context.getLocalSaves()[slot]) });
         } else {
-            this.setState({ saveMsg: this.slotName(slot) + '保存失败' });
+            this.setState({ saveMsg: '「' + this.slotName(slot) + '」保存失败：浏览器存储不可用或空间已满，请清理其他存档槽后重试。' });
         }
     },
     // 本地读档：槽位为空则提示
     handleLocalLoad: function (slot) {
         var saves = this.context.getLocalSaves();
         if (!saves[slot]) {
-            this.setState({ saveMsg: '该存档位是空的...' });
+            this.setState({ saveMsg: '「' + this.slotName(slot) + '」是空的……请先点「保存」写入，或选择其他存档槽。' });
             return;
         }
         this.context.loadLocal(slot);
     },
     // 本地删档：二次确认后删除并刷新
     handleLocalDelete: function (slot) {
-        if (confirm('确定删除' + this.slotName(slot) + '存档吗？')) {
+        var saves = this.context.getLocalSaves();
+        if (confirm('确定删除「' + this.slotName(slot) + '」吗？\n' + this.slotDetail(slot, saves[slot]) + '\n删除后无法恢复。')) {
             this.context.deleteLocal(slot);
             this.refreshLocalSaves();
-            this.setState({ saveMsg: this.slotName(slot) + '已删除' });
+            this.setState({ saveMsg: '已删除「' + this.slotName(slot) + '」' });
         }
     },
     upload: function () {
@@ -101,7 +117,11 @@ var SettingsPanelComponent = React.createClass({
     willUpload: function () {
         //不使用原生 confirm，避免浏览器弹窗节流导致无法重复保存
         this.context.upload(true, function (ok, reason) {
-            this.setState({ saveMsg: ok ? '账号保存成功' : ('账号保存失败' + (reason ? '（' + reason + '）' : '')) });
+            this.setState({
+                saveMsg: ok
+                    ? '账号存档保存成功：已写入服务器（换设备登录同一账号即可读取）。'
+                    : ('账号存档保存失败：' + (reason || '网络或服务器异常') + '。请检查账号密码与网络后重试。')
+            });
         }.bind(this));
     },
     // 切换背包自动整理
@@ -115,6 +135,10 @@ var SettingsPanelComponent = React.createClass({
         var canSaveRemote = this.context.currentScene == 'home' && (getLength(this.context.mstState) == 0) && !this.context.robberSaveData.robber;
         return (
             <div className='skillMenu settingsMenu'>
+                <p className='ux-saveHelp'>
+                    账号存档：跨设备（需要网络与存档服务器）｜本地存档：仅本浏览器｜自动存档：出门时自动保存
+                </p>
+                <div className='settingsRow settingsTitle ux-saveSection'>账号存档（跨设备，需填写账号密码）</div>
                 <div className='settingsRow'>
                     <div className='settingsField'>
                         <label htmlFor="account">账号</label>
@@ -136,11 +160,14 @@ var SettingsPanelComponent = React.createClass({
                     </div>;
                 }.bind(this)()}
                 <div className='settingsRow'>
-                    <BtnComponent disabled={!canSaveRemote} disabledReason={this.getRemoteSaveReason()} handleClick={this.willUpload}>保存</BtnComponent>
-                    <BtnComponent handleClick={this.download} disabledReason='账号或密码为空'>读取</BtnComponent>
+                    <BtnComponent disabled={!canSaveRemote} disabledReason={this.getRemoteSaveReason()}
+                        title='保存到账号存档：跨设备可读取；需在家且不在战斗中'
+                        handleClick={this.willUpload}>保存</BtnComponent>
+                    <BtnComponent handleClick={this.download}
+                        title='从账号存档读取：会覆盖当前进度；请先填写账号与密码'>读取</BtnComponent>
                 </div>
-                <div className='settingsRow settingsStatus'>{this.state.saveMsg}</div>
-                <div className='settingsRow settingsTitle'>自动存档</div>
+                <div className='settingsRow settingsStatus' role='status' aria-live='polite'>{this.state.saveMsg}</div>
+                <div className='settingsRow settingsTitle ux-saveSection'>自动存档（出门时自动保存）</div>
                 {function () {
                     var self = this;
                     var canSave = canSaveRemote;
@@ -148,32 +175,47 @@ var SettingsPanelComponent = React.createClass({
                     var seasonName = { spring: '春', summer: '夏', autumn: '秋', winter: '冬' };
                     function makeRow(slot, label) {
                         var save = localSaves[slot];
-                        var desc = save
+                        // 兼容旧存档的“1. 春第132日”紧凑前缀（verify 脚本依赖），后面补时间和季节
+                        var compact = save
                             ? ((save.generation ? '轮回' + save.generation + ' ' : '') + (seasonName[save.season] || '') + '第' + save.day + '日')
                             : '空存档';
+                        var meta = save
+                            ? ('· ' + self.seasonFullName(save.season) + ' ' + self.formatClock(save.hour))
+                            : '· 空（点「保存」写入当前进度）';
+                        var rowTitle = save
+                            ? (self.slotDetail(slot, save) + '（保存于 ' + new Date(save.savedAt || Date.now()).toLocaleString() + '）')
+                            : (self.slotName(slot) + ' · 空的存档位，点「保存」写入当前进度');
+                        var slotNameForTitle = self.slotName(slot);
                         return (
                             <div key={'localSave' + slot} className='settingsRow localSaveRow'>
-                                <span className='localSaveDesc'>{label + ' ' + desc}</span>
-                                <BtnComponent disabled={!canSave} disabledReason={self.getLocalSaveReason()} handleClick={self.handleLocalSave.bind(self, slot)}>保存</BtnComponent>
-                                <BtnComponent disabled={!save} disabledReason='该存档位是空的' handleClick={self.handleLocalLoad.bind(self, slot)}>读取</BtnComponent>
-                                <BtnComponent disabled={!save} disabledReason='该存档位是空的' handleClick={self.handleLocalDelete.bind(self, slot)}>删除</BtnComponent>
+                                <span className='localSaveDesc' title={rowTitle}>{label + ' ' + compact}</span>
+                                <span className='localSaveMeta'>{meta}</span>
+                                <BtnComponent disabled={!canSave} disabledReason={self.getLocalSaveReason()}
+                                    title={'覆盖「' + slotNameForTitle + '」中已有进度（把当前进度写入该槽）'}
+                                    handleClick={self.handleLocalSave.bind(self, slot)}>保存</BtnComponent>
+                                <BtnComponent disabled={!save} disabledReason='该存档位是空的'
+                                    title={'读取「' + slotNameForTitle + '」：用存档覆盖当前进度（未保存进度会丢失）'}
+                                    handleClick={self.handleLocalLoad.bind(self, slot)}>读取</BtnComponent>
+                                <BtnComponent disabled={!save} disabledReason='该存档位是空的'
+                                    title={'删除「' + slotNameForTitle + '」：永久删除，操作前会再次确认'}
+                                    handleClick={self.handleLocalDelete.bind(self, slot)}>删除</BtnComponent>
                             </div>
                         );
                     }
                     var rows = [makeRow(LOCAL_SAVE_AUTO_SLOT, '')];
-                    rows.push(<div key='manualTitle' className='settingsRow settingsTitle'>本地存档</div>);
+                    rows.push(<div key='manualTitle' className='settingsRow settingsTitle ux-saveSection'>本地存档（仅本浏览器）</div>);
                     for (var i = 1; i <= LOCAL_SAVE_SLOTS; i++) {
                         rows.push(makeRow(i, i + '.'));
                     }
                     return rows;
                 }.bind(this)()}
-                <label className='settingsRow settingsCheckbox' htmlFor="autoSave">
+                <label className='settingsRow settingsCheckbox' htmlFor="autoSave" title='开启后，每次出门会自动写入「自动存档」槽'>
                     <input checked={this.context.settings.autoSave} onChange={this.handleAuto} id="autoSave" type="checkbox" />
                     <span>出门时保存</span>
                 </label>
                 <div className='settingsRow'>
-                    <BtnComponent handleClick={this.context.setVolume}>声音：{this.context.AudioEngine.on ? '开' : '关'}</BtnComponent>
-                    <BtnComponent handleClick={this.setSort}>自动整理背包：{this.context.settings.sort ? '开' : '关'}</BtnComponent>
+                    <BtnComponent handleClick={this.context.setVolume} title='切换游戏音效开关'>声音：{this.context.AudioEngine.on ? '开' : '关'}</BtnComponent>
+                    <BtnComponent handleClick={this.setSort} title='开启后，背包在获得物品时自动按类型整理'>自动整理背包：{this.context.settings.sort ? '开' : '关'}</BtnComponent>
                 </div>
                 <div className='settingsRow'>
                     <a target="blank" href="http://1.maou.sinaapp.com/?page_id=47">作者的小站</a>

@@ -25,7 +25,7 @@ var OWNED_BOX_NAME = {
     scienceTable: '科研台',
     cooker: '炊具',
     cooked: '炊具成品',
-    well: '井',
+    well: '水井',
     bigBox: '大箱子',
     shit: '卫生间',
     marshGasTank: '沼气池'
@@ -71,7 +71,7 @@ var OwnedListComponent = React.createClass({
             return;
         }
         if (this.context.currentScene !== 'home') {
-            this.context.showMsg(<p key={Math.random()}>{'回家后才能查看' + this.boxName(box)}</p>);
+            this.context.showMsg(<p key={Math.random()}>{'回家后才能查看「' + this.boxName(box) + '」……请先点「回家」'}</p>);
             return;
         }
         var element = null;
@@ -88,7 +88,22 @@ var OwnedListComponent = React.createClass({
             element = null;
         }
         if (element) this.context.callWindow(element);
-        else this.context.showMsg(<p key={Math.random()}>{'暂不支持从汇总跳转到' + this.boxName(box)}</p>);
+        else this.context.showMsg(<p key={Math.random()}>{'暂不支持从汇总跳转到「' + this.boxName(box) + '」'}</p>);
+    },
+    // 汇总“种类 / 件数”，用于标题栏可见提示（不展开也能看到规模）
+    getTotals: function () {
+        var boxSaveData = this.props.boxSaveData || {};
+        var kinds = 0, count = 0, seen = {};
+        for (var box in boxSaveData) {
+            var boxData = boxSaveData[box];
+            if (!boxData || !boxData.things || !this.boxAllowed(box)) continue;
+            for (var id in boxData.things) {
+                var base = itemBaseId(id);
+                if (!seen[base]) { seen[base] = true; kinds++; }
+                count += boxData.things[id];
+            }
+        }
+        return { kinds: kinds, count: count };
     },
     getOwnedList: function () {
         var boxSaveData = this.props.boxSaveData || {};
@@ -135,14 +150,14 @@ var OwnedListComponent = React.createClass({
                     }
                     srcList.sort(function (a, b) { return b.amount - a.amount; });
                     return <div className='ownedItem' key={entry.id}>
-                        <span className='ownedName'>{name}</span>
-                        <span className='ownedAmount'>×{entry.amount}</span>
+                        <span className='ownedName'>{fmtItemName(entry.id)}</span>
+                        <span className='ownedAmount'>{fmtQty(entry.amount)}</span>
                         <span className='ownedSources'>
                             {srcList.map(function (s) {
                                 return <button type='button' key={s.box} className='ownedSrcBtn'
-                                    title={'在' + self.boxName(s.box) + '中有 ' + s.amount + ' 个，点击查看'}
+                                    title={'在「' + self.boxName(s.box) + '」中有 ' + fmtQty(s.amount) + '，点击查看'}
                                     onClick={self.jumpToBox.bind(self, s.box)}>
-                                    {self.boxName(s.box)} {s.amount}
+                                    {self.boxName(s.box)} {fmtQty(s.amount)}
                                 </button>;
                             })}
                         </span>
@@ -155,14 +170,23 @@ var OwnedListComponent = React.createClass({
         var open = this.state.open;
         var content = open ? this.getOwnedList() : null;
         var empty = open && (!content || !content.length);
+        var totals = this.getTotals();
+        var hintText = open
+            ? ('共 ' + fmtNum(totals.kinds) + ' 种 · 按来源分组，点击来源可查看')
+            : ('共 ' + fmtNum(totals.kinds) + ' 种 / ' + fmtNum(totals.count) + ' 件 · 默认收起，点此展开');
         return <div className={"ownedList" + (open ? '' : ' isCollapsed')}>
-            <button type="button" className="sectionToggle ownedToggle" aria-expanded={open ? 'true' : 'false'} onClick={this.toggle}>
+            <button type="button" className="sectionToggle ownedToggle" aria-expanded={open ? 'true' : 'false'} onClick={this.toggle}
+                title='统计背包、大箱子、各工作台里当前可访问的物品；未建造的容器不计入'>
                 <span className="sectionToggleTitle">所有物品</span>
                 <span className="sectionToggleMark" aria-hidden="true">{open ? '▾' : '▸'}</span>
-                <span className="sectionToggleHint">{open ? '按来源分组，点击来源可查看' : '默认收起，点此展开'}</span>
+                <span className="sectionToggleHint">{hintText}</span>
             </button>
             {content}
-            {empty ? <div className='ownedEmpty'>暂无物品</div> : null}
+            {empty ? <div className='ownedEmpty'>
+                <p>还没有任何物品。</p>
+                <p>去「出门 → 出发」采集或打猎，或在家用「制作台」制作，物品会出现在这里。</p>
+                <p>展开后点击来源（如「大箱子」）可直接打开对应容器查看。</p>
+            </div> : null}
         </div>;
     }
 });

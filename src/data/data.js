@@ -127,18 +127,18 @@ var TYPE_DATA = {
 var BUILDING_DATA = {
     build: {
         name: '建造',
-        desc: '建造建筑物。',
+        desc: '查看并建造其他建筑；不同建筑有前置（如多数建筑需先建制造台）。',
         require: {},
     },
     makeTable: {
         name: '制造台',
-        desc: '可以制作各种工具。',
+        desc: '制作工具/武器/材料的核心建筑（约 60 种配方）；需木头 ×8，建议优先建造。',
         require: { wood: 8 },
         timeNeed: 4,
     },
     trap: {
         name: '陷阱',
-        desc: '陷阱可以诱捕小动物。',
+        desc: '放入诱饵后每日判定捕获小动物；槽位初始 2 个，可升级至 4 个。',
         require: { wood: 10, part: 4 },
         timeNeed: 4,
         building: 'makeTable',
@@ -146,67 +146,67 @@ var BUILDING_DATA = {
 
     alchemyTable: {
         name: '炼金台',
-        desc: '可以提炼各种药剂。',
+        desc: '把材料提炼成药剂（生命/精神/体力药剂等），需先建制造台。',
         require: { wood: 10, part: 5 },
         timeNeed: 4,
         building: 'makeTable',
     },
     magicTable: {
         name: '秘术台',
-        desc: '可以研制魔法武器与卷轴。',
+        desc: '研制法杖、魔法装备与卷轴；需先建制造台，耗宝石/水晶等材料。',
         require: { wood: 10, gem: 2 },
         timeNeed: 4,
         building: 'makeTable',
     },
     scienceTable: {
         name: '科研台',
-        desc: '可以研发各种科技。',
+        desc: '研发科技（共 74 项，每项只研究一次）；科技等级=同类科技数量。需木头 ×10、零件 ×5。',
         require: { wood: 10, part: 5 },
         timeNeed: 4,
     },
     alco: {
         name: '酿酒桶',
-        desc: '可以酿造酒。',
+        desc: '把小麦/水果酿成酒（4 种配方）；槽位初始 2 个、可升级至 8 个，冬季停产。',
         require: { wood: 10, iron: 5 },
         timeNeed: 4,
         building: 'cooker'
     },
     cooker: {
         name: '炊具',
-        desc: '允许你烹饪食物。',
+        desc: '把食材烹饪成食物（约 70 种食谱）；支持一次做多份，按现有材料排序。',
         require: { wood: 10, iron: 5 },
         timeNeed: 4,
     },
     well: {
         name: '井',
-        desc: '源源不断的水将从这里溢出。',
+        desc: '每天自动产水：每日产水 = 水井等级 + 3（初始 3 份，最高 10 份）；冬季结冰停产。',
         require: { pickaxe: 3, wood: 10 },
         timeNeed: 4,
         building: 'makeTable',
     },
     farm: {
         name: '农田',
-        desc: '可以种植农作物。',
+        desc: '种植作物（9 种）：槽位初始 2 个、可升级至 8 个；春季生长 ×2，冬季停产。',
         require: { wood: 10, fertilizer: 10 },
         timeNeed: 4,
         building: 'makeTable',
     },
     toilet: {
         name: '卫生间',
-        desc: '可以收集粪便，升级后可以洗澡。',
+        desc: '每 48 小时排便一次（粪便 ×4 可制肥料）；升级「大水缸」后可洗澡恢复精神。',
         require: { wood: 10, part: 5 },
         timeNeed: 4,
         building: 'makeTable',
     },
     sleepPlace: {
         name: '床铺',
-        desc: '你可以在这里回复体力与精力。',
+        desc: '睡觉恢复体力/生命/精神；床铺等级越高恢复倍率越高（最高 ×3），冬季需「火炕」。',
         require: { bark: 2 },
         timeNeed: 4,
     },
     bigBox: {
         name: '大箱子',
-        desc: '存放许多东西。',
+        desc: '共享仓库：初始 16 格，可通过科技升级至 104 格；与背包、制造台等容器互通。',
         require: { wood: 12 },
         timeNeed: 4,
     },
@@ -616,26 +616,27 @@ var ALCO_DATA = {
 var STATE_DATA = {
     temp: {
         name: '体温',
+        desc: '体温随环境升降：低于 -20 开始流失生命，高于 20 开始流失水分。穿保暖/降温装备、靠近火源或睡觉可回暖/降温。',
     },
     full: {
         name: '满腹',
-        desc: '饮食一直是冒险者们头疼的问题。满腹度会随着时间的流逝慢慢下降。',
+        desc: '每小时 -1；归零会饿死。进食（食物/熟食）恢复，农田+炊具可稳定补给。',
     },
     moist: {
         name: '水分',
-        desc: '饮食一直是冒险者们头疼的问题。水分会随着时间的流逝慢慢下降。',
+        desc: '每小时 -1；归零会脱水而死。饮水/汤/酒恢复，水井每日产水或去溪流取水。',
     },
     hp: {
         name: '生命',
-        desc: '只要进行战斗，就很难避免受伤，出门在外可以多准备一些药剂。',
+        desc: '战斗与寒冷会损失；归零即死亡。用药剂/食物恢复，或回家睡觉（床铺）；危险时先逃跑。',
     },
     ps: {
         name: '体力',
-        desc: '从户外获取资源几乎都需要体力的消耗。回家睡一觉就能很快恢复体力。',
+        desc: '采集/战斗消耗；归零后继续消耗会掉生命。睡觉恢复（基础 10 点/小时，床铺等级提高倍率）。',
     },
     san: {
         name: '精神',
-        desc: '精神影响着你的战斗士气。在外熬夜或者状态低下均容易造成精神萎靡。',
+        desc: '夜间在外每小时 -3；过低会降低伤害。回家/睡觉、饮酒、洗澡（卫生间）可恢复。',
     },
 }
 // COOK_DATA：炊具烹饪配方（把两种食材组合成新食物）
@@ -956,7 +957,7 @@ var SKILL_DATA = {
     greedy: {
         isTalent: true,
         name: "拾荒者",
-        desc: '每一级使得拾荒以及采集获得的物品增加(100%)。',
+        desc: '天赋 · 效果：每级采集/拾荒获得量 +100%。',
         buff: 1,
         cost: 1,
         costInc: 2,
@@ -964,7 +965,7 @@ var SKILL_DATA = {
     lucky: {
         isTalent: true,
         name: "幸运儿",
-        desc: '每一级使得敌人材料掉落增加(50%)。',
+        desc: '天赋 · 效果：每级敌人材料掉落 +50%。',
         buff: 0.5,
         cost: 2,
         costInc: 2,
@@ -972,7 +973,7 @@ var SKILL_DATA = {
     durable: {
         isTalent: true,
         name: "耐久强化",
-        desc: '每一级使得精神和体力的最大值提升(100%)。',
+        desc: '天赋 · 效果：每级体力/精神上限 +100%。',
         buff: 1,
         cost: 1,
         costInc: 2,
@@ -980,7 +981,7 @@ var SKILL_DATA = {
     physique: {
         isTalent: true,
         name: "体能强化",
-        desc: '每一级使得生命、水分、满腹的最大值各提升(100%)。',
+        desc: '天赋 · 效果：每级生命/满腹/水分上限各 +100%。',
         buff: 1,
         cost: 2,
         costInc: 2,
@@ -988,7 +989,7 @@ var SKILL_DATA = {
     seller: {
         isTalent: true,
         name: "商业大亨",
-        desc: '每一级使得商人最大交易量增加(100%)。',
+        desc: '天赋 · 效果：每级商人单次最大交易量 +100%。',
         buff: 1,
         cost: 1,
         costInc: 2,
@@ -996,7 +997,7 @@ var SKILL_DATA = {
     manage: {
         isTalent: true,
         name: "经营手腕",
-        desc: '每一级使得建筑产出速度加快(100%)。',
+        desc: '天赋 · 效果：每级建筑产出速度 +100%（缩短周期）。',
         buff: 1,
         cost: 2,
         costInc: 2,
@@ -1004,7 +1005,7 @@ var SKILL_DATA = {
     fighter: {
         isTalent: true,
         name: "战斗专家",
-        desc: '每一级使得伤害额外增加(100%)。',
+        desc: '天赋 · 效果：每级全部伤害 +100%。',
         buff: 1,
         cost: 3,
         costInc: 2,
@@ -1012,49 +1013,49 @@ var SKILL_DATA = {
 
     blood: {
         name: '嗜血',
-        desc: '当你获得胜利时，将恢复20%的生命。',
+        desc: '效果：战斗胜利时恢复 20% 生命上限（阵营技能，只可习得一次）。',
         buff: 0.2,
         one: true,
     },
     absorb: {
         name: '吸收',
-        desc: '当你获得胜利时，将恢复20%的精神。',
+        desc: '效果：战斗胜利时恢复 20% 精神上限（阵营技能，只可习得一次）。',
         buff: 0.2,
         one: true,
     },
     melee: {
         name: '格斗技巧',
-        desc: '每一级使你的近战伤害增加15%。',
+        desc: '效果：每级近战伤害 +15%。',
         buff: 0.15,
     },
     shoot: {
         name: '射击技巧',
-        desc: '每一级使你的远程伤害增加15%。',
+        desc: '效果：每级远程伤害 +15%。',
         buff: 0.15,
     },
     def: {
         name: '防御技巧',
-        desc: '每一级使你所受的伤害减少10%。',
+        desc: '效果：每级受伤 -10%（乘算递减，总减伤上限 85%）。',
         buff: 0.9,
     },
     agile: {
         name: '敏捷技巧',
-        desc: '每一级使你的射程加成1。',
+        desc: '效果：每级射程 +1（影响命中优势）。',
         buff: 1,
     },
     farm: {
         name: '耕种技巧',
-        desc: '每一级使你的农作物额外获得10%的产量。',
+        desc: '效果：每级作物产量 +10%。',
         buff: 0.1,
     },
     alco: {
         name: '酿酒技巧',
-        desc: '每一级使你的酿酒额外获得15%的产量。',
+        desc: '效果：每级酿酒产量 +15%。',
         buff: 0.15,
     },
     magic: {
         name: '魔法技巧',
-        desc: '每一级使你的魔法伤害增加15%。',
+        desc: '效果：每级魔法伤害 +15%。',
         buff: 0.15,
     },
 }

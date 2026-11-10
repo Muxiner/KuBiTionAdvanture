@@ -114,11 +114,12 @@ var BattleChoiceComponent = React.createClass({
     },
     getFirstWeapon: function () {
         var allWeapon = this.getAllWeaponsInBag();
+        var fallback = 'noWeapon';
         for (var attr in allWeapon) {
-            var firstWeapon = attr;
-            break;
+            if (attr !== 'noWeapon') return attr;
+            fallback = attr;
         }
-        return firstWeapon;
+        return fallback;
     },
     handleChange: function (index, weaponName) {
         for (var attr in ITEM_DATA) {
@@ -187,13 +188,21 @@ var BattleChoiceComponent = React.createClass({
                 }
                 //武器使用费用
                 var require = this.props.getRequire(selectedWeapon);
+                var wData = ITEM_DATA[selectedWeapon] || {};
+                var costText = (require && getLength(require) > 0) ? uiReqText(require) : '无';
+                var ammoText = wData.bullet ? ('弹药 ' + fmtItemName(wData.bullet)) : '无需弹药';
+                var infoText = '伤害 ' + fmtNum(this.props.getDamage(selectedWeapon)) + ' · 射程 ' + fmtNum(wData.range || 0) + ' · 每击消耗 ' + costText + ' · ' + ammoText;
+                var disabledWeapon = this.checkWeaponDisabled.bind(this, selectedWeapon)();
+                var weaponReason = disabledWeapon ? ((wData.bullet && !this.context.boxSaveData.bag.things[wData.bullet]) ? ('缺少弹药：' + fmtItemName(wData.bullet) + '（战利品/商人可获得）') : uiMissingText(require, function (id) { return this.context.playerState[id] && this.context.playerState[id].amount != undefined ? this.context.playerState[id].amount : 0; }.bind(this))) : '';
 
                 result.push(<tr key={index}>
-                    <td><SelectComponent defaultV={selectedWeapon} handleChange={this.handleChange} index={index}>{getOptions(index)}</SelectComponent></td>
-                    <td>射程优势(<span style={{ color: chance > 0 ? COLOR.GREEN : COLOR.RED }}>{Math.ceil(chance * 100)}%</span>)</td>
-                    <td><RequireComponent requireList={require} /></td>
+                    <td><SelectComponent defaultV={selectedWeapon} handleChange={this.handleChange} index={index}>{getOptions(index)}</SelectComponent>
+                        <div style={{ color: '#555', fontSize: '11px', marginTop: '2px' }}>{infoText}</div>
+                    </td>
+                    <td title={'射程高于敌方时更易命中；为负则更难命中'}>命中优势(<span style={{ color: chance > 0 ? COLOR.GREEN : COLOR.RED }}>{Math.ceil(chance * 100)}%</span>)</td>
+                    <td>{costText}</td>
                     <td><span className='damage'>{this.props.getDamage(selectedWeapon)}</span> vs <span className='damage'>{this.props.mstDmg}</span></td>
-                    <td><BtnComponent desc={typeDesc[type] || '攻击'} disabled={this.checkWeaponDisabled.bind(this, selectedWeapon)()} handleRightClick={this.handleInterval.bind(null, index)} handleClick={this.props.handleAttack.bind(null, selectedWeapon)} /></td>
+                    <td><BtnComponent desc={typeDesc[type] || '攻击'} disabled={disabledWeapon} disabledReason={weaponReason} handleRightClick={this.handleInterval.bind(null, index)} handleClick={this.props.handleAttack.bind(null, selectedWeapon)} /></td>
                 </tr>);
             };
             return result;
@@ -201,7 +210,7 @@ var BattleChoiceComponent = React.createClass({
         function getRunRow(index) {
             return <tr>
                 <td></td>
-                <td colSpan={1}>成功几率({(Math.round(this.props.getRunChance() * 100))}%)</td>
+                <td colSpan={1} title={'逃跑失败会受到一次伤害；跑得慢的敌人更容易逃脱'}>逃跑成功率({(Math.round(this.props.getRunChance() * 100))}%)</td>
                 <td></td>
                 <td><span className='damage'>0</span> vs <span className='damage'>{this.props.mstDmg}</span></td>
                 <td><BtnComponent desc='跑路' handleClick={this.props.handleRun} /></td>
@@ -553,10 +562,10 @@ var BattleComponent = React.createClass({
         this.context.useTime(callBack.bind(this), timeNeed);
 
         function getMstDo() {
-            if (mst_feared) return <span>害怕地动弹不得！</span>;
-            if (mst_frozon) return <span>被冻住了！</span>;
-            if (mst_blocked) return <span>的攻击被格挡了！</span>;
-            return <span>打歪了！</span>;
+            if (mst_feared) return <span>害怕得动弹不得</span>;
+            if (mst_frozon) return <span>被冻住了</span>;
+            if (mst_blocked) return <span>的攻击被格挡</span>;
+            return <span>的攻击落空</span>;
         }
         function getRec() {
             var result = [];
@@ -573,10 +582,15 @@ var BattleComponent = React.createClass({
             if (require) this.context.playerStateUse(require);
             this.context.playerStateUse(o(weapon, 1));
             playerSuccess ? this.context.mstStateChange({ hp: -playerDmg }) : null;
+            var mstNow = this.context.mstState;
             var show = [];
-            show.push(playerSuccess ? <span key={'p_atk_' + this.step}>你造成了<span style={{ color: COLOR.GREEN }}>{playerDmg}</span>点伤害！</span> : <span key={'p_atk_' + this.step} style={{ color: COLOR.RED }}>你打歪了！</span>);
+            show.push(playerSuccess
+                ? <span key={'p_atk_' + this.step}>你造成 <span style={{ color: COLOR.GREEN }}>{fmtNum(playerDmg)}</span> 点伤害（敌方剩余 {fmtNum(Math.max(0, mstNow.hp))}/{fmtNum(mstNow.maxHp)}）</span>
+                : <span key={'p_atk_' + this.step} style={{ color: COLOR.RED }}>你打歪了（本回合未造成伤害）</span>);
             if (this.context.mstState.hp > 0) {
-                show.push(mstSuccess ? <span key={'m_atk_' + this.step}>你受到了<span style={{ color: COLOR.RED }}>{enermyDmg}</span>点伤害！</span> : <span key={'m_atk_' + this.step} style={{ color: COLOR.GREEN }}>{MST_DATA[this.props.mst].name}{getMstDo()}</span>);
+                show.push(mstSuccess
+                    ? <span key={'m_atk_' + this.step}>你受到 <span style={{ color: COLOR.RED }}>{fmtNum(enermyDmg)}</span> 点伤害（生命 {fmtNum(Math.max(0, this.context.playerState.hp.amount - enermyDmg))}/{fmtNum(this.context.getMaxState('hp'))}）</span>
+                    : <span key={'m_atk_' + this.step} style={{ color: COLOR.GREEN }}>{MST_DATA[this.props.mst].name}{getMstDo()}（本回合未命中）</span>);
                 show.push(getRec.bind(this)());
                 mstSuccess ? this.context.playerStateChange({ hp: -enermyDmg }) : null;
             } else {
@@ -617,7 +631,7 @@ var BattleComponent = React.createClass({
                 this.context.callWindow(null);
             } else {
                 this.context.playerStateChange({ hp: -enermyDmg });
-                var show = <p key={'run_' + this.step}>逃跑失败！你收到了<span style={{ color: COLOR.RED }}>{enermyDmg}</span>点伤害！</p>;
+                var show = <p key={'run_' + this.step}>逃跑失败：你受到 <span style={{ color: COLOR.RED }}>{fmtNum(enermyDmg)}</span> 点伤害（生命 {fmtNum(Math.max(0, this.context.playerState.hp.amount))}/{fmtNum(this.context.getMaxState('hp'))}）</p>;
                 this.context.showMsg(show);
             }
         }

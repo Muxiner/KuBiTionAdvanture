@@ -1471,3 +1471,292 @@ body.bag-collapsed .main > .equipMain {
         padding-right: 12px;
     }
 }
+
+/* =====================================================================
+   内容优化段（v0.52，类名统一 ux- 前缀）
+   —— 只做信息呈现与格式统一，不改变布局结构
+   ===================================================================== */
+
+/* 顶部时间：秋 · 第 1 日 · 早晨 */
+.ux-timeSep {
+    margin: 0 2px;
+    color: #4a4f45;
+}
+
+/* 状态栏：偏低/危险文字标签（不依赖颜色） */
+.ux-stateLevel {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    vertical-align: middle;
+    color: #ffffff;
+}
+
+.ux-stateLevel-danger {
+    background: #7a1f14;
+}
+
+.ux-stateLevel-low {
+    background: #7a5200;
+}
+
+/* 物品详情固定信息行 */
+.ux-detailTitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+}
+
+.ux-equippedBadge {
+    display: inline-block;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: #3f6b32;
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 18px;
+    font-weight: 700;
+}
+
+.ux-detailRows {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 6px 0;
+}
+
+.ux-detailRow {
+    display: flex;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.ux-detailLabel {
+    flex: 0 0 48px;
+    color: #4a4f45;
+    font-weight: 700;
+}
+
+.ux-detailValue {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #26301d;
+    word-break: break-word;
+}
+
+.ux-good {
+    color: #2f6b2f;
+    font-weight: 700;
+}
+
+.ux-bad {
+    color: #a23b2c;
+    font-weight: 700;
+}
+
+.ux-muted {
+    color: #555a50;
+}
+
+.ux-detailSep {
+    color: #4a4f45;
+}
+
+/* 背包容量 */
+.ux-bagCap {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 7px;
+    border-radius: 9px;
+    background: #3f5a32;
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+/* 装备栏：已装备 ✓ 标记 */
+.equipSlot {
+    position: relative;
+}
+
+.ux-equipEquipped {
+    position: absolute;
+    top: 1px;
+    right: 2px;
+    color: #2f6b2f;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 12px;
+}
+
+/* 菜单标题 */
+.ux-menuTitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    padding: 2px 4px 8px;
+    border-bottom: 1px solid #c9cfb8;
+    margin-bottom: 8px;
+}
+
+.ux-menuTitleMain {
+    font-size: 16px;
+    font-weight: 700;
+    color: #26301d;
+}
+
+.ux-menuTitleHint {
+    color: #4a4f45;
+    font-size: 12px;
+}
+
+/* 存档说明与槽位元信息 */
+.ux-saveHelp {
+    padding: 6px 8px;
+    border-left: 4px solid #3f5a32;
+    background: #f1f3e9;
+    color: #26301d;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: left;
+}
+
+.ux-saveSection {
+    text-align: left;
+    color: #26301d;
+}
+
+.localSaveMeta {
+    color: #4a4f45;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* 技能面板 */
+.ux-skillPanel {
+    text-align: left;
+}
+
+.skillItem {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    text-align: left;
+}
+
+.skillItemName {
+    font-weight: 700;
+    color: #26301d;
+}
+
+.skillItemLv {
+    color: #4a4f45;
+    font-size: 12px;
+}
+
+.skillItem.is-active {
+    border-color: #3f5a32;
+    box-shadow: 0 0 0 2px rgba(63, 90, 50, 0.35);
+}
+
+.ux-skillDesc {
+    color: #26301d;
+    font-size: 13px;
+    line-height: 21px;
+}
+
+.ux-skillTitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    margin: 4px 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.ux-skillLevel {
+    padding: 0 7px;
+    border-radius: 9px;
+    background: #3f5a32;
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.ux-skillLine {
+    margin: 3px 0;
+}
+
+.ux-skillLabel {
+    display: inline-block;
+    min-width: 60px;
+    margin-right: 6px;
+    color: #4a4f45;
+    font-weight: 700;
+}
+
+.ux-skillHint {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed #c9cfb8;
+    color: #555a50;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+.skillEmpty {
+    text-align: left;
+}
+
+.skillEmptyTitle {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+/* 所有物品空状态 */
+.ownedEmpty p {
+    margin: 0 0 4px;
+    line-height: 18px;
+}
+
+/* 物品格数量：千分位后仍能放进 48px 格 */
+.item .itemAmount {
+    font-size: 11px;
+    padding: 1px 4px;
+}
+
+/* 内容优化补充：详情区不再内部滚动，信息行一次看全（整栏由 panel-body 滚动） */
+.equipMain .detail {
+    overflow: visible;
+    max-height: none;
+    height: auto;
+}
+
+.stateVector .badge {
+    margin-left: 3px;
+}
+
+/* 详情容器：原 .detailHead 固定 30px 高，导致新增的信息行溢出叠到属性统计上 */
+.equipMain .detailHead {
+    height: auto;
+    min-height: 30px;
+    overflow: visible;
+}
+
+/* 详情：武器附加信息（每击消耗/弹药）单独一行，避免在行尾断词 */
+.ux-detailSub {
+    display: block;
+    color: #4a4f45;
+    font-size: 12px;
+}

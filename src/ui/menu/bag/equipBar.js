@@ -30,15 +30,19 @@ var EquipBarComponent = React.createClass({
             {EQUIP_SLOTS.map(function (slot) {
                 var item = currentEquip[slot];
                 var label = EQUIP_TYPE_DATA[slot] || slot;
-                var itemName = item ? ITEM_DATA[item].name : '空';
+                var itemName = item ? ITEM_DATA[item].name : '未装备';
+                var titleText = item
+                    ? (label + '：' + itemName + '（已装备，点击查看详情）')
+                    : (label + '：未装备（在背包中点击装备即可穿戴）');
                 return <div className='equipSlot' key={slot}
                     tabIndex="0" role="button"
-                    aria-label={label + '：' + itemName + (item ? '（点击查看详情）' : '（未装备）')}
+                    aria-label={titleText}
                     onClick={item ? self.openDetail.bind(self, slot, item) : null}
                     onKeyDown={item ? self.keyDetail.bind(self, slot, item) : null}
-                    title={item ? itemName : '（空）'}>
+                    title={titleText}>
                     <span className='equipSlotLabel'>{label}</span>
                     <span className={item ? 'equipSlotItem' : 'equipSlotItem empty'}>{itemName}</span>
+                    {item ? <span className='ux-equipEquipped' title='已装备' aria-hidden='true'>✓</span> : null}
                 </div>;
             })}
         </div>;

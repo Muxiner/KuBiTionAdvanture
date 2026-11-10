@@ -101,6 +101,7 @@ var BuildComponent = React.createClass({
         callWindow: React.PropTypes.func.isRequired,
         AudioEngine: React.PropTypes.object.isRequired,
         getTheMaxTimeToUse: React.PropTypes.func.isRequired,
+        showMsg: React.PropTypes.func.isRequired,
     },
     build: function (buildingName) {
         var timeNeed = BUILDING_DATA[buildingName].timeNeed;
@@ -108,6 +109,7 @@ var BuildComponent = React.createClass({
         this.context.useItemThatPlayerHave(require);
         function callBack() {
             this.context.buildingSaveData[buildingName].own = true;
+            this.context.showMsg(<p key={Math.random()}>已建造：{BUILDING_DATA[buildingName].name}（耗时 {fmtHours(timeNeed)}）</p>);
             this.context.callWindow(null);
         }
         this.context.useTime(callBack.bind(this), timeNeed);
@@ -129,7 +131,7 @@ var BuildComponent = React.createClass({
         var buildingList = this.context.buildingSaveData;
         if (this.getOwnAndUnOwnNumber(buildingList).countUnOwn == 0) {
             return <div>
-                <p>你已经拥有了所有的建筑。</p>
+                <p>所有建筑均已建造（共 {getLength(BUILDING_DATA)} 种）。现在可以返回家中继续生产/经营。</p>
                 <BtnBack />
             </div>
                 ;
@@ -153,12 +155,13 @@ var BuildComponent = React.createClass({
             var maxTimeToUse = this.context.getTheMaxTimeToUse();
             return entries.map(function (entry, count) {
                 var attr = entry.attr, data = entry.data;
+                var missText = uiMissingText(data.require, function (id) { return uiBagAmount(boxSaveData, id); });
                 return <tr key={count}>
                     <td>{data.name}</td>
-                    <td><RequireComponent haveBox={true} requireList={data.require} /></td>
+                    <td title={missText}>{uiReqText(data.require)}<div style={{ color: missText === '材料齐备' ? COLOR.GREEN : COLOR.RED, fontSize: '12px' }}>{missText}</div></td>
                     <td>{data.desc}</td>
-                    <td>{data.timeNeed}</td>
-                    <td><BtnComponent desc={'建造'} disabled={maxTimeToUse <= data.timeNeed} disabledReason={'饱食或水分不足，撑不过 ' + data.timeNeed + ' 小时（约剩 ' + Math.round(maxTimeToUse) + ' 小时）'} requireList={data.require} handleClick={this.build.bind(this, attr)} /></td>
+                    <td>{fmtHours(data.timeNeed)}</td>
+                    <td><BtnComponent desc={'建造'} disabled={maxTimeToUse <= data.timeNeed} disabledReason={'时间不足：建造需 ' + fmtHours(data.timeNeed) + '，当前最多 ' + fmtHours(maxTimeToUse) + '（先进食/饮水或睡觉再建造）'} requireList={data.require} handleClick={this.build.bind(this, attr)} /></td>
                 </tr>;
             }.bind(this));
         }
@@ -307,11 +310,11 @@ var WaitMakeComponent = React.createClass({
                 var current = tmp.timeNow;
                 if (max <= current) {
                     var btn = <BtnComponent desc='收获' handleClick={this.harvest.bind(null, i)} />;
-                    result.push(<VectorComponent key={i} msg_top={attachData[tmp.type].desc} msg_top_color={COLOR.BLUE} btn_bottom={btn} />)
+                    result.push(<VectorComponent key={i} msg_top={'可收获：' + attachData[tmp.type].desc + ' → ' + uiNameOf(attachData[tmp.type].itemGet) + ' ×' + fmtNum(this.getAmount(attachData[tmp.type].itemAmount))} msg_top_color={COLOR.BLUE} btn_bottom={btn} />)
                 } else {
                     var bar = <ProgressComponent max={max} current={current} />
                     var cancelBtn = <BtnComponent desc='取消' handleClick={this.cancel.bind(null, i)} />;
-                    result.push(<VectorComponent key={i} msg_top={attachData[tmp.type].desc} msg_bottom={bar} btn_bottom={cancelBtn} msg_top_color={COLOR.BLUE} />)
+                    result.push(<VectorComponent key={i} msg_top={'生长中：' + attachData[tmp.type].desc + '（' + fmtHours(current) + ' / ' + fmtHours(max) + '）'} msg_bottom={bar} btn_bottom={cancelBtn} msg_top_color={COLOR.BLUE} />)
                 }
             };
             for (var i = cropList.length; i < size; i++) {
@@ -334,12 +337,13 @@ var WaitMakeComponent = React.createClass({
                 var attr = entry.attr, tmp = entry.tmp;
                 var crop = this.context.buildingSaveData[building];
                 var isFull = crop.size <= crop.list.length;
+                var missText = uiMissingText(tmp.require, function (id) { return uiBagAmount(this.context.boxSaveData, id); }.bind(this));
                 return <tr key={count}>
-                    <td style={{ color: COLOR.BLUE }}>{grtDesc.bind(this)() + tmp.desc}</td>
-                    <td><RequireComponent haveBox={true} requireList={tmp.require} /></td>
-                    <td>{tmp.timeMax / (1 + manageLevel)}</td>
-                    <td><RequireComponent isGreen={true} requireList={o(tmp.itemGet, this.getAmount(tmp.itemAmount))} /></td>
-                    <td><BtnComponent style={{ margin: '0px' }} requireList={tmp.require} disabled={isFull} handleClick={this.farm.bind(this, attr)} desc="设置" /></td>
+                    <td style={{ color: COLOR.BLUE }}>{grtDesc.bind(this)() + ' ' + tmp.desc}</td>
+                    <td title={missText}>{uiReqText(tmp.require)}<div style={{ color: missText === '材料齐备' ? COLOR.GREEN : COLOR.RED, fontSize: '12px' }}>{missText}</div></td>
+                    <td>{fmtHours(tmp.timeMax / (1 + manageLevel))}</td>
+                    <td style={{ color: COLOR.GREEN }}>{uiNameOf(tmp.itemGet)} ×{fmtNum(this.getAmount(tmp.itemAmount))}</td>
+                    <td><BtnComponent style={{ margin: '0px' }} requireList={tmp.require} disabled={isFull} disabledReason={'槽位已满（' + crop.list.length + '/' + crop.size + '）：先收获或取消现有作物'} handleClick={this.farm.bind(this, attr)} desc={grtAct.bind(this)} /></td>
                 </tr>;
             }.bind(this));
             return result;
@@ -353,26 +357,30 @@ var WaitMakeComponent = React.createClass({
         }
         function grtDesc_2() {
             var map = {
-                farm: <p>种植农作物需要大量肥料。</p>,
-                alco: <p>酿造酒需要大量水。</p>,
+                farm: <p>种植需要：肥料 ×4、水 ×2、锄头（只磨损 1 点耐久）。肥料可由卫生间/湿地获取。</p>,
+                alco: <p>酿酒需要：小麦/水果与大量水（水井每日产水，冬季停产）。</p>,
             }
             return map[this.props.building]
         }
+        function grtAct() {
+            return this.props.building == 'alco' ? '酿造' : '种植';
+        }
         function getTheadDesc() {
             var map = {
-                farm: <tr><td>类型</td><td>需求</td><td>培育周期</td><td>收益</td><td></td></tr>,
-                alco: <tr><td>类型</td><td>需求</td><td>酿造周期</td><td>获得</td><td></td></tr>
+                farm: <tr><td>类型</td><td>需求</td><td>培育周期</td><td>收益</td><td>操作</td></tr>,
+                alco: <tr><td>类型</td><td>需求</td><td>酿造周期</td><td>获得</td><td>操作</td></tr>
             }
             return map[this.props.building]
         }
         function seasonDesc() {
             var map = {
                 farm: {
-                    'spring': <p>在春天，农作物的生长速度是平时的两倍。</p>,
-                    'winter': <p>在冬天，所有农作物将停止生长。</p>,
+                    'spring': <p>春季加成：作物生长速度 ×2。</p>,
+                    'winter': <p>冬季停产：作物停止生长（春季恢复，且春季生长 ×2）。</p>,
                 },
                 alco: {
-                    'winter': <p>啤酒桶结冰了，无法发酵</p>,
+                    'winter': <p>冬季停产：酿酒桶结冰无法发酵（春季恢复）。</p>,
+                    'spring': <p>春季：酿造正常进行。</p>,
                 },
             }
             return map[building][season] || null;
@@ -470,10 +478,10 @@ var TrapComponent = React.createClass({
                 var tmp = list[i];
                 if (tmp.succeed) {
                     var btn = <BtnComponent desc='收获' handleClick={this.harvest.bind(null, i)} />;
-                    result.push(<VectorComponent key={i} msg_top={ITEM_DATA[this.context.buildingSaveData.trap.list[i].itemGet].name} msg_top_color={COLOR.BLUE} btn_bottom={btn} />)
+                    result.push(<VectorComponent key={i} msg_top={'可收获：' + ITEM_DATA[this.context.buildingSaveData.trap.list[i].itemGet].name + ' ×' + fmtNum(this.getAmount(this.context.buildingSaveData.trap.list[i].itemAmount))} msg_top_color={COLOR.BLUE} btn_bottom={btn} />)
                 } else {
                     var cancelBtn = <BtnComponent desc='取消' handleClick={this.cancel.bind(null, i)} />;
-                    result.push(<VectorComponent onContextMenu={this.cancel.bind(null, i)} key={i} msg_top={this.desc} msg_bottom={TRAP_DATA[tmp.type].desc} btn_bottom={cancelBtn} msg_top_color={COLOR.BLUE} />)
+                    result.push(<VectorComponent onContextMenu={this.cancel.bind(null, i)} key={i} msg_top={this.desc} msg_bottom={TRAP_DATA[tmp.type].desc + '（每日结算时判定，取消可返还诱饵）'} btn_bottom={cancelBtn} msg_top_color={COLOR.BLUE} />)
                 }
             };
             for (var i = list.length; i < size; i++) {
@@ -500,12 +508,17 @@ var TrapComponent = React.createClass({
             var result = entries.map(function (entry, count) {
                 var attr = entry.attr, tmp = entry.tmp;
                 var isFull = trap.size <= trap.list.length;
+                var missText = uiMissingText(tmp.require, function (id) { return uiBagAmount(this.context.boxSaveData, id); }.bind(this));
+                var getParts = [];
+                for (var it in tmp.itemGet) {
+                    getParts.push(uiNameOf(it) + ' ×' + fmtNum(Math.round(tmp.itemGet[it] * (1 + 0.5 * getLevel))));
+                }
                 return <tr key={count}>
                     <td style={{ color: COLOR.BLUE }}>{this.desc + tmp.desc}</td>
-                    <td><RequireComponent haveBox={true} requireList={tmp.require} /></td>
-                    <td><ProgressComponent current={tmp.chance * (1 + chanceLevel * 0.5)} max={1} /></td>
-                    <td><RequireComponent isGreen={true} requireList={cloneMul(tmp.itemGet, 1 + 0.5 * getLevel)} separator=' 或 ' /></td>
-                    <td><BtnComponent style={{ margin: '0px' }} requireList={tmp.require} disabled={isFull} handleClick={this.makeTrap.bind(this, attr)} desc="设置" /></td>
+                    <td title={missText}>{uiReqText(tmp.require)}<div style={{ color: missText === '材料齐备' ? COLOR.GREEN : COLOR.RED, fontSize: '12px' }}>{missText}</div></td>
+                    <td title={'每日捕获概率；陷阱属性科技每级 +50%'}>{fmtPct(tmp.chance * (1 + chanceLevel * 0.5) * 100)}<div style={{ color: '#888', fontSize: '11px' }}>每日判定</div></td>
+                    <td style={{ color: COLOR.GREEN }}>{getParts.join(' 或 ')}</td>
+                    <td><BtnComponent style={{ margin: '0px' }} requireList={tmp.require} disabled={isFull} disabledReason={'陷阱位已满（' + trap.list.length + '/' + trap.size + '）：先收获或取消'} handleClick={this.makeTrap.bind(this, attr)} desc="放置" /></td>
                 </tr>;
             }.bind(this));
             return result;
@@ -518,7 +531,7 @@ var TrapComponent = React.createClass({
             </div>
             <div className="tableOuter trapTableOuter">
                 <table className="table table-condensed table-hover">
-                    <thead><tr><td>陷阱</td><td>需求</td><td>捕获几率/日</td><td>收益</td><td></td></tr></thead>
+                    <thead><tr><td>陷阱</td><td>需求</td><td>每日捕获率</td><td>收益</td><td>操作</td></tr></thead>
                     <tbody>
                         {getTrapTypeDesc.bind(this)()}
                     </tbody>
@@ -635,18 +648,26 @@ var CookRecipeComponent = React.createClass({
             var require = cloneMul(this.getRequire(recipe), amount);
             var totalTime = this.getCookTime() * amount;
             var name = ITEM_DATA[recipe.name] ? ITEM_DATA[recipe.name].name : recipe.name;
-            var disabled = amount < 1 || amount > max || maxTime < totalTime || !this.context.checkHaveResourceAll(require, true) || this.context.checkFull('cooked', recipe.name);
-            return <tr key={index} title={this.getEffectText(recipe.name)} onMouseEnter={this.showRecipeDetail.bind(this, recipe.name)}>
-                <td style={{ color: COLOR.BLUE }}>{name}</td>
-                <td><RequireComponent haveBox={true} requireList={require} showTotal={true} /></td>
-                <td>{Math.round(totalTime * 10) / 10}</td>
+            var missText = uiMissingText(require, function (id) { return uiBagAmount(this.context.boxSaveData, id); }.bind(this));
+            var noAmount = amount < 1 || amount > max;
+            var noTime = maxTime < totalTime;
+            var boxFull = this.context.checkFull('cooked', recipe.name);
+            var cookReason = noAmount ? ('数量无效：当前最多可做 ' + fmtNum(max) + ' 份')
+                : (noTime ? ('时间不足：需 ' + fmtHours(totalTime) + '，当前最多 ' + fmtHours(maxTime) + '（先进食/饮水或睡觉）')
+                    : (missText !== '材料齐备' ? missText
+                        : (boxFull ? '成品箱已满：先转移或使用成品' : '')));
+            var disabled = noAmount || noTime || !this.context.checkHaveResourceAll(require, true) || boxFull;
+            return <tr key={index} title={this.getEffectText(recipe.name)} onMouseEnter={this.showRecipeDetail.bind(this, recipe.name)} onClick={this.showRecipeDetail.bind(this, recipe.name)}>
+                <td style={{ color: COLOR.BLUE }}>{name} ×{fmtNum(amount)}<div style={{ color: '#888', fontSize: '11px' }}>最多可做 {fmtNum(max)} 份</div></td>
+                <td title={missText}>{uiReqText(require)}<div style={{ color: missText === '材料齐备' ? COLOR.GREEN : COLOR.RED, fontSize: '12px' }}>{missText}</div></td>
+                <td>{fmtHours(totalTime)}</td>
                 <td><input className='scheduleInput form-control' value={String(amount)} type='number' min='1' max={String(max > 0 ? max : 1)} onChange={this.changeCookAmount.bind(this, recipe)} /></td>
-                <td><BtnComponent style={{ margin: '0px' }} requireList={require} disabled={disabled} disabledReason={'材料不足、数量超出、饱食/水分不足或成品箱已满'} handleClick={this.cook.bind(this, recipe, amount)} desc="烹调" /></td>
+                <td><BtnComponent style={{ margin: '0px' }} requireList={require} disabled={disabled} disabledReason={cookReason} handleClick={this.cook.bind(this, recipe, amount)} desc="烹调" /></td>
             </tr>;
         }.bind(this));
         return <div className="tableOuter cookTableOuter">
             <table className="table table-condensed table-hover">
-                <thead><tr><td>成品</td><td>需求</td><td>耗时</td><td>个数</td><td></td></tr></thead>
+                <thead><tr><td>成品</td><td>需求</td><td>耗时</td><td>个数</td><td>操作</td></tr></thead>
                 <tbody>
                     {rows}
                 </tbody>
@@ -658,7 +679,7 @@ var CookRecipeComponent = React.createClass({
 var CookerComponent = React.createClass({
     render: function () {
         return <div>
-            <p>你可以使用炊具更大程度地利用食物。填写「个数」后点「烹调」即可按数量制作（悬浮食谱可查看作用）。</p>
+            <p>用炊具把食材做成食物：在「个数」填写份数后点「烹调」。食材从背包+大箱子扣除，成品放入下方成品箱；点/悬浮食谱行可查看成品效果。</p>
             <div>
                 <BoxComponent box='cooked' />
             </div>
@@ -684,13 +705,13 @@ var WellComponent = React.createClass({
         var yieldAmount = (3 + level) * ((this.context.skill.manage || 0) * SKILL_DATA.manage.buff + 1);
         if (this.context.season == 'winter') {
             return <div>
-                <p>井水结冰了。</p>
+                <p>井水结冰：冬季停产，春季恢复。可先去溪流/冰川取水。</p>
                 <BtnBack />
             </div>
         }
         return <div>
-            <p>当前水井深度等级：<span style={{ color: COLOR.BLUE }}>{level}</span></p>
-            <p>每日产水量：<span style={{ color: COLOR.BLUE }}>{yieldAmount}</span></p>
+            <p>水井等级：<span style={{ color: COLOR.BLUE }}>Lv.{level} / 7</span>（每日产水 = 等级 + 3）</p>
+            <p>每日产水：<span style={{ color: COLOR.BLUE }}>{fmtQty(yieldAmount)}</span>（自动存入下方水井容器）</p>
             <BoxComponent box='well' />
             <StudioComponent isBuildingUpdate={true} type='wellUpdate' />
             <BtnBack />
@@ -712,11 +733,13 @@ var ToiletComponent = React.createClass({
         var level = this.context.getBuildingLevel('toiletUpdate');
         var season = this.context.season;
         return <div>
+            <p>排便：每 48 小时一次，获得粪便 ×4、精神 +2（粪便可用于制肥料/沼气）。</p>
             <div>
                 <ActionComponent coolDown={48} action='shit' type='shit' canGet={shitCanGet} timeNeed={1} desc='排便' />
             </div>
             <div>
-                {level > 0 && season == 'winter' ? <p>在冬天洗澡，你需要额外的燃料。</p> : null}
+                {level == 0 ? <p>升级「大水缸」后可洗澡（恢复精神 +30，冬季需额外柴火）。</p> : null}
+                {level > 0 && season == 'winter' ? <p>冬季洗澡需要额外燃料：水 ×4、木头 ×2。</p> : null}
                 {level > 0 ? <ActionComponent coolDown={24} action='shower' canGet={showerCanGet} require={season == 'winter' ? { water: 4, wood: 2 } : { water: 4 }} timeNeed={1} desc='洗澡' /> : null}
             </div>
             <div>
@@ -771,17 +794,18 @@ var SleepPlaceComponent = React.createClass({
 
         function getSeasonDesc() {
             if (disabled) {
-                return <p>在寒冷的冬天，如果我不烧点柴火睡觉的话，我会冻死的（需要科技<span style={{ color: COLOR.BLUE }}>[火炕]</span>）。</p>;
+                return <p>冬季无法睡觉：需要科技「火炕」+ 木头 ×1/小时 保暖（先研究火炕，或去其他季节再睡）。</p>;
             } else {
                 if (season == 'winter') {
-                    return <p>在冬天睡觉需要燃料。</p>
+                    return <p>冬季睡觉需要木头 ×1/小时 保暖（由「火炕」科技提供）。</p>
                 }
             }
         }
         var props = season == 'winter' ? { temp: 10 } : {};
         return <div>
             <div>
-                当前床铺等级：<span style={{ color: COLOR.BLUE }}>[{getLevelDesc(this.context.getBuildingLevel('sleepPlaceUpdate'))}]</span>
+                床铺等级：<span style={{ color: COLOR.BLUE }}>{getLevelDesc(level)}（Lv.{level}/4，恢复倍率 ×{mul}）</span>
+                <span style={{ color: '#888' }}>｜每小时恢复：体力 {fmtNum(10 * mul)}、生命 {fmtNum(0.5 * mul)}、精神 {fmtNum(0.5 * mul)}</span>
             </div>
             <div>
                 {getSeasonDesc()}
@@ -811,6 +835,7 @@ var PlaceComponent = React.createClass({
         setTitle: React.PropTypes.func.isRequired,
         placeSaveData: React.PropTypes.object.isRequired,
         boxSaveData: React.PropTypes.object.isRequired,
+        playerState: React.PropTypes.object.isRequired,
         useTime: React.PropTypes.func.isRequired,
         checkHaveResourceAll: React.PropTypes.func.isRequired,
         playerStateUse: React.PropTypes.func.isRequired,
@@ -1046,6 +1071,11 @@ var PlaceComponent = React.createClass({
         var greedyLevel = (this.context.skill.greedy || 0) * SKILL_DATA.greedy.buff;//贪婪加成
 
         var eventSaveData = this.context.eventSaveData;
+        // 当前持有量（工具按背包计，状态值从六维取）
+        function getHaveAmount(attr) {
+            if (STATE_DATA[attr] && this.context.playerState[attr]) return this.context.playerState[attr].amount;
+            return countBagItem(this.context.boxSaveData.bag.things, attr);
+        }
         function getRecources() {
             if (!this.getPermittion()) return null;
             var result = [];
@@ -1058,21 +1088,33 @@ var PlaceComponent = React.createClass({
                     continue;
                 }
 
-
                 var disabled = this.checkDisabled(attr);
                 var season = this.context.season;
+                var initAmount = PLACE_DATA[name].resource[attr].initAmount;
 
                 //服从生物曲线
-                var speed = this.context.getMstCircle(tmp.amount, PLACE_DATA[name].resource[attr].initAmount, PLACE_DATA[name].resource[attr].circle);
-                var speed = season == 'winter' ? 0 : speed;
-
+                var speed = this.context.getMstCircle(tmp.amount, initAmount, PLACE_DATA[name].resource[attr].circle);
+                var speedText = '';
+                if (season == 'winter') {
+                    speedText = <span title="冬季资源停止再生，春季恢复">停止（冬季）</span>;
+                } else if (tmp.amount <= 0) {
+                    speedText = <span title="该资源已采尽；会按生长速度慢慢恢复，可先去别处">停止（已采尽，恢复中）</span>;
+                } else if (tmp.amount >= initAmount) {
+                    speedText = <span title="存量已满，再生暂停；先采集一些才会继续增长">停止（已满）</span>;
+                } else if (speed == 0) {
+                    speedText = <span title="存量已接近平衡值，再生很慢">停止（接近上限）</span>;
+                } else {
+                    speedText = getCircleDesc(speed);
+                }
+                var requireNow = this.getRequire(PLACE_DATA[name].resource[attr].require);
+                var missText = uiMissingText(requireNow, getHaveAmount.bind(this));
                 result.push(<tr key={attr}>
                     <td>{PLACE_DATA[name].resource[attr].name}</td>
-                    <td>{tmp.amount}</td>
-                    <td>{getCircleDesc(speed)}</td>
-                    <td><RequireComponent isGreen={true} requireList={cloneMul(PLACE_DATA[name].resource[attr].things, 1 + greedyLevel)} /></td>
-                    <td><RequireComponent requireList={this.getRequire(PLACE_DATA[name].resource[attr].require)} /></td>
-                    <td><BtnComponent canEvent={true} disabled={disabled} handleClick={this.handleStartAction.bind(this, attr)} desc={PLACE_DATA[name].resource[attr].action} /></td>
+                    <td title={'存量 ' + fmtNum(tmp.amount) + ' / 初始上限 ' + fmtNum(initAmount) + ' 个'}>{fmtNum(tmp.amount)} 个</td>
+                    <td>{speedText}</td>
+                    <td style={{ color: COLOR.GREEN }}>{uiReqText(cloneMul(PLACE_DATA[name].resource[attr].things, 1 + greedyLevel))}</td>
+                    <td title={missText}>{uiReqText(requireNow)}<div style={{ color: missText === '材料齐备' ? COLOR.GREEN : COLOR.RED, fontSize: '12px' }}>{missText}</div></td>
+                    <td><BtnComponent canEvent={true} disabled={disabled} disabledReason={missText} handleClick={this.handleStartAction.bind(this, attr)} desc={PLACE_DATA[name].resource[attr].action} /></td>
                 </tr>)
             };
             return result;
@@ -1081,13 +1123,24 @@ var PlaceComponent = React.createClass({
             if (!this.getEnermy()) return null;
             var result = [];
             var mstList = placeData.mst;
+            var parts = [];
+            var titleParts = [];
+            var mstDef = PLACE_DATA[name].mst || {};
+            for (var m in mstList) {
+                var nameM = (MST_DATA[m] && MST_DATA[m].name) || m;
+                var balanced = (mstDef[m] && mstDef[m].balancedAmount) || 1;
+                var ratio = mstList[m].amount / balanced;
+                var labelM = ratio > 0.8 ? '大量' : (ratio > 0.5 ? '较多' : (ratio > 0.2 ? '一般' : (ratio > 0.1 ? '较少' : '很少')));
+                parts.push(nameM + '：' + fmtNum(mstList[m].amount) + ' 只（' + labelM + '）');
+                titleParts.push(nameM + ' 当前 ' + fmtNum(mstList[m].amount) + ' 只 / 平衡数量 ' + fmtNum(balanced) + '，击杀后按每日刷新增速恢复');
+            }
             //按钮信息
             var huntDesc = PLACE_DATA[name].huntDesc || '狩猎';
             result.push(<tr key={'resource_mst'}>
                 <td>{huntDesc}</td>
-                <td colSpan={3}><ResourceDisplayComponent type='mst' resource={mstList} /></td>
+                <td colSpan={3} title={titleParts.join('；')}>{parts.length ? parts.join('；') : '暂无猎物（等刷新或换地点）'}</td>
                 <td></td>
-                <td><BtnComponent disabled={this.getRandomMst().attr == false} canEvent={true} handleClick={this.handleBattle} desc={huntDesc} /></td>
+                <td><BtnComponent disabled={this.getRandomMst().attr == false} canEvent={true} handleClick={this.handleBattle} desc={huntDesc} disabledReason={'此处暂无可狩猎怪物（等待刷新或换地点）'} /></td>
             </tr>)
             return result;
         };
@@ -1113,7 +1166,13 @@ var PlaceComponent = React.createClass({
             var pickRequire = PLACE_DATA[name].pickRequire || {};
             if (!pickRequire.ps) pickRequire.ps = 3;
             var disabled = !this.context.checkHaveResourceAll(pickRequire);
-            return <tr><td>{PLACE_DATA[name].thingsDesc || pickDesc}</td><td colSpan={3}><ResourceDisplayComponent resource={placeData.things} /></td><td><RequireComponent requireList={pickRequire} /></td><td><BtnComponent disabled={disabled} desc={pickDesc} handleClick={this.handlePick} /></td></tr>
+            var missText = uiMissingText(pickRequire, getHaveAmount.bind(this));
+            return <tr title={uiRichHintForThings(placeData.things)}>
+                <td>{PLACE_DATA[name].thingsDesc || pickDesc}</td>
+                <td colSpan={3}>{uiReqText(placeData.things)}</td>
+                <td title={missText}>{uiReqText(pickRequire)}<div style={{ color: missText === '材料齐备' ? COLOR.GREEN : COLOR.RED, fontSize: '12px' }}>{missText}</div></td>
+                <td><BtnComponent disabled={disabled} disabledReason={missText} desc={pickDesc} handleClick={this.handlePick} /></td>
+            </tr>
         }
         function getEntry() {
             function goToDunguen() {
@@ -1135,17 +1194,20 @@ var PlaceComponent = React.createClass({
             }
         }
         var haveResources = getLength(placeData.resource) > 0;
-        return <div className="tableOuter">
-            <table className="table table-condensed table-hover">
-                {this.getPermittion() && haveResources ? <thead><tr><td>资源</td><td>总量</td><td>生长</td><td>获得物品</td><td>需要</td><td></td></tr></thead> : null}
-                <tbody>
-                    {getEntry.bind(this)()}
-                    {getRecources.bind(this)()}
-                    {getPick.bind(this)()}
-                    {getMsts.bind(this)()}
-                    {getEvents.bind(this)()}
-                </tbody>
-            </table>
+        return <div>
+            {PLACE_DATA[name].desc ? <p className='placeDesc' style={{ margin: '0 0 6px', color: '#555' }}>{PLACE_DATA[name].desc}</p> : null}
+            <div className="tableOuter">
+                <table className="table table-condensed table-hover">
+                    {this.getPermittion() && haveResources ? <thead><tr><td>资源</td><td>存量</td><td>生长速度</td><td>获得</td><td>消耗</td><td>操作</td></tr></thead> : null}
+                    <tbody>
+                        {getEntry.bind(this)()}
+                        {getRecources.bind(this)()}
+                        {getPick.bind(this)()}
+                        {getMsts.bind(this)()}
+                        {getEvents.bind(this)()}
+                    </tbody>
+                </table>
+            </div>
         </div>
     }
 });
@@ -1230,7 +1292,7 @@ var HomeComponent = React.createClass({
             }
             var self = this;
             var winScene = <div>
-                你冷静地消灭了敌人。。。
+                你冷静地消灭了敌人。
                 <BtnComponent desc='回家' handleClick={function () {
                     robberSaveData.robber = null;
                     self.context.callWindow(null);
@@ -1364,9 +1426,9 @@ var BranchComponent = React.createClass({
             for (var i = 0; i < entries.length; i++) {
                 var attr = entries[i].attr;
                 result.push(<div className='placeCard' key={attr}>
-                    <div className='placeName'>{PLACE_DATA[attr].name}{placeList[attr].visited ? null : <span style={{ color: COLOR.GREEN }}> new</span>}</div>
-                    <div className='placeRes'><ResourceDisplayComponent resource={placeList[attr].things} /></div>
-                    <div className='placeTime'>耗时 {this.context.getTimeNeed(attr).toFixed(1)}</div>
+                    <div className='placeName'>{PLACE_DATA[attr].name}{placeList[attr].visited ? <span style={{ color: '#888', fontSize: '12px' }}> 已访问</span> : <span style={{ color: COLOR.GREEN, fontSize: '12px' }}> 未访问</span>}</div>
+                    <div className='placeRes' title={uiRichHintForThings(placeList[attr].things)}><ResourceDisplayComponent resource={placeList[attr].things} /></div>
+                    <div className='placeTime'>耗时 {fmtHours(this.context.getTimeNeed(attr))}</div>
                     <BtnComponent desc='出发' handleClick={this.handleGo.bind(this, attr)} />
                 </div>);
             };

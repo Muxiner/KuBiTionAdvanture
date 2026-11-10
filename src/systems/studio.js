@@ -3,6 +3,69 @@
  * 科研台、制造台/炼金台/秘术台（StudioComponent）、建筑入口、通用耗时行动(ActionComponent)。
  */
 
+// ===== UI 内容优化：需求/缺口/耗时文本工具（只做展示，不改数值） =====
+// 物品或状态的显示名：物品 -> ITEM_DATA.name；六维 -> STATE_DATA.name；否则 id。
+function uiNameOf(attr) {
+    if (typeof ITEM_DATA !== 'undefined' && ITEM_DATA[attr] && ITEM_DATA[attr].name) return ITEM_DATA[attr].name;
+    if (typeof STATE_DATA !== 'undefined' && STATE_DATA[attr] && STATE_DATA[attr].name) return STATE_DATA[attr].name;
+    return String(attr);
+}
+// 需求文本：{wood:4} -> "木头 ×4、铁块 ×4"；工具 -> "斧头（耗耐久 1）"
+function uiReqText(require) {
+    if (!require) return '';
+    var parts = [];
+    for (var attr in require) {
+        var n = require[attr];
+        var name = uiNameOf(attr);
+        if (typeof ITEM_DATA !== 'undefined' && ITEM_DATA[attr] && ITEM_DATA[attr].durable) {
+            parts.push(name + '（耗耐久 ' + fmtNum(n || 1) + '）');
+        } else {
+            parts.push(name + (n == null ? '' : ' ' + fmtQty(n)));
+        }
+    }
+    return parts.join('、');
+}
+// 缺口文本：getAmount(attr) 返回当前持有量（状态值也行）；齐备时返回"材料齐备"
+function uiMissingText(require, getAmount) {
+    if (!require) return '';
+    var missing = [];
+    for (var attr in require) {
+        var have = getAmount ? (Number(getAmount(attr)) || 0) : 0;
+        var need = Number(require[attr]) || 0;
+        if (have < need) missing.push(uiNameOf(attr) + ' ×' + fmtNum(need - have));
+    }
+    return missing.length ? ('缺少：' + missing.join('、')) : '材料齐备';
+}
+// 数量档位（与 ResourceDisplayComponent 的"很少/较少/一般/较多/大量"一致）
+function uiAmountDesc(amount) {
+    var arr = ['很少', '较少', '一般', '较多', '大量'];
+    for (var i = 0; i < arr.length - 1; i++) {
+        if (amount < i * 10 + 10) return arr[i];
+    }
+    return arr[arr.length - 1];
+}
+// 地面物品按类别汇总的丰富度 title（含解释）
+function uiRichHintForThings(things) {
+    if (!things || getLength(things) === 0) return '地面可拾荒：无（已采尽）';
+    var groups = {};
+    for (var id in things) {
+        var t = (typeof ITEM_DATA !== 'undefined' && ITEM_DATA[id] && ITEM_DATA[id].type) || '?';
+        groups[t] = (groups[t] || 0) + things[id];
+    }
+    var parts = [];
+    for (var t2 in groups) {
+        var label = uiAmountDesc(groups[t2]);
+        var typeName = (typeof TYPE_DATA !== 'undefined' && TYPE_DATA[t2] && TYPE_DATA[t2].name) || t2;
+        parts.push(typeName + '：' + label + '（' + richnessHint(label) + '）');
+    }
+    return '地面可拾荒：' + parts.join('；');
+}
+// 背包+大箱子某物品持有量
+function uiBagAmount(boxSaveData, attr) {
+    var n = countBagItem(together(boxSaveData.bag.things, boxSaveData.bigBox.things), attr);
+    return n;
+}
+
 // 科研台：以「只做一次」的方式消耗材料研究科技，成品存入 scienceTable
 var ScienceComponent = React.createClass({
     contextTypes: {
@@ -40,6 +103,7 @@ var StudioComponent = React.createClass({
         AudioEngine: React.PropTypes.object.isRequired,
         eventSaveData: React.PropTypes.object.isRequired,
         changeMsg: React.PropTypes.func.isRequired,
+        showMsg: React.PropTypes.func.isRequired,
     },
     getDefaultProps: function () {
         return {
@@ -92,6 +156,7 @@ var StudioComponent = React.createClass({
         this.context.useItemThatPlayerHave(cloneMul(data.require, amount));
         function callBack() {
             this.context.changeItem(o(name, amount * (data.amount || 1)), this.props.type);
+            this.context.showMsg(<p key={Math.random()}>已制作：{(ITEM_DATA[name] && ITEM_DATA[name].name) || name} {fmtQty(amount * (data.amount || 1))}（耗时 {fmtHours(this.getTimeNeed(data.timeNeed * amount))}）</p>);
             // setTimeout((function(){
             if (this.props.alwayMakeOne) {
                 this.setState({ displayWindow: null });
@@ -116,6 +181,7 @@ var StudioComponent = React.createClass({
         this.context.useItemThatPlayerHave(data.require);
         function callBack() {
             this.context.changeItem(o, this.props.type);
+            this.context.showMsg(<p key={Math.random()}>已升级：{(ITEM_DATA[name] && ITEM_DATA[name].name) || name}（耗时 {fmtHours(data.timeNeed)}）</p>);
             if (this.props.onUpdate) {
                 this.props.onUpdate(name);
             }
@@ -234,6 +300,7 @@ var StudioComponent = React.createClass({
                 <div className='updateOuter'>
                     <div className="studioTableOuter">
                         <table className="table table-condensed table-hover ">
+                            <thead><tr><td>升级项</td><td>需求</td><td>耗时</td><td>操作</td></tr></thead>
                             <tbody>
                                 {result}
                             </tbody>
@@ -253,7 +320,7 @@ var StudioComponent = React.createClass({
                 var maxCook = this.checkMaxCookAmount();
                 var cookReason = '';
                 if (this.state.cookAmount == 0 || this.state.cookAmount > maxCook) cookReason = '烹调数量无效（缺少食材或数量超出）';
-                else if (this.context.getTheMaxTimeToUse() < 1) cookReason = '饱食或水分不足，撑不过烹调耗时';
+                else if (this.context.getTheMaxTimeToUse() < 1) cookReason = '满腹或水分不足，撑不过烹调耗时';
                 var disabled = cookReason != '';
                 if (!cookResult) {
                     return <div></div>;
@@ -286,7 +353,7 @@ var StudioComponent = React.createClass({
                             <input type='checkbox' checked={this.state.onlyCraftable} onChange={this.toggleOnlyCraftable} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                             只看可制作
                         </label>
-                        <span style={{ color: '#888', fontSize: '12px' }}>（按现有材料可制作次数排序）</span>
+                        <span style={{ color: '#888', fontSize: '12px' }}>已按可制作次数排序 · 可用上方搜索与筛选</span>
                     </div>
                     <div className="tableOuter studioTableOuter">
                         <div className="makeGroups">
@@ -308,6 +375,7 @@ var StudioComponent = React.createClass({
         }
         // 建筑升级列表：过滤已完成项与未满足的科技前置，校验材料/时间
         function getUpdateDesc() {
+            var self = this;
             var list = BUILDING_UPDATE_DATA[type];
             var result = [];
             var count = 0;
@@ -318,11 +386,13 @@ var StudioComponent = React.createClass({
                 if (BUILDING_UPDATE_DATA[type][attr].science && !this.context.boxSaveData[type].things[BUILDING_UPDATE_DATA[type][attr].science]) continue;
                 var noMaterial = !this.context.checkHaveResourceAll(tmp.require, true);
                 var noTime = !haveTimeToMake.bind(this, attr)();
-                var updateReason = noMaterial ? '材料不足' : (noTime ? '饱食或水分不足，撑不过升级耗时' : '');
+                var missText = uiMissingText(tmp.require, function (id) { return uiBagAmount(self.context.boxSaveData, id); });
+                var updateReason = noMaterial ? missText : (noTime ? ('时间不足：需 ' + fmtHours(tmp.timeNeed) + '，当前最多 ' + fmtHours(this.context.getTheMaxTimeToUse()) + '（先进食/饮水或睡觉）') : '');
                 var disabled = noMaterial || noTime;
                 result.push(<tr key={'update' + count} title={getItemInfoText(attr)} onMouseEnter={this.context.changeMsg.bind(null, attr, 'item')}>
                     <td>{ITEM_DATA[attr] ? ITEM_DATA[attr].name : attr}</td>
-                    <td><RequireComponent requireList={tmp.require} haveBox={true} /></td>
+                    <td title={missText}>{uiReqText(tmp.require)}<div style={{ color: noMaterial ? COLOR.RED : COLOR.GREEN, fontSize: '12px' }}>{missText}</div></td>
+                    <td>{fmtHours(tmp.timeNeed)}</td>
                     <td>
                         <BtnComponent disabled={disabled} disabledReason={updateReason} handleClick={this.updateBuilding.bind(this, attr)} desc="升级" />
                     </td>
@@ -386,9 +456,16 @@ var StudioComponent = React.createClass({
                     <div className='makeGrid'>
                         {groups[cat].map(function (entry, count) {
                             var attr = entry.attr, tmp = entry.tmp;
-                            return <div className='makeItem' tabIndex={0} role='button' onClick={this.makeWindow.bind(this, attr)} onKeyDown={this.handleMakeKeyDown.bind(this, attr)} key={'make_' + cat + '_' + count} title={getItemInfoText(attr)} onMouseEnter={this.context.changeMsg.bind(null, attr, 'item')}>
-                                <span className='makeName'>{ITEM_DATA[attr] ? ITEM_DATA[attr].name : attr}{list[attr].amount ? ' * ' + list[attr].amount : null}</span>
-                                <span className='makeRequire'><RequireComponent requireList={tmp.require} haveBox={true} /></span>
+                            var craftCount = getCraftableCount(tmp.require, bag);
+                            var prodAmount = tmp.amount || 1;
+                            var prodName = (ITEM_DATA[attr] && ITEM_DATA[attr].name) || attr;
+                            var missText = uiMissingText(tmp.require, function (id) { return countBagItem(bag, id); });
+                            var countText = this.props.alwayMakeOne ? '只可研究 1 次' : ('可做 ' + fmtNum(craftCount) + ' 次');
+                            var metaText = countText + ' · 耗时 ' + fmtHours(this.getTimeNeed(tmp.timeNeed)) + ' · 产出 ' + prodName + ' ' + fmtQty(prodAmount);
+                            return <div className='makeItem' tabIndex={0} role='button' onClick={this.makeWindow.bind(this, attr)} onKeyDown={this.handleMakeKeyDown.bind(this, attr)} key={'make_' + cat + '_' + count} title={getItemInfoText(attr) + '\n' + metaText + '\n' + missText} onMouseEnter={this.context.changeMsg.bind(null, attr, 'item')}>
+                                <span className='makeName'>{prodName}{prodAmount > 1 ? ' ' + fmtQty(prodAmount) : null}</span>
+                                <span className='makeRequire' style={{ color: craftCount > 0 ? COLOR.GREEN : COLOR.RED }}>{uiReqText(tmp.require)}</span>
+                                <span className='makeMeta' style={{ display: 'block', fontSize: '11px', color: '#666' }}>{metaText}</span>
                             </div>;
                         }.bind(this))}
                     </div>
@@ -397,25 +474,30 @@ var StudioComponent = React.createClass({
         }
         // 数量安排面板：列出清单/消耗/耗时并执行制作
         function schedule() {
+            var self = this;
             var name = this.state.itemToMake;
             var amount = this.state.makeAmount;
             var require = this.props.attachData[name].require;
             var totalRequire = cloneMul(require, amount);
+            var totalTime = this.getTimeNeed(this.props.attachData[name].timeNeed * amount);
             //检查产物寄存是否被占用
             var makeNoMaterial = !this.context.checkHaveResourceAll(totalRequire, true);
             var makeNoTime = !haveTimeToMake.bind(this, name)();
             var makeBoxFull = (!this.props.alwayMakeOne && this.context.checkFull(this.props.type, name));
-            var makeReason = makeNoMaterial ? '材料不足' : (makeNoTime ? '饱食或水分不足，撑不过制作耗时' : (makeBoxFull ? '成品容器已满' : ''));
+            var missText = uiMissingText(totalRequire, function (id) { return uiBagAmount(self.context.boxSaveData, id); });
+            var makeReason = makeNoMaterial ? missText
+                : (makeNoTime ? ('时间不足：需 ' + fmtHours(totalTime) + '，当前最多 ' + fmtHours(this.context.getTheMaxTimeToUse()) + '（先进食/饮水或睡觉）')
+                    : (makeBoxFull ? '成品容器已满：先转移或使用容器内成品' : ''));
             var disabled = makeNoMaterial || makeNoTime || makeBoxFull;
 
             return <div className='schedule'>
                 <table className="table table-hover ">
                     <thead><tr><td>清单</td>{this.props.alwayMakeOne ? null : <td>个数</td>}<td>消耗</td><td>耗时</td><td></td></tr></thead>
                     <tbody><tr>
-                        <td>{ITEM_DATA[name].name}</td>
+                        <td>{ITEM_DATA[name].name} {fmtQty(amount)}</td>
                         {this.props.alwayMakeOne ? null : <td><input className='scheduleInput form-control' value={String(amount)} type='number' onChange={this.updateSchedule} /></td>}
-                        <td><RequireComponent haveBox={true} withSpace={true} showTotal={true} requireList={totalRequire} /></td>
-                        <td>{Math.round(this.getTimeNeed(this.props.attachData[name].timeNeed * amount))}</td>
+                        <td>{uiReqText(totalRequire)}<div style={{ color: makeNoMaterial ? COLOR.RED : COLOR.GREEN, fontSize: '12px' }}>{missText}</div></td>
+                        <td>{fmtHours(totalTime)}</td>
                         <td><BtnComponent disabled={disabled} disabledReason={makeReason} handleClick={this.make.bind(this, name)} desc="执行" /></td>
                     </tr></tbody>
                 </table>
@@ -557,15 +639,24 @@ var ActionComponent = React.createClass({
         }
         function getTimeDesc() {
             if (this.props.changable) {
-                return <input value={this.state.timeNeed} className={'scheduleInput form-control scheduleInput_' + this.props.type} type='number' onChange={this.updateSchedule} />
+                return <span><input value={this.state.timeNeed} className={'scheduleInput form-control scheduleInput_' + this.props.type} type='number' onChange={this.updateSchedule} /> 小时</span>
             } else {
-                return <span>{this.props.timeNeed}</span>
+                return <span>{fmtHours(this.props.timeNeed)}</span>
             }
         }
         var require = this.props.require;
-        var noMaterial = !this.context.checkHaveResourceAll(require, true);
+        var requireNow = require ? cloneMul(require, this.state.timeNeed) : null;
+        var getHave = function (id) {
+            if (selfState && selfState.playerState && selfState.playerState[id] != undefined) return selfState.playerState[id].amount;
+            return uiBagAmount(selfState.boxSaveData, id);
+        };
+        var selfState = this;
+        var noMaterial = require ? !this.context.checkHaveResourceAll(requireNow, true) : false;
         var noTime = this.context.getTheMaxTimeToUse() < this.state.timeNeed;
-        var actionReason = this.props.disabled ? (this.props.disabledReason || '当前不可用') : (noMaterial ? '材料不足' : (noTime ? '饱食或水分不足，撑不过该行动耗时' : ''));
+        var missText = require ? uiMissingText(requireNow, getHave) : '';
+        var actionReason = this.props.disabled ? (this.props.disabledReason || '当前不可用')
+            : (noMaterial ? missText
+                : (noTime ? ('时间不足：需 ' + fmtHours(this.state.timeNeed) + '，当前最多 ' + fmtHours(this.context.getTheMaxTimeToUse()) + '（先进食/饮水或睡觉）') : ''));
         var disabled = this.props.disabled || noTime || noMaterial;
 
         var coolDown = this.context.getcoolDownSaveData(this.props.action);
@@ -574,10 +665,10 @@ var ActionComponent = React.createClass({
             <table className="table table-hover ">
                 <thead><tr>{require ? <td>需求</td> : null}<td>获得</td><td>耗时</td><td></td></tr></thead>
                 <tbody><tr>
-                    {require ? <td><RequireComponent haveBox={true} requireList={cloneMul(require, this.state.timeNeed)} /></td> : null}
-                    <td><RequireComponent isGreen='true' requireList={canGet} /></td>
+                    {require ? <td>{uiReqText(requireNow)}<div style={{ color: noMaterial ? COLOR.RED : COLOR.GREEN, fontSize: '12px' }}>{missText}</div></td> : null}
+                    <td>{uiReqText(canGet)}</td>
                     <td>{getTimeDesc.bind(this)()}</td>
-                    {hasCooledDown ? <td><BtnComponent disabled={disabled} disabledReason={actionReason} handleClick={this.act.bind(this, name)} desc={this.props.desc} /></td> : <td><BtnComponent disabled={true} disabledReason={'冷却中，还需约 ' + Math.round(coolDown) + ' 小时'} desc={this.props.desc + '(冷却:' + Math.round(coolDown) + ')'} /></td>}
+                    {hasCooledDown ? <td><BtnComponent disabled={disabled} disabledReason={actionReason} handleClick={this.act.bind(this, name)} desc={this.props.desc} /></td> : <td><BtnComponent disabled={true} disabledReason={'冷却中：还需 ' + fmtHours(coolDown) + '（可先做别的事）'} desc={this.props.desc + '（恢复中）'} /></td>}
                 </tr></tbody>
             </table>
         </div>

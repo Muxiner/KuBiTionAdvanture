@@ -260,6 +260,7 @@ var MainComponent = React.createClass({
         state.settings = settingsNow;
         state.maouLevel = maouLevelNow;
         this.setState(state);
+        this.showMsg(<p key='reborn'>已转生：进入第 {fmtNum(generation)} 世。天赋技能保留，世界已重置；请重新探索并建设。</p>);
         setTimeout(function () {
             for (var attr in this.state.playerState) {
                 if (attr == 'temp') continue;
@@ -319,7 +320,7 @@ var MainComponent = React.createClass({
         // 战斗中禁止玩家主动使用/装备物品（战斗内的弹药/状态消耗走 context.useItem，
         // 不经过这里，因此不会误伤）
         if (getLength(this.state.mstState) != 0 || this.state.isDueling) {
-            this.showMsg(<p key='noItemInBattle'>战斗中不能使用物品</p>);
+            this.showMsg(<p key='noItemInBattle'>无法使用：战斗中禁止使用物品，请先结束战斗再试。</p>);
             return;
         }
         //食物、药剂效果
@@ -346,7 +347,7 @@ var MainComponent = React.createClass({
         //回城卷轴
         if (item == 'scroll') {
             if (getLength(this.state.mstState) != 0) {
-                this.showMsg(<p key={Math.random()} >你不能在战斗中进行传送！</p>)
+                this.showMsg(<p key='noScrollInBattle'>无法使用回城卷轴：战斗中禁止传送，请先结束战斗。</p>)
             } else {
                 this.useItem({ scroll: 1 }, box);
                 this.useTime(function () {
@@ -380,7 +381,7 @@ var MainComponent = React.createClass({
         }
         if (box == 'bag' && (ITEM_DATA[item].equipType || ITEM_DATA[item].type == 'weapon')) {
             if (getLength(this.state.mstState) != 0) {
-                this.showMsg(<p key={Math.random()} >你不能在战斗中更改装备！</p>)
+                this.showMsg(<p key='noEquipInBattle'>无法穿脱装备：战斗中禁止更换装备，请先结束战斗。</p>)
             } else {
                 this.equipItem(item);
             }
@@ -643,9 +644,9 @@ var MainComponent = React.createClass({
         }
         return (box.size <= getLength(box.things) && !box.things[itemName]);
     },
-    // 在不因饥饿/水分耗尽而死亡的前提下，最多可支配的时间
+    // 在不因满腹/水分耗尽而死亡的前提下，最多可支配的时间
     getTheMaxTimeToUse: function () {
-        //这个检查函数是为了防止出现使用时间导致饥饿和水分不足而死亡的情况。。
+        //这个检查函数是为了防止出现使用时间导致满腹和水分不足而死亡的情况。
         var fullTime = Math.floor(this.state.playerState.full.amount / FULL_DESC_PER_HOUR - 0.0001);
         var moistTime = Math.floor(this.state.playerState.moist.amount / MOIST_DESC_PER_HOUR - 0.0001);
         return moistTime > fullTime ? fullTime : moistTime;
@@ -682,7 +683,7 @@ var MainComponent = React.createClass({
         var item = currentEquip[slot];
         if (!item) return;
         if (this.checkFull(this.state.boxSaveData.bag, item)) {
-            this.showMsg(<p key={Math.random()} >背包已满，无法卸下！</p>);
+            this.showMsg(<p key='bagFullUnequip'>无法卸下：背包已满（{fmtNum(getLength(this.state.boxSaveData.bag.things))}/{fmtNum(this.state.boxSaveData.bag.size)} 格），请先丢弃或转移物品到大箱子。</p>);
             return;
         }
         currentEquip[slot] = null;
@@ -837,7 +838,7 @@ var MainComponent = React.createClass({
     discardItem: function (item, box, amount) {
         // 与使用/装备同一规则：战斗中禁止主动丢弃
         if (getLength(this.state.mstState) != 0 || this.state.isDueling) {
-            this.showMsg(<p key='noDiscardInBattle'>战斗中不能丢弃物品</p>);
+            this.showMsg(<p key='noDiscardInBattle'>无法丢弃：战斗中禁止丢弃物品，请先结束战斗。</p>);
             return;
         }
         amount = amount || 1;
@@ -1042,6 +1043,9 @@ var MainComponent = React.createClass({
                         robberSaveData.stoledAll = {};
                     }
                     addTo(robberSaveData.stoledAll, get);
+                    if (getLength(get) > 0) {
+                        this.showMsg(<p key='robbedAway'>你不在家时遭遇盗贼，损失了 {fmtReqText(get)}；回家后可查看损失，记得留人在家或升级防盗科技。</p>);
+                    }
                 }
             }
         }
@@ -1089,24 +1093,24 @@ var MainComponent = React.createClass({
         var reason = '';
         switch (type) {
             case 'frozen':
-                reason = '寒冷';
+                reason = '体温过低';
                 break;
             case 'hunger':
-                reason = '饥荒';
+                reason = '满腹耗尽';
                 break;
             case 'thirsty':
-                reason = '脱水';
+                reason = '水分耗尽';
                 break;
             case 'health':
-                reason = '失血过多';
+                reason = '生命耗尽';
                 break;
         }
         var desc = (
             <div style={{ margin: 100 }}>
-                <p>你死了！</p>
-                <p>死因：{reason}</p>
-                <p>读档会载入最近一次自动存档（出门时自动保存），并损失 10% 金币；战斗中/地牢中无法读档。</p>
-                <BtnComponent handleClick={this.reviveFromAutoSave.bind(this)}>读档</BtnComponent>
+                <p>你已死亡。</p>
+                <p>死因：{reason}。</p>
+                <p>读档会载入最近一次自动存档（出门时自动保存），并损失 {fmtNum(10)}% 金币；战斗中或地牢中无法读档。也可以选择「重新开始」。</p>
+                <BtnComponent handleClick={this.reviveFromAutoSave.bind(this)}>读档（自动存档）</BtnComponent>
                 <BtnComponent handleClick={this.init}>重新开始</BtnComponent>
             </div>
         )
@@ -1117,8 +1121,8 @@ var MainComponent = React.createClass({
     },
     // 读档限制：战斗中/地牢中禁止读档（返回空字符串表示允许）
     canLoadSave: function () {
-        if (getLength(this.state.mstState) != 0) return '战斗中不能读档';
-        if (this.state.currentScene == 'dungeon') return '地牢中不能读档';
+        if (getLength(this.state.mstState) != 0) return '无法读档：战斗中不能读档，请先结束战斗。';
+        if (this.state.currentScene == 'dungeon') return '无法读档：地牢中不能读档，请先返回地面（使用回城卷轴或离开地牢）。';
         return '';
     },
     // 死亡惩罚：从背包+大箱子扣除 10% 金币，返回实际损失数量
@@ -1144,7 +1148,7 @@ var MainComponent = React.createClass({
         var saves = this.getLocalSaves();
         var save = saves[LOCAL_SAVE_AUTO_SLOT];
         if (!save || !save.data) {
-            alert('没有可用的自动存档，只能重新开始');
+            alert('无法读档：没有可用的自动存档。自动存档只在出门时生成；可先选择「重新开始」，之后出门会自动保存。');
             return;
         }
         this.setState({ saveData: save.data });
@@ -1152,7 +1156,7 @@ var MainComponent = React.createClass({
         this.loadData(save.data, function () {
             var lost = self.applyDeathPenalty();
             self.setState({ showMenu: '', menuDesc: {} });
-            self.showMsg(<p key='revived'>你从自动存档中醒来，损失了 {lost} 枚金币。</p>);
+            self.showMsg(<p key='revived'>已从自动存档恢复：损失了 {fmtMoney(lost)}（金币保留 {fmtNum(90)}%）。</p>);
         });
     },
     // 检查六维状态是否归零并触发相应死亡（RELEASE 模式才生效；一次只报一种死因）
@@ -1177,7 +1181,7 @@ var MainComponent = React.createClass({
         }
         return false;
     },
-    // 推进游戏时间：处理昼夜、体温变化、饥饿/口渴、精神、冷却、生产、死亡判定等
+    // 推进游戏时间：处理昼夜、体温变化、满腹/水分、精神、冷却、生产、死亡判定等
     addTime: function (timeNeed, props) {
 
         var skill = this.state.skill;
@@ -1418,6 +1422,7 @@ var MainComponent = React.createClass({
                 for (var i = 1; i < arr.length; i++) { if (arr[i] < arr[idx]) idx = i; }
                 arr[idx] += isNegative ? -amount : amount;
                 if (arr[idx] >= this.getMaxDurable(itemName)) {
+                    var brokenStackName = fmtItemName(itemName);
                     arr.splice(idx, 1);
                     for (var b0 in boxSaveData) {
                         if (boxSaveData[b0].things && boxSaveData[b0].things[itemName]) {
@@ -1426,6 +1431,7 @@ var MainComponent = React.createClass({
                             break;
                         }
                     }
+                    this.showMsg(<p key='durableBrokenStack'>耐久耗尽：{brokenStackName} 已损坏；可在制造台重新制作。</p>);
                 }
                 if (arr.length === 0) delete o[itemName];
                 continue;
@@ -1433,6 +1439,7 @@ var MainComponent = React.createClass({
             o[itemName] += isNegative ? -amount : amount;
             if (o[itemName] >= this.getMaxDurable(itemName)) {
                 if (itemName.indexOf('#') >= 0) {
+                    var brokenInstanceName = fmtItemName(itemName);
                     // 实例化武器/工具损坏：从装备槽/任意容器中移除该实例并清理
                     for (var slot in currentEquip) {
                         if (currentEquip[slot] == itemName) currentEquip[slot] = null;
@@ -1446,11 +1453,13 @@ var MainComponent = React.createClass({
                     delete o[itemName];
                     delete ITEM_DATA[itemName];
                     delete itemInstances[itemName];
+                    this.showMsg(<p key='durableBrokenInstance'>耐久耗尽：{brokenInstanceName} 已损坏；可在制造台重新制作。</p>);
                 } else {
                     // 兼容旧的非实例化武器
                     o[itemName] = 0;
                     var use = {}; use[itemName] = 1;
                     this.useItem(use, 'bag');
+                    this.showMsg(<p key='durableBrokenBase'>耐久耗尽：{fmtItemName(itemName)} 已损坏；可在制造台重新制作。</p>);
                 }
             }
         }
@@ -1677,7 +1686,7 @@ var MainComponent = React.createClass({
         } catch (e) {
             console.error('[game] 读档失败：', e);
             this.setState({ currentScene: 'home', showMenu: '' });
-            this.showMsg(<p key='loadFail'>读档失败：存档格式不兼容</p>);
+            this.showMsg(<p key='loadFail'>读档失败：存档格式不兼容（可能来自更旧或损坏的版本）；已保留当前进度，可尝试其他存档槽或重新开始。</p>);
             return false;
         }
         var currentSettings = this.state.settings || {};
@@ -1899,7 +1908,7 @@ var MainComponent = React.createClass({
         } catch (e) {
             console.error('[game] 读档失败：', e);
             this.setState({ currentScene: 'home', showMenu: '' });
-            this.showMsg(<p key='loadFail2'>读档失败：存档数据异常，已保留当前进度</p>);
+            this.showMsg(<p key='loadFail2'>读档失败：存档数据异常；已保留当前进度，可尝试其他存档槽或重新开始。</p>);
             return false;
         }
     },
@@ -1912,7 +1921,7 @@ var MainComponent = React.createClass({
         } catch (e) {
             console.error('[game] 存档解析失败：', e);
             this.setState({ currentScene: 'home', showMenu: '' });
-            this.showMsg(<p key='loadParseFail'>存档解析失败，文件可能已损坏</p>);
+            this.showMsg(<p key='loadParseFail'>读档失败：存档内容无法解析（文件可能已损坏）；已保留当前进度，可尝试其他存档槽。</p>);
             return false;
         }
         this.setState({ currentScene: 'branch' });
@@ -1934,7 +1943,7 @@ var MainComponent = React.createClass({
         var save_account = settings.save_account;
         var save_pass = settings.save_pass;
         if (save_account == null || save_account == '' || save_pass == null || save_pass == '') {
-            alert('请先在设置中填写账号和密码');
+            alert('无法读取账号存档：还没有填写账号或密码。请先打开「菜单 → 设置」填写，再点「读取」。');
             return;
         }
         var jsonStr = 'action=load&account=' + encodeURIComponent(save_account) + '&pass=' + encodeURIComponent(save_pass) + '&data=nope';
@@ -1948,19 +1957,19 @@ var MainComponent = React.createClass({
             success: function () {
                 var resp = htmlobj.responseText;
                 if (resp == 'no account') {
-                    alert("没有这个账号...");
+                    alert('没有这个账号的存档：请确认账号拼写，或先点「保存」创建账号存档（账号存档需要 dev_server 运行）。');
                     return;
                 }
                 if (resp == 'incorrect pass') {
-                    alert("密码错误...");
+                    alert('密码错误：请检查密码后重试；忘记密码暂时无法找回，可使用本地存档。');
                     return;
                 }
                 if (resp == 'invalid') {
-                    alert("账号 3-12 位、密码至少 3 位，仅限数字和字母...");
+                    alert('账号或密码格式不符：账号需 ' + fmtNum(3) + '-' + fmtNum(12) + ' 位、密码至少 ' + fmtNum(3) + ' 位，仅限数字和字母。');
                     return;
                 }
                 if (resp == 'save corrupted') {
-                    alert("存档文件已损坏，无法读取");
+                    alert('存档文件已损坏，无法读取：本次不会覆盖原文件，请联系作者或从备份恢复。');
                     return;
                 }
                 var data;
@@ -1968,16 +1977,16 @@ var MainComponent = React.createClass({
                     data = JSON.parse(resp);
                 } catch (e) {
                     console.error('[game] 读档失败，服务器返回内容不是 JSON：', resp);
-                    alert("读取失败：存档数据损坏");
+                    alert('读取失败：服务器返回的数据不是合法存档（可能已损坏）；请重试，或改用本地存档。');
                     return;
                 }
-                alert("读取成功！");
+                alert('账号存档已读取（已覆盖当前进度）。本地存档与自动存档可在「设置」页读取。');
                 self.setState({ saveData: resp });
                 self.loadData(data);
             },
             error: function (xhr, status) {
-                var msg = (status == 'timeout') ? '请求超时' : '网络错误：无法连接存档服务器';
-                alert('读取失败：' + msg);
+                var msg = (status == 'timeout') ? '请求超时' : '无法连接存档服务器';
+                alert('读取失败：' + msg + '；请确认 python3 dev_server.py 正在运行，并检查端口/地址后重试。');
             }
         });
     },
@@ -2003,11 +2012,11 @@ var MainComponent = React.createClass({
         var save_account = settings.save_account;
         var save_pass = settings.save_pass;
         if (save_account == null || save_account == '') {
-            callback && callback(false, '未填写账号');
+            callback && callback(false, '未填写账号：请先在设置页填写账号（账号存档需要 dev_server 运行）。');
             return;
         }
         if (save_pass == null || save_pass == '') {
-            callback && callback(false, '未填写密码');
+            callback && callback(false, '未填写密码：请先在设置页填写密码。');
             return;
         }
         var saveData;
@@ -2015,7 +2024,7 @@ var MainComponent = React.createClass({
             saveData = this.getSaveData();
         } catch (e) {
             console.error('[game] 构造存档失败：', e);
-            callback && callback(false, '存档数据异常');
+            callback && callback(false, '存档数据异常：请重试；若仍失败，可先用本地存档保存。');
             return;
         }
         var day = saveData.time.day;
@@ -2034,29 +2043,31 @@ var MainComponent = React.createClass({
             success: function () {
                 var resp = htmlobj.responseText;
                 if (resp == 'success') {
-                    if (!doNotShow) alert("保存成功！");
+                    if (!doNotShow) alert('账号存档已保存：第 ' + fmtNum(day) + ' 日。本地存档/自动存档仍可另存。');
                     callback && callback(true);
                     return;
                 }
                 if (resp == 'incorrect pass') {
-                    if (!doNotShow) alert("密码错误...");
-                    callback && callback(false, '密码错误');
+                    if (!doNotShow) alert('密码错误：请检查密码后重试；忘记密码暂时无法找回，可使用本地存档。');
+                    callback && callback(false, '密码错误：请检查密码后重试；忘记密码可使用本地存档。');
                     return;
                 }
                 if (resp == 'invalid') {
-                    var invalidMsg = "账号 3-12 位、密码至少 3 位，仅限数字和字母...";
+                    var invalidMsg = '账号或密码格式不符：账号需 ' + fmtNum(3) + '-' + fmtNum(12) + ' 位、密码至少 ' + fmtNum(3) + ' 位，仅限数字和字母。';
                     if (!doNotShow) alert(invalidMsg);
-                    callback && callback(false, '账号或密码格式错误');
+                    callback && callback(false, '账号或密码格式不符：账号需 ' + fmtNum(3) + '-' + fmtNum(12) + ' 位、密码至少 ' + fmtNum(3) + ' 位，仅限数字和字母。');
                     return;
                 }
-                var reason = (resp && resp.indexOf('save failed') == 0) ? resp : ('服务器返回异常：' + resp);
+                var reason = (resp && resp.indexOf('save failed') == 0) ?
+                    (resp + '；请检查 saves/ 目录权限或磁盘空间，或改用本地存档。') :
+                    ('服务器返回异常（' + resp + '）；请稍后重试，或改用本地存档。');
                 if (!doNotShow) alert('保存失败：' + reason);
                 callback && callback(false, reason);
             },
             error: function (xhr, status) {
-                var netMsg = (status == 'timeout') ? '请求超时' : '网络错误：无法连接存档服务器';
-                if (!doNotShow) alert('保存失败：' + netMsg);
-                callback && callback(false, netMsg);
+                var netMsg = (status == 'timeout') ? '请求超时' : '无法连接存档服务器';
+                if (!doNotShow) alert('保存失败：' + netMsg + '；请确认 python3 dev_server.py 正在运行，并检查端口/地址后重试。');
+                callback && callback(false, netMsg + '；请确认 dev_server 正在运行后重试。');
             }
         });
     },
@@ -2094,7 +2105,7 @@ var MainComponent = React.createClass({
             saveData = this.getSaveData();
         } catch (e) {
             console.error('[game] 构造存档失败：', e);
-            alert('本地保存失败：存档数据异常');
+            alert('本地保存失败：存档数据异常；请重试，或改用账号存档。');
             return false;
         }
         var save = {
@@ -2110,8 +2121,11 @@ var MainComponent = React.createClass({
         try {
             localStorage.setItem(this.getLocalSaveKey(slot), JSON.stringify(save));
         } catch (e) {
-            alert('本地保存失败，浏览器可能不支持或存储已满...');
+            alert('本地保存失败：浏览器存储不可用或已满（隐私模式/配额不足）；请清理不需要的存档槽，或改用账号存档。');
             return false;
+        }
+        if (slot == LOCAL_SAVE_AUTO_SLOT) {
+            this.showMsg(<p key='autoSaved'>已自动保存到「自动存档」槽（第 {fmtNum(saveData.time.day)} 日 {fmtNum(Math.floor(saveData.time.hour))}:00）。</p>);
         }
         return true;
     },
@@ -2125,7 +2139,7 @@ var MainComponent = React.createClass({
         var saves = this.getLocalSaves();
         var save = saves[slot];
         if (!save || !save.data) {
-            alert('该存档位是空的...');
+            alert('该存档位是空的：请先点「保存」创建存档，或选择其他存档槽。');
             return false;
         }
         this.setState({ saveData: save.data });

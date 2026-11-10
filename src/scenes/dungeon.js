@@ -360,10 +360,10 @@ var DungeonComponent = React.createClass({
                 ];
                 break;
             case 'downStair':
-                var detailedList = [<span key='1'>进入下一层。</span>];
+                var detailedList = [<span key='1'>进入下一层：消耗钥匙 ×1，耗时 2 小时。</span>];
                 break;
             case 'dungeonRope':
-                var detailedList = [<span key='1'>你可以下潜到第({this.context.dungeonSaveData.deepest})层（只能选择当前层与最深层之间）。</span>];
+                var detailedList = [<span key='1'>穿洞绳：消耗 ×1，可下潜到第 {this.context.dungeonSaveData.deepest} 层（当前层与最深层之间）。</span>];
                 break;
         }
         var detailType = 'desc';
@@ -399,7 +399,7 @@ var DungeonComponent = React.createClass({
             data = [];
         }
         if (!data || !data.length) {
-            this.context.callWindow(<div><p>排行榜暂时无法读取（本地服务器未提供该数据）。</p><BtnBack /></div>);
+            this.context.callWindow(<div><p>暂无排行榜记录：需要启动 dev_server 后端并点击「铭刻」才有数据；直接「带着战利品回家」也可以。</p><BtnBack /></div>);
             return;
         }
         function getTds(dataRow) {
@@ -418,14 +418,14 @@ var DungeonComponent = React.createClass({
         }
         var board = (
             <div>
-                <p>所有通关的英雄们：</p>
+                <p>所有通关的英雄们（存活天数 / 通关天数）：</p>
                 <div style={{ overflow: 'auto' }} className="buildTable tableOuter">
                     <table style={{ overflow: 'auto' }} className="table table-condensed table-hover table-striped table-bordered">
                         <thead>
                             <tr>
-                                <td>英雄大名</td>
-                                <td>存活时间</td>
-                                <td>通关时间</td>
+                                <td>玩家</td>
+                                <td>存活天数</td>
+                                <td>通关天数</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -445,8 +445,8 @@ var DungeonComponent = React.createClass({
         var maxFloor = this.getMaxFloor();
         var wind = <div>
             <p>恭喜你通关了地牢（第 {maxFloor} 层）！</p>
-            <p>你存活了:<span className="num">{day}</span>天</p>
-            <p>可以带着战利品回家，也可以把名字刻在石碑上：</p>
+            <p>你存活了 <span className="num">{fmtNum(day)}</span> 天。</p>
+            <p>你的战利品都在背包/登记区，请先全部拾取；之后可直接「带着战利品回家」（耗时 1 小时），或把名字刻在石碑上。</p>
             <div className="form-control">{account}</div>
             <div><BtnComponent className="btn btn-default" id="upload" handleClick={this.onGameEndDisplay}>铭刻</BtnComponent></div>
             <div><BtnComponent desc='带着战利品回家' handleClick={this.onWinGoHome} /></div>
@@ -498,21 +498,31 @@ var DungeonComponent = React.createClass({
         var boxSaveData = this.context.boxSaveData;
         function getChoices() {
             var result = [];
+            var choiceDesc = {
+                search: '探索：40% 获得宝物、60% 遭遇战斗；每次耗时 2 小时',
+                sneak: '潜行：30% 获得宝物、10% 遭遇战斗；每次耗时 2 小时',
+                downStair: '下楼：消耗钥匙 ×1，进入更深一层；每次耗时 2 小时',
+            };
             for (var attr in this.choices) {
                 var tmp = this.choices[attr];
                 //判断能否下楼
                 if (attr == 'downStair' && !boxSaveData.bag.things['dungeonKey'] && dungeonSaveData.stairCount < this.getMaxFloor()) continue;
                 var label = tmp.name;
-                if (attr == 'downStair' && dungeonSaveData.stairCount >= this.getMaxFloor()) label = '通关';
+                var descText = choiceDesc[attr] || '';
+                if (attr == 'downStair' && dungeonSaveData.stairCount >= this.getMaxFloor()) {
+                    label = '通关';
+                    descText = '通关：结束地牢探索并结算，可带战利品回家';
+                }
                 result.push(
-                    <div key={attr}>
+                    <div key={attr} title={descText}>
                         <BtnComponent handleMouseEnter={this.showChoiceMsg.bind(this, attr)} handleClick={this.handleChoice.bind(this, attr)}>{label}</BtnComponent>
+                        <div style={{ color: '#777', fontSize: '11px', marginTop: '2px' }}>{descText}</div>
                     </div>
                 )
             }
             if (boxSaveData.bag.things['dungeonRope'] && dungeonSaveData.stairCount < dungeonSaveData.deepest) {
                 result.push(
-                    <div key='dungeonRope'>
+                    <div key='dungeonRope' title={'穿洞：消耗穿洞绳 ×1，直接下潜到已探索过的最深层'}>
                         <BtnComponent handleMouseEnter={this.showChoiceMsg.bind(this, 'dungeonRope')} handleClick={this.handleRope}>穿洞</BtnComponent>
                     </div>
                 )
@@ -541,10 +551,13 @@ var DungeonComponent = React.createClass({
         return (
             <div style={{ margin: 'auto', width: 400, height: 300 }}>
                 <div className="dungeonHeading">
-                    <p>第 <span className="num">{dungeonSaveData.stairCount}</span> / {this.getMaxFloor()} 层</p>
-                    <p>房间 <span className="num">{dungeonSaveData.roomCount}</span> </p>
-                    <p>最深记录: <span className="num">{dungeonSaveData.deepest}</span> </p>
-                    <div><ProgressComponent key='view' current={dungeonSaveData.stairData[dungeonSaveData.stairCount] || 0} max={MAX_DISCOVER} /></div>
+                    <p>第 <span className="num">{dungeonSaveData.stairCount}</span> 层 / 共 {this.getMaxFloor()} 层</p>
+                    <p>本次已探索房间 <span className="num">{dungeonSaveData.roomCount}</span> 个</p>
+                    <p>最深记录：第 <span className="num">{dungeonSaveData.deepest}</span> 层</p>
+                    <div title={'本层探索度：越高，获得宝物/遇敌的概率越低；每日衰减 1'}>
+                        <ProgressComponent key='view' current={dungeonSaveData.stairData[dungeonSaveData.stairCount] || 0} max={MAX_DISCOVER} />
+                        <div style={{ color: '#777', fontSize: '11px' }}>本层探索度 {fmtNum(dungeonSaveData.stairData[dungeonSaveData.stairCount] || 0)}/{fmtNum(MAX_DISCOVER)}（越高收益越低，换层可重置）</div>
+                    </div>
                 </div>
                 <div>
                     {getRoomDesc.bind(this)()}

@@ -27,20 +27,24 @@ var BagComponent = React.createClass({
         boxSaveData['bag'].size = BAG_BASE_SIZE + level;
     },
     render: function () {
+        var bag = this.context.boxSaveData.bag;
+        var bagUsed = getLength(bag.things);
+        var bagCap = bag.size;
         return <div className="panel panel-primary equipMain">
             <div className="panel-heading bagHeading">
                 <span className="bagHeadingTitle">背包</span>
+                <span className='ux-bagCap' title={'背包容量：已用 ' + fmtNum(bagUsed) + ' / ' + fmtNum(bagCap) + ' 格。升级科研台的「背包属性」可扩容。'}>{fmtNum(bagUsed)} / {fmtNum(bagCap)}</span>
                 <span className="bagScrollHint">可上下滑动查看更多</span>
                 <button type="button" className="bagCloseBtn" onClick={uxCloseBagPanel} aria-label="收起背包，返回场景" title="收起背包，返回场景">收起</button>
             </div>
             <div className="panel-body  clearFix">
                 <EquipBarComponent currentEquip={this.context.currentEquip} onUnequip={this.context.unequipSlot} />
+                <div className="detail" id="detail" role="region" aria-label="物品详情" aria-live="polite">
+                    <ItemDetailComponent />
+                </div>
                 <StatPanelComponent skill={this.context.skill} currentEquip={this.context.currentEquip} getMaxState={this.context.getMaxState} />
                 <div className="equip" id="equip">
                     <BoxComponent box='bag' />
-                </div>
-                <div className="detail" id="detail" role="region" aria-label="物品详情" aria-live="polite">
-                    <ItemDetailComponent />
                 </div>
                 <OwnedListComponent boxSaveData={this.context.boxSaveData} />
             </div>

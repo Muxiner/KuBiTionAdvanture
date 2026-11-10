@@ -24,13 +24,13 @@ var BoxTransferComponent = React.createClass({
         if (!box || box == 'bigBox') return;
         var bigBox = this.context.buildingSaveData['bigBox'];
         if (!bigBox || !bigBox.own) {
-            this.context.showMsg(<p key={Math.random()}>还没有建造大箱子，先去「建造」里造一个吧</p>);
+            this.context.showMsg(<p key={Math.random()}>还没有建造大箱子……请先回家，在「建造」里造一个（需要木头 ×12）</p>);
             return;
         }
         var boxSaveData = this.context.boxSaveData;
         var from = clone(boxSaveData[box].things);
         if (getLength(from) == 0) {
-            this.context.showMsg(<p key={Math.random()}>当前容器里没有可放入的物品</p>);
+            this.context.showMsg(<p key={Math.random()}>当前容器里没有可放入的物品……先去制作或采集一些吧</p>);
             return;
         }
         var move = {};
@@ -39,13 +39,14 @@ var BoxTransferComponent = React.createClass({
             move[id] = from[id];
         }
         if (getLength(move) == 0) {
-            this.context.showMsg(<p key={Math.random()}>大箱子已满，先清理一些物品吧</p>);
+            this.context.showMsg(<p key={Math.random()}>大箱子已满……请先整理或出售一些物品，或升级大箱子扩容</p>);
             return;
         }
         this.context.changeItem(clone(move), 'bigBox');
         this.context.changeItem(clone(move), box, true);
         this.context.AudioEngine.playEffect('exchange');
-        this.context.showMsg(<p key={Math.random()}>已把 {getLength(move)} 种物品放入大箱子</p>);
+        var bigBoxData = this.context.boxSaveData['bigBox'];
+        this.context.showMsg(<p key={Math.random()}>{'已把 ' + fmtNum(getLength(move)) + ' 种物品放入大箱子（大箱子 ' + fmtNum(getLength(bigBoxData.things)) + ' / ' + fmtNum(bigBoxData.size) + ' 格）'}</p>);
     },
     getDisabledReason: function () {
         if (!this.props.box || this.props.box == 'bigBox') return '';

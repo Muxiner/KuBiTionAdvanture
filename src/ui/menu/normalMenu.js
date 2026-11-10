@@ -31,9 +31,17 @@ var NormalMenuComponent = React.createClass({
     },
     render: function () {
         var menuType = this.state.menuType;
-        return <div className='menuOuter' role='dialog' aria-modal='true' aria-label='菜单'>
+        var menuTitle = menuType == 'settings' ? '设置 · 存档' : '技能 · 加成';
+        var menuHintText = menuType == 'settings'
+            ? '读取/删除会覆盖或清除进度，操作前请确认目标存档'
+            : '点击技能行查看当前效果、下一级效果与学费';
+        return <div className='menuOuter' role='dialog' aria-modal='true' aria-label={'菜单 · ' + menuTitle}>
             <div className='menuInner'>
                 <div className='menu'>
+                    <div className='ux-menuTitle'>
+                        <span className='ux-menuTitleMain'>{menuTitle}</span>
+                        <span className='ux-menuTitleHint'>{menuHintText}</span>
+                    </div>
                     <div className='menuMain'>
                         {menuType == 'skill' ? <SkillPanelComponent /> : <SettingsPanelComponent />}
                     </div>

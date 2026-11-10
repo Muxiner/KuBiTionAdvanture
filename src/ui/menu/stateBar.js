@@ -5,7 +5,7 @@
 // 背包开关：桌面端收起/展开右侧背包栏，移动端在“场景/背包”之间切换
 var BagToggleComponent = React.createClass({
     render: function () {
-        return <BtnComponent className='stateVector bagToggleBtn' handleClick={uxToggleBagPanel} desc='背包' />;
+        return <BtnComponent className='stateVector bagToggleBtn' handleClick={uxToggleBagPanel} desc='背包' title='打开/收起背包面板：查看物品、装备、属性与所有物品' />;
     }
 });
 var StateComponent = React.createClass({

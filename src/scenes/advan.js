@@ -140,26 +140,32 @@ var AdvanComponent = React.createClass({
         var progress = this.props.progress;
         // 深色季节文字（白底 ≥5.8:1；原绿色 #74AB6A 仅 2.7:1）
         var seasonDescMap = {
-            'spring': <span className='season' style={{ color: '#2f6b2f' }}>春</span>,
-            'summer': <span className='season' style={{ color: '#a3352a' }}>夏</span>,
-            'autumn': <span className='season' style={{ color: '#6b5300' }}>秋</span>,
-            'winter': <span className='season' style={{ color: '#1f4f8a' }}>冬</span>,
+            'spring': <span className='season' style={{ color: '#2f6b2f' }} title='当前季节：春季（影响作物生长与环境温度）'>春</span>,
+            'summer': <span className='season' style={{ color: '#a3352a' }} title='当前季节：夏季（注意补充水分与降温）'>夏</span>,
+            'autumn': <span className='season' style={{ color: '#6b5300' }} title='当前季节：秋季（适合采集与收获）'>秋</span>,
+            'winter': <span className='season' style={{ color: '#1f4f8a' }} title='当前季节：冬季（作物停产，注意保暖）'>冬</span>,
         }
-        // 用文字表达昼夜（原来的 30×30 颜色方块没有图例，正午白块/半夜黑块像占位符）
+        // 昼夜图标 + 语义标题（不再重复“早晨 ☀ 白天”）
         var isNight = time.hour >= 19 || time.hour < 6;
         var phaseText = isNight ? '夜晚' : '白天';
+        var hourNum = Math.floor(time.hour);
+        var minuteNum = Math.round((time.hour - hourNum) * 60);
+        var clockText = (hourNum < 10 ? '0' : '') + hourNum + ':' + (minuteNum < 10 ? '0' : '') + minuteNum;
         // 标题随场景推导，避免地图/窗口里顶部一直显示“家”
         var sceneTitles = { home: '家', branch: '地图', dungeon: '地牢' };
         var sceneTitle = sceneTitles[this.context.currentScene] ||
             (PLACE_DATA[this.context.currentScene] ? PLACE_DATA[this.context.currentScene].name : this.state.title);
         return <div className="panel panel-primary advanMain" >
             <div className="panel-heading">
-                <div className="time" id="time">
-                    {this.context.generation ? <span className="generation">-轮回{this.context.generation}-</span> : null}
-                    {seasonDescMap[this.context.season]}第<span className="date">{time.day}</span>日 {getTimeDiplay(time.hour)}
+                <div className="time" id="time"
+                    title={'游戏内时间：' + clockText + '（' + getTimeDiplay(time.hour) + '，' + phaseText + '）' + (this.context.season == 'winter' ? '；冬季注意保暖' : '')}>
+                    {this.context.generation ? <span className="generation">轮回 {fmtNum(this.context.generation)} · </span> : null}
+                    {seasonDescMap[this.context.season]}
+                    <span className="ux-timeSep"> · </span>第<span className="date">{fmtNum(time.day)}</span>日
+                    <span className="ux-timeSep"> · </span>{getTimeDiplay(time.hour)}
                     <span className={'dayPhase ' + (isNight ? 'dayPhaseNight' : 'dayPhaseDay')}
-                        title={'游戏内时间：' + Math.floor(time.hour) + ' 点，' + phaseText}>
-                        {isNight ? '☾ ' + phaseText : '☀ ' + phaseText}
+                        aria-label={phaseText} title={'游戏内时间：' + clockText + '，' + phaseText}>
+                        {isNight ? '☾' : '☀'}
                     </span>
                 </div>
                 <span className="headingSep">·</span>

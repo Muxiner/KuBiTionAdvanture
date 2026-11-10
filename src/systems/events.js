@@ -777,6 +777,7 @@ var TradeComponent = React.createClass({
             return <span style={{ color: COLOR.BLUE }}>[{input}]</span>
         }
         result.push(<p key='header'>-{state.traderName}-</p>);
+        result.push(<p key='rule' style={{ color: '#888', fontSize: '12px' }}>交易规则：按物品价值折算（成交价约 75%），单次最多 {fmtNum(state.max)} 个；放入货物后点「成交」。</p>);
         if (!state.isNothing) {
             if (state.amount == 0) {
                 result.push(state.max == 1 ? (
@@ -786,7 +787,7 @@ var TradeComponent = React.createClass({
             } else {
                 result.push(state.max == 1 ? (
                     <p key='1'>{EVENT_TEXT.trade.deal1}</p>) : (
-                    <p key='1'>{formatText(EVENT_TEXT.trade.givePre, { amount: state.amount })}{wrap(state.giveName)}{EVENT_TEXT.trade.givePost}</p>)
+                    <p key='1'>{formatText(EVENT_TEXT.trade.givePre, { amount: fmtNum(state.amount) })}{wrap(state.giveName)}{EVENT_TEXT.trade.givePost}</p>)
                 );
             }
         } else {
@@ -887,7 +888,7 @@ var TradeListComponent = React.createClass({
             var giveName = ITEM_DATA[data.give] ? ITEM_DATA[data.give].name : data.give;
             result.push(<div className='tradeCard' key={'trade_' + i}>
                 <div className='tradeName'>{data.name}</div>
-                <div className='tradeGoods'>贩卖：<span style={{ color: COLOR.BLUE }}>{giveName}</span> × {data.max}</div>
+                <div className='tradeGoods'>贩卖：<span style={{ color: COLOR.BLUE }}>{giveName}</span> <span title={'单次交易上限（可被「通勤性能」科技与「商业大亨」天赋提高）'}>× {fmtNum(data.max)}</span></div>
                 <BtnComponent handleClick={this.handleClick.bind(this, i)} desc='交易' />
             </div>)
         };
@@ -920,14 +921,21 @@ var MsgBox = React.createClass({
     render: function () {
         var msgList = this.context.msgList;
         var list = [];
+        // 倒序渲染最新消息；用 push 避免生成带空洞的稀疏数组（稀疏数组会让
+        // ReactCSSTransitionGroup 在 0.14 里拿到 undefined 子节点，卸载时报
+        // "Cannot read properties of undefined (reading 'componentDidLeave')"）
         for (var i = msgList.length - 1; i >= 0; i--) {
-            list[msgList.length - i] = msgList[i];
+            list.push(msgList[i]);
         };
+        // 说明：原先用 ReactCSSTransitionGroup 做淡出动画，但战斗结束卸载 MsgBox 时
+        // leave 定时器会在组件销毁后回调，React 0.14 抛
+        // "Cannot read properties of undefined (reading 'componentDidLeave')"。
+        // 这里改为普通列表渲染（提示条本身仍是浮动样式），彻底避免卸载期回调。
         return (
             <div className='msgShow'>
-                <ReactCSSTransitionGroup transitionEnterTimeout={200} transitionLeaveTimeout={1000} transitionName="msg" className="msg">
+                <div className="msg">
                     {list}
-                </ReactCSSTransitionGroup>
+                </div>
             </div>
         );
     }

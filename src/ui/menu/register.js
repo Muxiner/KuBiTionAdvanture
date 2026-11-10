@@ -19,6 +19,7 @@ var RegisterComponent = React.createClass({
         checkFull: React.PropTypes.func.isRequired,
         changeItem: React.PropTypes.func.isRequired,
         callWindow: React.PropTypes.func.isRequired,
+        showMsg: React.PropTypes.func.isRequired,
     },
     componentWillMount: function () {
         var itemList = this.props.itemList;
@@ -38,13 +39,20 @@ var RegisterComponent = React.createClass({
     grabAll: function () {
         var saveData = this.context.boxSaveData;
         var itemList = saveData.register.things;
+        var picked = [];
         for (var attr in itemList) {
             if (!this.context.checkFull('bag', attr)) {
                 this.context.changeItem(o(attr, itemList[attr]), 'bag');
                 this.context.changeItem(o(attr, itemList[attr]), 'register', true);
+                picked.push(uxDisplayName(attr) + ' ' + fmtQty(itemList[attr]));
             }
         }
         this.context.setStateFromChildren({ boxSaveData: saveData });
+        if (picked.length) {
+            this.context.showMsg(<p key={Math.random()}>{'已拾取：' + picked.join('、')}</p>);
+        } else if (getLength(itemList) > 0) {
+            this.context.showMsg(<p key={Math.random()}>背包已满……请先整理背包，或把物品存入大箱子后再拾取</p>);
+        }
         this.check();
     },
     // 非「允许为空」时，拾取完自动关闭窗口

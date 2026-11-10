@@ -11,6 +11,7 @@
 var PLACE_DATA = {
     town: {
         name: '银溪镇',
+        desc: '银溪镇：可掠夺金子/宝石（需完成赏金猎人线）、拾取地面物资，并接取长者/村长任务。',
         resource: {
             tree: {
                 name: '农田',
@@ -81,6 +82,7 @@ var PLACE_DATA = {
     },
     upgradePlace: {
         name: '学院',
+        desc: '学院：花金币向 7 位导师学习近战/远程/魔法/防御/射程/种植/酿酒，每项技能上限 30 级。',
         timeNeed: 1,
         science: 'upgradePlace',
     },
@@ -89,6 +91,7 @@ var PLACE_DATA = {
             tramp: true
         },
         name: '静谧森林',
+        desc: '静谧森林：砍树得木头/树皮，采浆果/草药；可狩猎藤鞭怪与麻雀。',
         resource: {
             tree: {
                 name: '树',
@@ -138,6 +141,7 @@ var PLACE_DATA = {
     },
     river: {
         name: '溪流',
+        desc: '溪流：取水、砍树、采猛毒花棘（毒根/种子）；可狩猎乌鸦。',
         resource: {
             tree: {
                 name: '树',
@@ -189,6 +193,8 @@ var PLACE_DATA = {
     },
     robberPlace: {
         name: '贼窝',
+        desc: '贼窝：搜刮赃物与线索，击败盗贼推进赏金猎人任务；可触发覆面忍者事件。',
+        pickDesc: '搜刮',
         resource: {
             brook: {
                 name: '赃物',
@@ -234,6 +240,8 @@ var PLACE_DATA = {
     },
     den: {
         name: '地下通道',
+        desc: '地下通道：用线索开启机关，最终取得「偷窃宝典」后可掠夺银溪镇。',
+        pickDesc: '搜刮',
         timeNeed: 1.5,
         mst: {
             robber_1: {
@@ -259,6 +267,7 @@ var PLACE_DATA = {
 
     mine: {
         name: '幽暗的矿洞',
+        desc: '幽暗的矿洞：挖铁块/硝石/金子/宝石（需铁镐）；采矿小分队可用面包换铁。',
         resource: {
             ironMine: {
                 name: '铁矿',
@@ -314,6 +323,7 @@ var PLACE_DATA = {
     },
     mountain: {
         name: '冰冻荒原',
+        desc: '冰冻荒原：采冰露、地洞胡萝卜、干草；可狩猎兔子/老鹰/野牛。',
         resource: {
             ice: {
                 name: '冰露',
@@ -365,6 +375,7 @@ var PLACE_DATA = {
     },
     spiderPlace: {
         name: '蜘蛛巢穴',
+        desc: '蜘蛛巢穴：收集蜘蛛卵；击败蛛魔之后推进村长任务链。',
         resource: {
             brook: {
                 name: '蜘蛛卵群',
@@ -396,6 +407,7 @@ var PLACE_DATA = {
     },
     blackForest: {
         name: '黑森林',
+        desc: '黑森林：枯树/荆棘/火草；可狩猎灰熊/秃鹫。',
         resource: {
             oldTree: {
                 name: '枯树',
@@ -445,6 +457,7 @@ var PLACE_DATA = {
     },
     iceberg: {
         name: '漂浮的冰川',
+        desc: '漂浮的冰川（仅冬季开放）：取水/采冰露；可狩猎企鹅/北极熊。',
         resource: {
             tree: {
                 name: '冰川',
@@ -485,6 +498,7 @@ var PLACE_DATA = {
     },
     swamp: {
         name: '遥远的湿地',
+        desc: '遥远的湿地：采肥料、胡萝卜/生菜/浆果；可触发酒仙与地精任务。',
         resource: {
             shit: {
                 name: '肥沃的泥土',
@@ -520,6 +534,7 @@ var PLACE_DATA = {
     },
     goblinTown: {
         name: '地精村庄',
+        desc: '地精村庄：零件/雕像；完成地精工匠任务链可解锁车床等科技。',
         resource: {
             shit: {
                 name: '零件堆',
@@ -573,6 +588,7 @@ var PLACE_DATA = {
     },
     grave: {
         name: '墓穴',
+        desc: '墓穴：挖骨头/花/金子（需铲子，消耗精神）；可触发可疑的祭坛。',
         pickDesc: '盗墓',
         pickRequire: { san: 3, shovel: 1 },
         resource: {
@@ -612,6 +628,8 @@ var PLACE_DATA = {
     },
     ice: {
         name: '食人氏族',
+        desc: '食人氏族（战争营地）：加入后可换取装备/金币；烹饪锅可取熟食（需体力）。',
+        pickDesc: '拾取',
         huntDesc: '干掉食人魔！',
         thingsDesc: '部落给养',
         pickDesc: '拾取',
@@ -655,6 +673,8 @@ var PLACE_DATA = {
     },
     fire: {
         name: '法师公会',
+        desc: '法师公会（战争营地）：加入后可换取装备/金币；烤架可取魔法面包（需体力）。',
+        pickDesc: '拾取',
         huntDesc: '干掉法师！',
         thingsDesc: '餐桌',
         pickDesc: '拾取',
@@ -698,6 +718,7 @@ var PLACE_DATA = {
     },
     ruins: {
         name: '古老的废墟',
+        desc: '古老的废墟：零件/水；可狩猎机械士兵/神秘雕像。',
         resource: {
             ruins: {
                 name: '废墟聚集处',
@@ -741,6 +762,7 @@ var PLACE_DATA = {
     },
     dragon: {
         name: '龙之峡谷',
+        desc: '龙之峡谷：龙骨/干草；可狩猎幼龙/光龙/暗龙/龙王（龙王掉龙鳞与龙王之首）。',
         resource: {
             // fountain:{
             //     name:'山阴',
@@ -780,6 +802,7 @@ var PLACE_DATA = {
     },
     gulf: {
         name: '藏宝湾',
+        desc: '藏宝湾：钓鱼/水母；可狩猎海盗/海妖/海蛇，接水手任务。',
         resource: {
             fish: {
                 name: '鱼',
@@ -825,6 +848,7 @@ var PLACE_DATA = {
     },
     dunguen: {
         name: '地牢入口',
+        desc: '地牢入口：进入地牢（每步 2 小时，下楼消耗钥匙）；第 32 层可通关，深处可遇转生之石/魔王。',
         things: {
             bone: 20,
         },
