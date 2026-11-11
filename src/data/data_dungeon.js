@@ -235,7 +235,43 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.03,
             },
-        ]
+            {
+                things: {
+                    pirateHat: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    stealthJacket: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    dexGlove: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    countJacket: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    lightHat: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    blueHat: 1
+                },
+                chance: 0.02,
+            },
+]
     },
     6: {
         mst: {
@@ -283,7 +319,55 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.03,
             },
-        ]
+            {
+                things: {
+                    bloodHat: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    iceHat: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    blessingOverhang: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    healOverhang: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    ninjaJacket: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    curseSword: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    curseKnife: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    windKnife: 1
+                },
+                chance: 0.02,
+            },
+]
     },
     7: {
         mst: {
@@ -324,7 +408,19 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.03,
             },
-        ]
+            {
+                things: {
+                    trident: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    fireBumb: 1
+                },
+                chance: 0.025,
+            },
+]
     },
     8: {
         mst: {
@@ -368,7 +464,25 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.01,
             },
-        ]
+            {
+                things: {
+                    charmRing: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    smCloak: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    uangKnife: 1
+                },
+                chance: 0.03,
+            },
+]
     },
     9: {
         mst: {
@@ -388,7 +502,37 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.01,
             },
-        ]
+            {
+                things: {
+                    giantBrassart: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    concentrateHat: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    hardHorn: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    waterHorn: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    ancientStaff: 1
+                },
+                chance: 0.03,
+            },
+]
     },
     10: {
         mst: {
@@ -409,7 +553,31 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.01,
             },
-        ]
+            {
+                things: {
+                    shelter: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    chargeShirt: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    emeraldJade: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    skStaff: 1
+                },
+                chance: 0.03,
+            },
+]
     },
     11: {
         mst: {
@@ -430,7 +598,19 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.01,
             },
-        ]
+            {
+                things: {
+                    magicSword: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    lightBow: 1
+                },
+                chance: 0.025,
+            },
+]
     },
     12: {
         mst: {
@@ -451,7 +631,25 @@ var DUNGEON_DATA = {
                 },
                 chance: 0.01,
             },
-        ]
+            {
+                things: {
+                    curlLance: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    darkGun: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    iceShoe: 1
+                },
+                chance: 0.025,
+            },
+]
     },
     13: {
         mst: {
@@ -464,7 +662,55 @@ var DUNGEON_DATA = {
             { things: { darkGold: 4 }, chance: 0.05 },
             { things: { crystal: 10 }, chance: 0.05 },
             { things: { gold: 80 }, chance: 0.05 },
-        ]
+            {
+                things: {
+                    fireSword: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    skSowrd: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    blessingHammer: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    evilSword: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    shootShoe: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    bumbHat: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    superGlove: 1
+                },
+                chance: 0.02,
+            },
+            {
+                things: {
+                    dogBelt: 1
+                },
+                chance: 0.02,
+            },
+]
     },
     14: {
         mst: {
@@ -477,7 +723,13 @@ var DUNGEON_DATA = {
             { things: { soul: 20 }, chance: 0.05 },
             { things: { dragonBone: 10 }, chance: 0.03 },
             { things: { gold: 100 }, chance: 0.05 },
-        ]
+            {
+                things: {
+                    frostStaff: 1
+                },
+                chance: 0.03,
+            },
+]
     },
     15: {
         mst: {
@@ -490,7 +742,43 @@ var DUNGEON_DATA = {
             { things: { blood: 1 }, chance: 0.05 },
             { things: { darkDust: 10 }, chance: 0.05 },
             { things: { gold: 150 }, chance: 0.05 },
-        ]
+            {
+                things: {
+                    breakSword: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    evilSpear: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    forgetShoe: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    forgetClaw: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    forgetCoat: 1
+                },
+                chance: 0.025,
+            },
+            {
+                things: {
+                    iceGlove: 1
+                },
+                chance: 0.025,
+            },
+]
     },
     16: {
         mst: {
@@ -504,6 +792,42 @@ var DUNGEON_DATA = {
             { things: { dragonScale: 3 }, chance: 0.03 },
             { things: { crystal: 20 }, chance: 0.05 },
             { things: { gold: 200 }, chance: 0.05 },
-        ]
+            {
+                things: {
+                    nightmare: 1
+                },
+                chance: 0.04,
+            },
+            {
+                things: {
+                    vanity: 1
+                },
+                chance: 0.04,
+            },
+            {
+                things: {
+                    chaos: 1
+                },
+                chance: 0.04,
+            },
+            {
+                things: {
+                    rainbowBow: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    bass: 1
+                },
+                chance: 0.03,
+            },
+            {
+                things: {
+                    starStaff: 1
+                },
+                chance: 0.03,
+            },
+]
     },
 }

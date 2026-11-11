@@ -50,6 +50,13 @@ saves/                # 本地存档后端数据目录
 
 ## ChangeLog
 
+### v 0.56
+- 武器重塑：74 把武器按 T1–T6 重排（档位按配方材料成本；伤害带、`ps = ceil(damage/70)`、`san = ceil(damage/90)`、射程、耐久规则统一），同档支配 20→0（若把不同弹药类型的「子弹←箭」也算入则为 1，跨弹药类型不参与支配判定）；规则违规（消耗/射程/耐久）124→0，8 件早期锚点伤害保持。
+- 护甲归一：`dmgMul` 单件归一到 0.4–0.75（`shelter` 0.1→0.6、`forgetCoat` 0.05→0.5、`dragonArm` 0.35→0.4、`slightArm`/`blessingOverhang` 0.8→0.75 等），desc 减伤百分比同步（5 处冲突→0）；85% 总减伤上限保留。
+- 死装备接入：54 件无来源装备全部接入（地牢 5–16 层追加概率奖励，13–16 层终局装备掉率 0.02–0.04；`noWeapon` 保留但不进入奖励池）；全装备无来源 54→0。
+- 终局 TTK：魔王 `maxHp` 10000→75000、`dmg` 120+80L→180+100L（30 级武器技能 + 装备 +50%、T6 760 约 6,270/击，实战 12–13 回合）；8 条龙 Boss 统一 `hpMul=1`、用 `maxHp` 承载血量，按 T4/T5/T6 基准武器落在 3–8 回合；`reward` 未动。
+- 新增审计：`.ui-optimize/weapon-balance/weapon-audit.js`（before/after JSON：同档支配、每档伤害带、无来源数、护甲 `dmgMul` 越界、Boss TTK）。
+
 ### v 0.55
 - 渲染隔离（**阶段性优化，非完整状态切片**）：`MainComponent` 的 `setProgress` / `setMisk` / `clearMisk` 三个 rAF 循环不再逐帧 `setState`，改为写入全局 `UX_PROGRESS` 总线（`src/ui/common.js`），由 `ProgressOverlay`（`src/scenes/advan.js`）局部订阅渲染；根组件 state 已不含 `progress` / `misk`。
 - 实测（`.ui-optimize/measure-render.js`）：5 次采集动作脚本耗时 134ms→66ms（约 −51%，单动作约 26.8ms→13.2ms），Task 439ms→418ms，long task 0；动画期间遮罩内 84 次变更、遮罩外仅 19 次一次性变更。

@@ -19,6 +19,12 @@
 - 当前是**阶段性渲染隔离**：完整状态切片、`addTime`/`handleDayOver` 批量 `setState` 未做，不要当作已完成。
 - 新增/修改 JSX 源码后仍须 `node build_game.js`。
 
+## 装备/数值平衡约定（v0.56）
+- 改装备/武器/Boss 数值后必须运行 `node .ui-optimize/weapon-balance/weapon-audit.js`，并保持：无来源装备 0（`noWeapon` 空手除外）、同档支配 0、护甲 `dmgMul` 0.4–0.75、Boss TTK 在目标区间（魔王 12–13 回合、龙 3–8 回合）。
+- `desc` 中的减伤/伤害百分比必须与 `dmgMul` / `damage` 同步（减伤 = `(1-dmgMul)×100%`）。
+- 新增装备必须接入至少一个获取来源（配方/地牢/事件/Boss）；不要跨 `weaponType` 比较支配；`hpMul` 与 `maxHp` 不要双重缩放（龙 Boss 统一 `hpMul=1`）。
+- 改完数值跑 audit；若同时改了 JSX 源码，仍须 `node build_game.js`。
+
 ## 项目要点
 - 纯前端 HTML5 沙盒生存文字游戏（React `createClass`）；生产用离线预编译 `build/game.bundle.js`，开发用浏览器内 Babel 源码热加载，无 npm/打包器。
 - 本地开发运行：`python3 dev_server.py`（实时重载 + 本地存档后端 + 服务器自身热重载；启动时自动构建一次预编译产物）。

@@ -34,7 +34,7 @@ var MAKE_DATA = {
     },
     pickaxe: {
         timeNeed: 3,
-        require: { "wood": 4, 'iron': 4 },
+        require: { "wood": 3, 'iron': 3 },
         science: 'tool',
     },
     shovel: {

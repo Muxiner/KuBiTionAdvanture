@@ -279,8 +279,8 @@ var MST_DATA = {
     },
 
     dragon: {
-        maxHp: 100,
-        hpMul: 2,
+        maxHp: 10400,
+        hpMul: 1,
         name: '幼龙',
         damage: 35,
         range: 4,
@@ -289,8 +289,8 @@ var MST_DATA = {
         chaseChance: 0.7,
     },
     lightDragon: {
-        maxHp: 150,
-        hpMul: 2,
+        maxHp: 12500,
+        hpMul: 1,
         name: '光龙',
         damage: 45,
         range: 10,
@@ -299,8 +299,8 @@ var MST_DATA = {
         chaseChance: 0.7,
     },
     darkDragon: {
-        maxHp: 125,
-        hpMul: 2,
+        maxHp: 14600,
+        hpMul: 1,
         name: '暗龙',
         damage: 65,
         range: 6,
@@ -309,8 +309,8 @@ var MST_DATA = {
         chaseChance: 0.7,
     },
     dragonKing: {
-        maxHp: 1000,
-        hpMul: 5,
+        maxHp: 23700,
+        hpMul: 1,
         name: '龙王',
         damage: 80,
         range: 6,
@@ -751,9 +751,9 @@ var MST_DATA = {
         chaseChance: 0.6,
     },
     queenSkeleton: {
-        maxHp: 350,
+        maxHp: 31300,
         name: '骷髅女王',
-        hpMul: 20,
+        hpMul: 1,
         damage: 700,
         range: 25,
         reward: { crystal: 8, bone: 4, soul: 1, gold: 12 },
@@ -791,9 +791,9 @@ var MST_DATA = {
     //===========
     //第8层
     fireDragon: {
-        maxHp: 1200,
+        maxHp: 37600,
         name: '炼狱龙',
-        hpMul: 10,
+        hpMul: 1,
         damage: 800,
         range: 1,
         reward: { crystal: 8, dragonBone: 8, fireHeart: 1, gold: 8 },
@@ -803,9 +803,9 @@ var MST_DATA = {
         chaseChance: 0.6,
     },
     iceDragon: {
-        maxHp: 1200,
+        maxHp: 37600,
         name: '寒霜龙',
-        hpMul: 10,
+        hpMul: 1,
         damage: 680,
         range: 6,
         reward: { crystal: 8, dragonBone: 8, iceHeart: 1, gold: 8 },
@@ -946,9 +946,9 @@ var MST_DATA = {
     },
 
     seaDragon: {
-        maxHp: 6600,
+        maxHp: 50100,
         name: '海之龙',
-        hpMul: 16,
+        hpMul: 1,
         damage: 5000,
         range: 8,
         reward: { gold: 150, fish: 5, water: 2 },

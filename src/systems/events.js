@@ -495,12 +495,14 @@ var BossComponent = React.createClass({
     render: function () {
         var maouLevel = this.context.maouLevel;
         if (this.state.battling) {
-            // 首战：血量 10000、伤害 120（配合 85% 减伤上限仍然危险但可打）；
-            // 轮回等级每 +1：伤害 +80、玩家伤害除数 +0.4（hpMul）
+            // v0.56 TTK 校准：满技能 + T6 武器实战伤害约 6,270/击（760 × 8.25），
+            // 75,000 HP ≈ 12 回合（目标 10–15）；伤害 180+100L，85% 减伤下限下每击至少 27，
+            // 12 回合需要治疗/减伤/走位，否则会被逐步磨死。
+            // 轮回等级每 +1：伤害 +100、玩家伤害除数 +0.4（hpMul）
             var mstState = {
-                maxHp: 10000,
+                maxHp: 75000,
                 hpMul: 1 + 0.4 * maouLevel,
-                dmg: 120 + 80 * maouLevel,
+                dmg: 180 + 100 * maouLevel,
             }
             return <BattleComponent mstState={mstState} mst='maou' onWin={this.setDone} winScene={(
                 <div>
