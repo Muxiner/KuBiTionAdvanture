@@ -24,6 +24,7 @@
 - `desc` 中的减伤/伤害百分比必须与 `dmgMul` / `damage` 同步（减伤 = `(1-dmgMul)×100%`）。
 - 新增装备必须接入至少一个获取来源（配方/地牢/事件/Boss）；不要跨 `weaponType` 比较支配；`hpMul` 与 `maxHp` 不要双重缩放（龙 Boss 统一 `hpMul=1`）。
 - 改完数值跑 audit；若同时改了 JSX 源码，仍须 `node build_game.js`。
+- 战斗中只允许服用食物/药剂，每次消耗 0.5 小时；装备、卷轴、丢弃等仍在战斗外操作（v0.56 起）。
 
 ## 项目要点
 - 纯前端 HTML5 沙盒生存文字游戏（React `createClass`）；生产用离线预编译 `build/game.bundle.js`，开发用浏览器内 Babel 源码热加载，无 npm/打包器。

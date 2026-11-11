@@ -315,11 +315,17 @@ var MainComponent = React.createClass({
     },
     // 处理物品点击：食用/饮用、回城卷轴、武器充能、装备穿戴、能力提升道具等
     handleItemClick: function (item, box) {
-        // 战斗中禁止玩家主动使用/装备物品（战斗内的弹药/状态消耗走 context.useItem，
-        // 不经过这里，因此不会误伤）
-        if (getLength(this.state.mstState) != 0 || this.state.isDueling) {
-            this.showMsg(<p key='noItemInBattle'>无法使用：战斗中禁止使用物品，请先结束战斗再试。</p>);
-            return;
+        // 战斗中只允许服用食物/药剂，且每次消耗 0.5 小时（v0.56 修复：终局 Boss 血量上调后
+        // 完全禁用战斗补给会让 Boss 不可战胜；装备、卷轴等仍必须在战斗外使用）。
+        // 战斗内的弹药/状态消耗走 context.useItem，不经过这里，因此不会误伤。
+        var inBattle = (getLength(this.state.mstState) != 0 || this.state.isDueling);
+        if (inBattle) {
+            var battleItemType = ITEM_DATA[item] && ITEM_DATA[item].type;
+            var canUseInBattle = (battleItemType == 'food' || battleItemType == 'cooked' || battleItemType == 'poizon') && !!ITEM_DATA[item].effect;
+            if (!canUseInBattle) {
+                this.showMsg(<p key='noItemInBattle'>无法使用：战斗中只能服用食物/药剂（每次消耗 0.5 小时）；装备、卷轴等请结束战斗后再用。</p>);
+                return;
+            }
         }
         //食物、药剂效果
         if (ITEM_DATA[item].effect) {
@@ -339,6 +345,11 @@ var MainComponent = React.createClass({
                 case 'poizon':
                     this.AudioEngine.playEffect('drink');
                     break;
+            }
+            if (inBattle) {
+                // 战斗补给消耗 0.5 小时，避免“零时间无限吃药”的老漏洞
+                this.useTime(function () { }, COMBAT_TURN_TIME);
+                this.showMsg(<p key={'battleUse_' + item}>{'战斗中服用了 ' + fmtItemName(item) + '（消耗 ' + fmtHours(COMBAT_TURN_TIME) + '）'}</p>);
             }
         }
 

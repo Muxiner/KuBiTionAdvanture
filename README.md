@@ -56,6 +56,7 @@ saves/                # 本地存档后端数据目录
 - 死装备接入：54 件无来源装备全部接入（地牢 5–16 层追加概率奖励，13–16 层终局装备掉率 0.02–0.04；`noWeapon` 保留但不进入奖励池）；全装备无来源 54→0。
 - 终局 TTK：魔王 `maxHp` 10000→75000、`dmg` 120+80L→180+100L（30 级武器技能 + 装备 +50%、T6 760 约 6,270/击，实战 12–13 回合）；8 条龙 Boss 统一 `hpMul=1`、用 `maxHp` 承载血量，按 T4/T5/T6 基准武器落在 3–8 回合；`reward` 未动。
 - 新增审计：`.ui-optimize/weapon-balance/weapon-audit.js`（before/after JSON：同档支配、每档伤害带、无来源数、护甲 `dmgMul` 越界、Boss TTK）。
+- 战斗补给：Boss 血量上调后，完全禁止战斗用药会让终局不可战胜；现在战斗中可服用食物/药剂，每次消耗 0.5 小时（装备、卷轴等仍禁止），并保留 `v0.51` 修复的「零时间吃药」约束。
 
 ### v 0.55
 - 渲染隔离（**阶段性优化，非完整状态切片**）：`MainComponent` 的 `setProgress` / `setMisk` / `clearMisk` 三个 rAF 循环不再逐帧 `setState`，改为写入全局 `UX_PROGRESS` 总线（`src/ui/common.js`），由 `ProgressOverlay`（`src/scenes/advan.js`）局部订阅渲染；根组件 state 已不含 `progress` / `misk`。
